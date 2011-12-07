@@ -1417,8 +1417,8 @@ public class Transaction extends ChildMessage {
     }
 
     public void setVersion(int version) {
-        this.version = version;
         unCache();
+        this.version = version;
     }
 
     /** Returns an unmodifiable view of all inputs. */
