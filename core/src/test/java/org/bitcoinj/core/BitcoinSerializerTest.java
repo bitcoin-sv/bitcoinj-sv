@@ -30,11 +30,11 @@ import static org.bitcoinj.core.Utils.HEX;
 import static org.junit.Assert.*;
 
 public class BitcoinSerializerTest {
-    private static final byte[] ADDRESS_MESSAGE_BYTES = HEX.decode("f9beb4d96164647200000000000000001f000000" +
+    private static final byte[] ADDRESS_MESSAGE_BYTES = HEX.decode("e3e1f3e86164647200000000000000001f000000" +
             "ed52399b01e215104d010000000000000000000000000000000000ffff0a000001208d");
 
     private static final byte[] TRANSACTION_MESSAGE_BYTES = HEX.withSeparator(" ", 2).decode(
-            "f9 be b4 d9 74 78 00 00  00 00 00 00 00 00 00 00" +
+            "e3 e1 f3 e8 74 78 00 00  00 00 00 00 00 00 00 00" +
             "02 01 00 00 e2 93 cd be  01 00 00 00 01 6d bd db" +
             "08 5b 1d 8a f7 51 84 f0  bc 01 fa d5 8d 12 66 e9" +
             "b6 3b 50 88 19 90 e4 b4  0d 6a ee 36 29 00 00 00" +
@@ -137,7 +137,7 @@ public class BitcoinSerializerTest {
     public void testHeaders1() throws Exception {
         MessageSerializer serializer = MainNetParams.get().getDefaultSerializer();
 
-        byte[] headersMessageBytes = HEX.decode("f9beb4d9686561" +
+        byte[] headersMessageBytes = HEX.decode("e3e1f3e8686561" +
                 "646572730000000000520000005d4fab8101010000006fe28c0ab6f1b372c1a6a246ae6" +
                 "3f74f931e8365e15a089c68d6190000000000982051fd1e4ba744bbbe680e1fee14677b" +
                 "a1a3c3540bf7b1cdb606e857233e0e61bc6649ffff001d01e3629900");
@@ -163,7 +163,7 @@ public class BitcoinSerializerTest {
     public void testHeaders2() throws Exception {
         MessageSerializer serializer = MainNetParams.get().getDefaultSerializer();
 
-        byte[] headersMessageBytes = HEX.decode("f9beb4d96865616465" +
+        byte[] headersMessageBytes = HEX.decode("e3e1f3e86865616465" +
                 "72730000000000e701000085acd4ea06010000006fe28c0ab6f1b372c1a6a246ae63f74f931e" +
                 "8365e15a089c68d6190000000000982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1c" +
                 "db606e857233e0e61bc6649ffff001d01e3629900010000004860eb18bf1b1620e37e9490fc8a" +
