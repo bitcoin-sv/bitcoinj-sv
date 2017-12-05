@@ -1,8 +1,14 @@
-[![Build Status](https://travis-ci.org/bitcoincash-wallet/bitcoincashj.png?branch=release-0.14)](https://travis-ci.org/bitcoincash-wallet/bitcoincashj)   [![Coverage Status](https://coveralls.io/repos/bitcoincash-wallet/bitcoincashj/badge.png?branch=release-0.14)](https://coveralls.io/r/bitcoincash-wallet/bitcoincashj?branch=release-0.14) 
+[![Build Status](https://travis-ci.org/bitcoinj-cash/bitcoinj.png?branch=release-0.14)](https://travis-ci.org/bitcoinj-cash/bitcoinj)   [![Coverage Status](https://coveralls.io/repos/bitcoinj-cash/bitcoinj/badge.png?branch=release-0.14)](https://coveralls.io/r/bitcoinj-cash/bitcoinj?branch=release-0.14) 
 
 ### Welcome to bitcoinj
 
-The bitcoinj library is a Java implementation of the Bitcoin protocol, which allows it to maintain a wallet and send/receive transactions without needing a local copy of Bitcoin Core. It comes with full documentation and some example apps showing how to use it.
+### Welcome to bitcoinj.cash
+
+The bitcoinj.cash library is a Java implementation of the Bitcoin cash protocol. This library is a fork of Mike Hearn's original bitcoinj library aimed at supporting the Bitcoin cash eco-system.
+
+It allows maintaining a wallet and sending/receiving transactions without needing a full blockchain node. It comes with full documentation and some example apps showing how to use it.
+
+For support and discussion please join us on the [mailing list](https://groups.google.com/forum/#!forum/bitcoinj-cash)
 
 ### Technologies
 
