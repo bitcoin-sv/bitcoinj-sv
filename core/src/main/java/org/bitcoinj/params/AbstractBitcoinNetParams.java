@@ -17,18 +17,17 @@
 
 package org.bitcoinj.params;
 
-import java.math.BigInteger;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import org.bitcoinj.core.*;
-import org.bitcoinj.utils.MonetaryFormat;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.utils.MonetaryFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Stopwatch;
+import java.math.BigInteger;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Parameters for Bitcoin-like networks.
@@ -41,8 +40,6 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractBitcoinNetParams.class);
 
-    // Aug, 1 hard fork
-    int uahfHeight = 478559;
     /** Activation time at which the cash HF kicks in. */
     protected long cashHardForkActivationTime;
     protected int daaHeight;
@@ -54,10 +51,11 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     /**
      * Checks if we are at a difficulty transition point.
      * @param storedPrev The previous stored block
+     * @param parameters The network parameters
      * @return If this is a difficulty transition point
      */
-    protected boolean isDifficultyTransitionPoint(StoredBlock storedPrev) {
-        return ((storedPrev.getHeight() + 1) % this.getInterval()) == 0;
+    public static boolean isDifficultyTransitionPoint(StoredBlock storedPrev, NetworkParameters parameters) {
+        return ((storedPrev.getHeight() + 1) % parameters.getInterval()) == 0;
     }
 
     @Override
@@ -71,7 +69,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
         }
 
         // Is this supposed to be a difficulty transition point
-        if (!isDifficultyTransitionPoint(storedPrev)) {
+        if (!isDifficultyTransitionPoint(storedPrev, this)) {
 
             if(storedPrev.getHeader().getDifficultyTargetAsInteger().equals(getMaxTarget()))
             {
@@ -181,25 +179,6 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
                     Long.toHexString(newTargetCompact) + " vs " + Long.toHexString(receivedTargetCompact));
                     */
     }
-    void verifyDifficulty(BigInteger newTarget, Block nextBlock)
-    {
-        if (newTarget.compareTo(this.getMaxTarget()) > 0) {
-            log.info("Difficulty hit proof of work limit: {}", newTarget.toString(16));
-            newTarget = this.getMaxTarget();
-        }
-
-        int accuracyBytes = (int) (nextBlock.getDifficultyTarget() >>> 24) - 3;
-        long receivedTargetCompact = nextBlock.getDifficultyTarget();
-
-        // The calculated difficulty is to a higher precision than received, so reduce here.
-        BigInteger mask = BigInteger.valueOf(0xFFFFFFL).shiftLeft(accuracyBytes * 8);
-        newTarget = newTarget.and(mask);
-        long newTargetCompact = Utils.encodeCompactBits(newTarget);
-
-        if (newTargetCompact != receivedTargetCompact)
-            throw new VerificationException("Network provided difficulty bits do not match what was calculated: " +
-                    Long.toHexString(newTargetCompact) + " vs " + Long.toHexString(receivedTargetCompact));
-    }
 
     /**
      * The number that is one greater than the largest representable SHA-256
@@ -211,7 +190,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
      * Compute the a target based on the work done between 2 blocks and the time
      * required to produce that work.
      */
-     BigInteger ComputeTarget(StoredBlock pindexFirst,
+     public static BigInteger ComputeTarget(StoredBlock pindexFirst,
                                    StoredBlock pindexLast) {
 
          Preconditions.checkState(pindexLast.getHeight() > pindexFirst.getHeight());
@@ -222,7 +201,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
          * between blocks.
          */
         BigInteger work = pindexLast.getChainWork().subtract(pindexFirst.getChainWork());
-        work = work.multiply(BigInteger.valueOf(this.TARGET_SPACING));
+        work = work.multiply(BigInteger.valueOf(TARGET_SPACING));
 
         // In order to avoid difficulty cliffs, we bound the amplitude of the
         // adjustement we are going to do.
