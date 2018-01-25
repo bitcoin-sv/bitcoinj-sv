@@ -1,0 +1,84 @@
+/* Copyright 2018 Daniel Connolly
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Jenkins integration tests for BitcoinJ Cash
+
+// tested with Jenkins v2.89.3
+// required plugins: ansiColor
+
+pipeline {
+    agent {
+    	docker {
+      		image 'kaiwinter/docker-java8-maven'
+		    args '-v $HOME/.m2:/root/.m2'
+	    }
+    }
+
+    environment {
+        _JAVA_OPTIONS = '-Xmx2048m -Xms512m'
+    }
+
+    stages {
+        stage('test') {
+            steps {
+                ansiColor('xterm') {
+                    sh 'mvn clean test -Dmaven.javadoc.skip=true'
+                }
+            }
+        }
+        stage('verify') {
+            steps {
+                ansiColor('xterm') {
+                    sh 'mvn verify -Dmaven.javadoc.skip=true -DskipUnitTests'
+                }
+            }
+        }
+        stage('package') {
+            steps {
+                ansiColor('xterm') {
+                    sh 'mvn package -Dmaven.javadoc.skip=true -Dmaven.test.skip'
+                }
+            }
+        }
+
+        // test syncing with testnet
+        stage('test testnet sync') {
+            steps {
+                timeout(time: 5, unit:'MINUTES') {
+                    sh 'jenkins/tests/sync-chain -n TEST'
+                }
+            }
+        }
+
+        // test syncing with mainnet
+        stage('test mainnet sync') {
+            steps {
+                timeout(time: 5, unit:'MINUTES') {
+                    sh 'jenkins/tests/sync-chain -n MAIN'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            junit '**/target/*-reports/*.xml'
+        }
+        success {
+            archive '**/target/*.jar'
+        }
+    }
+}
+

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# run tests locally - should be run from project root directory
+# note that this may not behave exactly like the Jenkins tests,
+#   for example it does not check for timeouts
+
+jenkins/tests/sync-chain -n MAIN
+jenkins/tests/sync-chain -n TEST
