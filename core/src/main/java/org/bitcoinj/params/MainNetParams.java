@@ -135,7 +135,7 @@ public class MainNetParams extends AbstractBitcoinNetParams {
         // Activation time at which the cash HF kicks in.
         cashHardForkActivationTime = 1510600000;
         // Nov 13 protocol upgrade
-        daaHeight = 504031+1;     // AbstractBitcoinNetParams::checkDifficultyTransitions() has storedprev+1 > daaHeight, for some reason
+        daaHeight = 504031;
     }
 
     private static MainNetParams instance;

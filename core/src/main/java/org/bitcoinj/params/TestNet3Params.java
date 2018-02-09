@@ -132,15 +132,15 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
     }
     @Override
     protected void checkNextCashWorkRequired(StoredBlock storedPrev,
-                                   Block nextBlock, BlockStore blockStore) {
+                                             Block newBlock, BlockStore blockStore) {
         // This cannot handle the genesis block and early blocks in general.
         //assert(pindexPrev);
 
 
 
         // Compute the difficulty based on the full adjustement interval.
-        int nHeight = storedPrev.getHeight();
-        Preconditions.checkState(nHeight >= this.interval);
+        int height = storedPrev.getHeight();
+        Preconditions.checkState(height >= this.interval);
 
         // Get the last suitable block of the difficulty interval.
         try {
@@ -149,41 +149,36 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
             // If the new block's timestamp is more than 2* 10 minutes then allow
             // mining of a min-difficulty block.
 
-                Block prev = storedPrev.getHeader();
+            Block prev = storedPrev.getHeader();
 
+            final long timeDelta = newBlock.getTimeSeconds() - prev.getTimeSeconds();
+            if (timeDelta >= 0 && timeDelta > NetworkParameters.TARGET_SPACING * 2) {
+                if (!maxTarget.equals(newBlock.getDifficultyTargetAsInteger()))
+                    throw new VerificationException("Testnet block transition that is not allowed: " +
+                            Long.toHexString(Utils.encodeCompactBits(maxTarget)) + " (required min difficulty) vs " +
+                            Long.toHexString(newBlock.getDifficultyTarget()));
+                return;
+            }
 
-                final long timeDelta = nextBlock.getTimeSeconds() - prev.getTimeSeconds();
-                if (timeDelta >= 0 && timeDelta > NetworkParameters.TARGET_SPACING * 2) {
-                    if (!maxTarget.equals(nextBlock.getDifficultyTargetAsInteger()))
-                        throw new VerificationException("Testnet block transition that is not allowed: " +
-                                Long.toHexString(Utils.encodeCompactBits(maxTarget)) + " (required min difficulty) vs " +
-                                Long.toHexString(nextBlock.getDifficultyTarget()));
-                    return;
-                }
-
-            StoredBlock pindexLast = GetSuitableBlock(storedPrev, blockStore);
-            //assert (pindexLast);
+            StoredBlock lastBlock = GetSuitableBlock(storedPrev, blockStore);
 
             // Get the first suitable block of the difficulty interval.
-            int nHeightFirst = nHeight - 144;
-
-            StoredBlock pindexFirst = storedPrev;
+            StoredBlock firstBlock = storedPrev;
 
             for (int i = 144; i > 0; --i)
             {
-                pindexFirst = pindexFirst.getPrev(blockStore);
-                if(pindexFirst == null)
+                firstBlock = firstBlock.getPrev(blockStore);
+                if(firstBlock == null)
                     return;
             }
 
-            pindexFirst = GetSuitableBlock(pindexFirst, blockStore);
-            //assert (pindexFirst);
+            firstBlock = GetSuitableBlock(firstBlock, blockStore);
 
             // Compute the target based on time and work done during the interval.
             BigInteger nextTarget =
-                    ComputeTarget(pindexFirst, pindexLast);
+                    ComputeTarget(firstBlock, lastBlock);
 
-            verifyDifficulty(nextTarget, nextBlock);
+            verifyDifficulty(nextTarget, newBlock);
         }
         catch (BlockStoreException x)
         {
