@@ -95,6 +95,13 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
             }
             long mpt6blocks = 0;
             try {
+                //Check to see if there are enough blocks before cursor to correctly calculate the median time
+                StoredBlock beforeCursor = cursor;
+                for (int i = 0; i < 10; i++) {
+                    beforeCursor = blockStore.get(beforeCursor.getHeader().getPrevBlockHash());
+                    if(beforeCursor == null)
+                        return; //Not enough blocks to check difficulty.
+                }
                 mpt6blocks = blockChain.getMedianTimestampOfRecentBlocks(storedPrev, blockStore) - blockChain.getMedianTimestampOfRecentBlocks(cursor, blockStore);
             } catch (NullPointerException x)
             {
