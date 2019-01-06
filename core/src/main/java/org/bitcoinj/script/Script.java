@@ -689,9 +689,9 @@ public class Script {
         // printed out but one is a P2SH script and the other isn't! :(
         byte[] program = getProgram();
         return program.length == 23 &&
-               (program[0] & 0xff) == OP_HASH160 &&
-               (program[1] & 0xff) == 0x14 &&
-               (program[22] & 0xff) == OP_EQUAL;
+                (program[0] & 0xff) == OP_HASH160 &&
+                (program[1] & 0xff) == 0x14 &&
+                (program[22] & 0xff) == OP_EQUAL;
     }
 
     /**

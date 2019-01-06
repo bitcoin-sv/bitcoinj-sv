@@ -41,16 +41,22 @@ public class StoredBlock {
     // bytes to represent this field, so 12 bytes should be plenty for now.
     public static final int CHAIN_WORK_BYTES = 12;
     public static final byte[] EMPTY_BYTES = new byte[CHAIN_WORK_BYTES];
-    public static final int COMPACT_SERIALIZED_SIZE = Block.HEADER_SIZE + CHAIN_WORK_BYTES + 4;  // for height
+    public static final int COMPACT_SERIALIZED_SIZE = Block.HEADER_SIZE + CHAIN_WORK_BYTES + 4 + 4 + 8;  // for height, txCount, blockSize
 
     private Block header;
     private BigInteger chainWork;
     private int height;
+    private int txCount = -1;
+    private long blockSize = -1;
 
     public StoredBlock(Block header, BigInteger chainWork, int height) {
         this.header = header;
         this.chainWork = chainWork;
         this.height = height;
+        if (header.getTransactions() != null && !header.getTransactions().isEmpty()) {
+            txCount = header.getTransactions().size();
+            blockSize = header.unsafeBitcoinSerialize().length;
+        }
     }
 
     /**
@@ -74,6 +80,18 @@ public class StoredBlock {
      */
     public int getHeight() {
         return height;
+    }
+
+    public int getTxCount() { return txCount; }
+
+    public long getBlockSize() { return blockSize; }
+
+    public void setTxCount(int txCount) {
+        this.txCount = txCount;
+    }
+
+    public void setBlockSize(long blockSize) {
+        this.blockSize = blockSize;
     }
 
     /** Returns true if this objects chainWork is higher than the others. */
@@ -125,6 +143,8 @@ public class StoredBlock {
         }
         buffer.put(chainWorkBytes);
         buffer.putInt(getHeight());
+        buffer.putInt(getTxCount());
+        buffer.putLong(getBlockSize());
         // Using unsafeBitcoinSerialize here can give us direct access to the same bytes we read off the wire,
         // avoiding serialization round-trips.
         byte[] bytes = getHeader().unsafeBitcoinSerialize();
@@ -137,9 +157,14 @@ public class StoredBlock {
         buffer.get(chainWorkBytes);
         BigInteger chainWork = new BigInteger(1, chainWorkBytes);
         int height = buffer.getInt();  // +4 bytes
+        int txCount = buffer.getInt(); // + 4 bytes
+        long blockSize = buffer.getLong(); // + 8 bytes
         byte[] header = new byte[Block.HEADER_SIZE + 1];    // Extra byte for the 00 transactions length.
         buffer.get(header, 0, Block.HEADER_SIZE);
-        return new StoredBlock(params.getDefaultSerializer().makeBlock(header), chainWork, height);
+        StoredBlock block = new StoredBlock(params.getDefaultSerializer().makeBlock(header), chainWork, height);
+        block.setTxCount(txCount);
+        block.setBlockSize(blockSize);
+        return block;
     }
 
     @Override

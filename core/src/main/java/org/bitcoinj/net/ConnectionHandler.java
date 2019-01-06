@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkState;
  * A simple NIO MessageWriteTarget which handles all the business logic of a connection (reading+writing bytes).
  * Used only by the NioClient and NioServer classes
  */
-class ConnectionHandler implements MessageWriteTarget {
+public class ConnectionHandler implements MessageWriteTarget {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ConnectionHandler.class);
 
     private static final int BUFFER_SIZE_LOWER_BOUND = 4096;

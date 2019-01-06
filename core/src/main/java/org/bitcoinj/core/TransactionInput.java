@@ -263,6 +263,10 @@ public class TransactionInput extends ChildMessage {
         return value;
     }
 
+    public void setValue(Coin value) {
+        this.value = value;
+    }
+
     public enum ConnectionResult {
         NO_SUCH_TX,
         ALREADY_SPENT,

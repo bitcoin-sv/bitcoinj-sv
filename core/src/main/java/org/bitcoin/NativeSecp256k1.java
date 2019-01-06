@@ -66,11 +66,11 @@ public class NativeSecp256k1 {
         byteBuff.put(signature);
         byteBuff.put(pub);
 
-        r.lock();
+        //r.lock();
         try {
             return secp256k1_ecdsa_verify(byteBuff, Secp256k1Context.getContext(), signature.length, pub.length) == 1;
         } finally {
-            r.unlock();
+            //r.unlock();
         }
     }
 

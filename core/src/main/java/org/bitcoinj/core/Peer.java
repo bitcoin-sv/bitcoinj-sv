@@ -58,26 +58,26 @@ import static com.google.common.base.Preconditions.checkState;
 public class Peer extends PeerSocketHandler {
     private static final Logger log = LoggerFactory.getLogger(Peer.class);
 
-    protected final ReentrantLock lock = Threading.lock("peer");
+    protected final ReentrantLock lock;
 
     private final NetworkParameters params;
     private final AbstractBlockChain blockChain;
     private final Context context;
 
     private final CopyOnWriteArrayList<ListenerRegistration<BlocksDownloadedEventListener>> blocksDownloadedEventListeners
-        = new CopyOnWriteArrayList<ListenerRegistration<BlocksDownloadedEventListener>>();
+            = new CopyOnWriteArrayList<ListenerRegistration<BlocksDownloadedEventListener>>();
     private final CopyOnWriteArrayList<ListenerRegistration<ChainDownloadStartedEventListener>> chainDownloadStartedEventListeners
-        = new CopyOnWriteArrayList<ListenerRegistration<ChainDownloadStartedEventListener>>();
+            = new CopyOnWriteArrayList<ListenerRegistration<ChainDownloadStartedEventListener>>();
     private final CopyOnWriteArrayList<ListenerRegistration<PeerConnectedEventListener>> connectedEventListeners
-        = new CopyOnWriteArrayList<ListenerRegistration<PeerConnectedEventListener>>();
+            = new CopyOnWriteArrayList<ListenerRegistration<PeerConnectedEventListener>>();
     private final CopyOnWriteArrayList<ListenerRegistration<PeerDisconnectedEventListener>> disconnectedEventListeners
-        = new CopyOnWriteArrayList<ListenerRegistration<PeerDisconnectedEventListener>>();
+            = new CopyOnWriteArrayList<ListenerRegistration<PeerDisconnectedEventListener>>();
     private final CopyOnWriteArrayList<ListenerRegistration<GetDataEventListener>> getDataEventListeners
-        = new CopyOnWriteArrayList<ListenerRegistration<GetDataEventListener>>();
+            = new CopyOnWriteArrayList<ListenerRegistration<GetDataEventListener>>();
     private final CopyOnWriteArrayList<ListenerRegistration<PreMessageReceivedEventListener>> preMessageReceivedEventListeners
-        = new CopyOnWriteArrayList<ListenerRegistration<PreMessageReceivedEventListener>>();
+            = new CopyOnWriteArrayList<ListenerRegistration<PreMessageReceivedEventListener>>();
     private final CopyOnWriteArrayList<ListenerRegistration<OnTransactionBroadcastListener>> onTransactionEventListeners
-        = new CopyOnWriteArrayList<ListenerRegistration<OnTransactionBroadcastListener>>();
+            = new CopyOnWriteArrayList<ListenerRegistration<OnTransactionBroadcastListener>>();
     // Whether to try and download blocks and transactions from this peer. Set to false by PeerGroup if not the
     // primary peer. This is to avoid redundant work and concurrency problems with downloading the same chain
     // in parallel.
@@ -244,6 +244,7 @@ public class Peer extends PeerSocketHandler {
                 versionHandshakeComplete();
             }
         }, Threading.SAME_THREAD);
+        lock = Threading.lock("peer");
     }
 
     /**
@@ -896,7 +897,7 @@ public class Peer extends PeerSocketHandler {
 
     // The marker object in the future returned is the same as the parameter. It is arbitrary and can be anything.
     protected ListenableFuture<Object> downloadDependenciesInternal(final int maxDepth, final int depth,
-            final Transaction tx, final Object marker, final List<Transaction> results) {
+                                                                    final Transaction tx, final Object marker, final List<Transaction> results) {
 
         final SettableFuture<Object> resultFuture = SettableFuture.create();
         final Sha256Hash rootTxHash = tx.getHash();
