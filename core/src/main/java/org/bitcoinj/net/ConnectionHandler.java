@@ -153,13 +153,13 @@ public class ConnectionHandler implements MessageWriteTarget {
         } catch (IOException e) {
             lock.unlock();
             andUnlock = false;
-            log.warn("Error writing message to connection, closing connection", e);
+            log.warn("Error writing message to connection, closing connection");
             closeConnection();
             throw e;
         } catch (CancelledKeyException e) {
             lock.unlock();
             andUnlock = false;
-            log.warn("Error writing message to connection, closing connection", e);
+            log.warn("Error writing message to connection, closing connection");
             closeConnection();
             throw new IOException(e);
         } finally {
