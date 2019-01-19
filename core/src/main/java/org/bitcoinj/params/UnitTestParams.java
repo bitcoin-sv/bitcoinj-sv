@@ -33,6 +33,8 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
         super();
         id = ID_UNITTESTNET;
         packetMagic = 0xf4e5f3f4L;      // must be same as testnet3
+        oldPacketMagic = 0xf9beb4d9L;
+        oldPacketMagic = 0x0b110907;
         addressHeader = 111;
         p2shHeader = 196;
         acceptableAddressCodes = new int[] { addressHeader, p2shHeader };
