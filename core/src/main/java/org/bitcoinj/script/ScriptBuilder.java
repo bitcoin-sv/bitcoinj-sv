@@ -101,6 +101,11 @@ public class ScriptBuilder {
             opcode = OP_PUSHDATA1;
         } else if (data.length < 65536) {
             opcode = OP_PUSHDATA2;
+        } else if (data.length <= Integer.MAX_VALUE) {
+            //note the largest possible size is actually uint32.MAX_VALUE
+            //but due to java arrays being integer indexed it is not possible to handle
+            //data chunks larger that 2^31-1
+            opcode = OP_PUSHDATA4;
         } else {
             throw new RuntimeException("Unimplemented");
         }

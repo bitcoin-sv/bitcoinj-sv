@@ -71,6 +71,7 @@ public abstract class NetworkParameters {
     protected Block genesisBlock;
     protected BigInteger maxTarget;
     protected int port;
+    protected long oldPacketMagic; //original BTC packet magic. Still used in native bitcoin block files
     protected long packetMagic;  // Indicates message origin network and is used to seek to the next message when stream state is unknown.
     protected int addressHeader;
     protected int p2shHeader;
@@ -314,6 +315,11 @@ public abstract class NetworkParameters {
     /** The header bytes that identify the start of a packet on this network. */
     public long getPacketMagic() {
         return packetMagic;
+    }
+
+    /** the original packet magic bytes used in bitcoin BTC **/
+    public long getOldPacketMagic() {
+        return oldPacketMagic;
     }
 
     /**
