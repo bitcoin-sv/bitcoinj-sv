@@ -74,6 +74,7 @@ public abstract class NetworkParameters {
     protected BigInteger maxTarget;
     protected int port;
     protected long packetMagic;  // Indicates message origin network and is used to seek to the next message when stream state is unknown.
+    protected long oldPacketMagic;
     protected int addressHeader;
     protected int p2shHeader;
     protected int dumpedPrivateKeyHeader;
@@ -315,6 +316,8 @@ public abstract class NetworkParameters {
     public long getPacketMagic() {
         return packetMagic;
     }
+    /** The header bytes from the first part of the chain, before the split. */
+    public long getOldPacketMagic() { return oldPacketMagic; }
 
     /**
      * First byte of a base58 encoded address. See {@link org.bitcoinj.core.Address}. This is the same as acceptableAddressCodes[0] and
