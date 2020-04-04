@@ -44,14 +44,14 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
         ScriptStateListener listener = new InteractiveScriptStateListener(true);
 
-        Script script = null;
+        ScriptStream script = null;
 
         System.out.println("\n***Executing scriptSig***\n");
-        script = scriptSig;
+        script = new SimpleScriptStream(scriptSig);
         Script.executeDebugScript(null, 0, script, stack, Coin.ZERO, Script.ALL_VERIFY_FLAGS, listener);
 
         System.out.println("\n***Executing scriptPubKey***\n");
-        script = scriptPubKey;
+        script = new SimpleScriptStream(scriptPubKey);
         Script.executeDebugScript(tx1, 0, script, stack, Coin.ZERO, Script.ALL_VERIFY_FLAGS, listener);
 
 //        TextScriptParser parser = new TextScriptParser(false, null);

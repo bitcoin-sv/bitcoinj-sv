@@ -869,7 +869,7 @@ public class Script {
      */
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
                                      Script script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags) throws ScriptException {
-        executeScript(txContainingThis,index, script, stack, value, verifyFlags, null);
+        executeScript(txContainingThis,index, new SimpleScriptStream(script), stack, value, verifyFlags, null);
     }
 
     /**
@@ -877,7 +877,7 @@ public class Script {
      * and passed to the listener before being rethrown.
      */
     public static void executeDebugScript(@Nullable Transaction txContainingThis, long index,
-                                     Script script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
+                                     ScriptStream script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
         try {
             executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener);
         } catch (ScriptException e) {
@@ -900,7 +900,7 @@ public class Script {
      * likely to change in future.
      */
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
-                                     Script script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
+                                     ScriptStream script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
         int opCount = 0;
         int lastCodeSepLocation = 0;
 
@@ -920,7 +920,7 @@ public class Script {
             );
         }
         
-        for (ScriptChunk chunk : script.chunks) {
+        for (ScriptChunk chunk : script) {
             boolean shouldExecute = !ifStack.contains(false);
 
             if (scriptStateListener != null) {
@@ -1410,7 +1410,7 @@ public class Script {
                         }
                         break;
                     }
-                    executeCheckLockTimeVerify(txContainingThis, (int) index, script, stack, lastCodeSepLocation, opcode, verifyFlags);
+                    executeCheckLockTimeVerify(txContainingThis, (int) index, stack, lastCodeSepLocation, opcode, verifyFlags);
                     break;
                 case OP_NOP1:
                 case OP_NOP3:
@@ -1449,7 +1449,7 @@ public class Script {
     }
 
     // This is more or less a direct translation of the code in Bitcoin Core
-    private static void executeCheckLockTimeVerify(Transaction txContainingThis, int index, Script script, LinkedList<byte[]> stack,
+    private static void executeCheckLockTimeVerify(Transaction txContainingThis, int index, LinkedList<byte[]> stack,
                                         int lastCodeSepLocation, int opcode,
                                         Set<VerifyFlag> verifyFlags) throws ScriptException {
         if (stack.size() < 1)
@@ -1488,7 +1488,7 @@ public class Script {
             throw new ScriptException("Transaction contains a final transaction input for a CHECKLOCKTIMEVERIFY script.");
     }
 
-    private static void executeCheckSig(Transaction txContainingThis, int index, Script script, LinkedList<byte[]> stack,
+    private static void executeCheckSig(Transaction txContainingThis, int index, ScriptStream script, LinkedList<byte[]> stack,
                                         int lastCodeSepLocation, int opcode, Coin value,
                                         Set<VerifyFlag> verifyFlags) throws ScriptException {
         final boolean requireCanonical = verifyFlags.contains(VerifyFlag.STRICTENC)
@@ -1499,8 +1499,7 @@ public class Script {
         byte[] pubKey = stack.pollLast();
         byte[] sigBytes = stack.pollLast();
 
-        byte[] prog = script.getProgram();
-        byte[] connectedScript = Arrays.copyOfRange(prog, lastCodeSepLocation, prog.length);
+        byte[] connectedScript = script.getProgramFrom(script.getLastCodeSepIndex());
 
         UnsafeByteArrayOutputStream outStream = new UnsafeByteArrayOutputStream(sigBytes.length + 1);
         try {
@@ -1538,7 +1537,7 @@ public class Script {
                 throw new ScriptException("Script failed OP_CHECKSIGVERIFY");
     }
 
-    private static int executeMultiSig(Transaction txContainingThis, int index, Script script, LinkedList<byte[]> stack,
+    private static int executeMultiSig(Transaction txContainingThis, int index, ScriptStream script, LinkedList<byte[]> stack,
                                        int opCount, int lastCodeSepLocation, int opcode, Coin value,
                                        Set<VerifyFlag> verifyFlags) throws ScriptException {
         final boolean requireCanonical = verifyFlags.contains(VerifyFlag.STRICTENC)
@@ -1573,8 +1572,7 @@ public class Script {
             sigs.add(sig);
         }
 
-        byte[] prog = script.getProgram();
-        byte[] connectedScript = Arrays.copyOfRange(prog, lastCodeSepLocation, prog.length);
+        byte[] connectedScript = script.getProgramFrom(script.getLastCodeSepIndex());
 
         for (byte[] sig : sigs) {
             UnsafeByteArrayOutputStream outStream = new UnsafeByteArrayOutputStream(sig.length + 1);
