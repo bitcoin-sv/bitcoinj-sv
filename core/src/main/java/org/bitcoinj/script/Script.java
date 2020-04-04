@@ -791,7 +791,7 @@ public class Script {
     
     ////////////////////// Script verification and helpers ////////////////////////////////
     
-    private static boolean castToBool(byte[] data) {
+    public static boolean castToBool(byte[] data) {
         for (int i = 0; i < data.length; i++)
         {
             // "Can be negative zero" - Bitcoin Core (see OpenSSL's BN_bn2mpi)
@@ -859,6 +859,7 @@ public class Script {
          executeScript(txContainingThis, index, script, stack, Coin.ZERO, verifyFlags);
     }
 
+
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
      * {@link org.bitcoinj.core.TransactionInput#verify(org.bitcoinj.core.TransactionOutput)} or
@@ -868,14 +869,63 @@ public class Script {
      */
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
                                      Script script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags) throws ScriptException {
+        executeScript(txContainingThis,index, script, stack, value, verifyFlags, null);
+    }
+
+    /**
+     * Executes a script in debug mode with the provided ScriptStateListener.  Exceptions (which are thrown when a script fails) are caught
+     * and passed to the listener before being rethrown.
+     */
+    public static void executeDebugScript(@Nullable Transaction txContainingThis, long index,
+                                     Script script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
+        try {
+            executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener);
+        } catch (ScriptException e) {
+            scriptStateListener.onExceptionThrown(e);
+            try {
+                //pause to hopefully give the System.out time to beat System.err
+                Thread.sleep(200);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Exposes the script interpreter. Normally you should not use this directly, instead use
+     * {@link org.bitcoinj.core.TransactionInput#verify(org.bitcoinj.core.TransactionOutput)} or
+     * {@link org.bitcoinj.script.Script#correctlySpends(org.bitcoinj.core.Transaction, long, Script)}. This method
+     * is useful if you need more precise control or access to the final state of the stack. This interface is very
+     * likely to change in future.
+     */
+    public static void executeScript(@Nullable Transaction txContainingThis, long index,
+                                     Script script, LinkedList<byte[]> stack, Coin value, Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
         int opCount = 0;
         int lastCodeSepLocation = 0;
-        
+
         LinkedList<byte[]> altstack = new LinkedList<byte[]>();
         LinkedList<Boolean> ifStack = new LinkedList<Boolean>();
+
+        if (scriptStateListener != null) {
+            scriptStateListener.setInitialState(
+                    txContainingThis,
+                    index,
+                    script,
+                    Collections.unmodifiableList(stack),
+                    Collections.unmodifiableList(altstack),
+                    Collections.unmodifiableList(ifStack),
+                    value,
+                    verifyFlags
+            );
+        }
         
         for (ScriptChunk chunk : script.chunks) {
             boolean shouldExecute = !ifStack.contains(false);
+
+            if (scriptStateListener != null) {
+                scriptStateListener._onBeforeOpCodeExecuted(chunk, shouldExecute);
+            }
 
             if (chunk.opcode == OP_0) {
                 if (!shouldExecute)
@@ -1383,10 +1433,19 @@ public class Script {
             
             if (stack.size() + altstack.size() > 1000 || stack.size() + altstack.size() < 0)
                 throw new ScriptException("Stack size exceeded range");
+
+            if (scriptStateListener != null) {
+                scriptStateListener.onAfterOpCodeExectuted();
+            }
         }
         
         if (!ifStack.isEmpty())
             throw new ScriptException("OP_IF/OP_NOTIF without OP_ENDIF");
+
+        if (scriptStateListener != null) {
+            scriptStateListener.onScriptComplete();
+        }
+
     }
 
     // This is more or less a direct translation of the code in Bitcoin Core
