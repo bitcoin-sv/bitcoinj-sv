@@ -5,6 +5,8 @@ import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.Transaction;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +27,7 @@ public abstract class ScriptStateListener {
 
     private Transaction txContainingThis;
     private long index;
-    private Script script;
+    private ScriptStream script;
     private List<byte[]> stack;
     private List<byte[]> altstack;
     private List<Boolean> ifStack;
@@ -38,18 +40,16 @@ public abstract class ScriptStateListener {
 
 
     void setInitialState(@Nullable Transaction txContainingThis, long index,
-                               Script script, List<byte[]> stack, List<byte[]> altstack, List<Boolean> ifStack, Coin value, Set<Script.VerifyFlag> verifyFlags) {
+                               ScriptStream script, List<byte[]> stack, List<byte[]> altstack, List<Boolean> ifStack, Coin value, Set<Script.VerifyFlag> verifyFlags) {
         this.chunkIndex = -1;
         this.txContainingThis = txContainingThis;
         this.index = index;
-        this.script = script;
+        this.script = script.clone();
         this.stack = stack;
         this.altstack = altstack;
         this.ifStack = ifStack;
         this.value = value;
         this.verifyFlags = verifyFlags;
-
-        this.scriptChunks = script.chunks;
 
     }
 
@@ -90,7 +90,7 @@ public abstract class ScriptStateListener {
         return index;
     }
 
-    public Script getScript() {
+    public ScriptStream getScript() {
         return script;
     }
 
@@ -130,6 +130,14 @@ public abstract class ScriptStateListener {
     }
 
     public List<ScriptChunk> getScriptChunks() {
+        if (scriptChunks == null) {
+            List<ScriptChunk> chunks = new ArrayList<ScriptChunk>();
+            ScriptStream clone = script.clone();
+            while (clone.hasNext()) {
+                chunks.add(clone.next());
+            }
+            scriptChunks = Collections.unmodifiableList(chunks);
+        }
         return scriptChunks;
     }
 }

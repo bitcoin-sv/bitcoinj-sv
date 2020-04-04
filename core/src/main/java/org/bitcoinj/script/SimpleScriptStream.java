@@ -2,8 +2,8 @@ package org.bitcoinj.script;
 
 import org.bitcoinj.core.ScriptException;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 
 import static org.bitcoinj.script.ScriptOpCodes.*;
 
@@ -14,10 +14,24 @@ public class SimpleScriptStream implements ScriptStream {
     private int index = 0; //no point using a long since it's backed by an arraylist
     private long bytePos = 0;
 
+    private long lastCodeSepBytePos = 0;
+    private int lastCodeSepIndex = 0;
+
 
     public SimpleScriptStream(Script script) {
-        this.chunks = script.getChunks();
+        this.chunks = Collections.unmodifiableList(script.getChunks());
         programSize = script.getProgram().length;
+    }
+
+    private SimpleScriptStream(SimpleScriptStream stream) {
+        //for cloning
+        this.chunks = stream.chunks;
+        this.programSize = stream.programSize;
+    }
+
+    @Override
+    public ScriptStream clone() {
+        return new SimpleScriptStream(this);
     }
 
     @Override
@@ -27,9 +41,34 @@ public class SimpleScriptStream implements ScriptStream {
 
     @Override
     public ScriptChunk next() {
-        ScriptChunk chunk = chunks.get(index++);
+        ScriptChunk chunk = chunks.get(index);
+        if (chunk.opcode == OP_CODESEPARATOR) {
+            lastCodeSepBytePos = bytePos;
+            lastCodeSepIndex = index;
+        }
         bytePos += chunkSize(chunk);
+        index++;
         return chunk;
+    }
+
+    @Override
+    public int chunkIndex() {
+        return index;
+    }
+
+    @Override
+    public long byteIndex() {
+        return bytePos;
+    }
+
+    @Override
+    public long getLastCodeSepBytePos() {
+        return lastCodeSepBytePos;
+    }
+
+    @Override
+    public int getLastCodeSepIndex() {
+        return lastCodeSepIndex;
     }
 
     @Override
@@ -75,4 +114,6 @@ public class SimpleScriptStream implements ScriptStream {
         //chunk is an op code
         return 1;
     }
+
+
 }
