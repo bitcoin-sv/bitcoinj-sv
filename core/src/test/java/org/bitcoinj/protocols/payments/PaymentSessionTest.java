@@ -47,6 +47,7 @@ public class PaymentSessionTest {
     private Transaction tx;
     private TransactionOutput outputToMe;
     private Coin coin = COIN;
+    private Context context;
 
     @Before
     public void setUp() throws Exception {
@@ -54,6 +55,7 @@ public class PaymentSessionTest {
         tx = new Transaction(PARAMS);
         outputToMe = new TransactionOutput(PARAMS, tx, coin, serverKey);
         tx.addOutput(outputToMe);
+        context = new Context(NetworkParameters.fromID(NetworkParameters.ID_TESTNET));
     }
 
     @Test
