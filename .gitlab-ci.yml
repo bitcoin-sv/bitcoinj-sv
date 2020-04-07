@@ -17,7 +17,7 @@ test:
   artifacts:
     reports:
       junit:
-        - target/surefire-reports/TEST-*.xml
+        - core/target/surefire-reports/TEST-*.xml
 
 deploy:
   stage: deploy
