@@ -14,3 +14,8 @@ test:
   stage: test
   script:
     - mvn test
+
+deploy:
+  stage: deploy
+  script:
+    - mvn deploy
