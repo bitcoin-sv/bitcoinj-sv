@@ -2,8 +2,10 @@ image: maven:3-jdk-8
 
 cache:
   paths:
-    - .m2/repository/
     - core/target/
+
+variables:
+  MAVEN_OPTS: -Dmaven.repo.local=/cache/maven.repository
 
 build:
   stage: build
@@ -22,4 +24,4 @@ test:
 deploy:
   stage: deploy
   script:
-    - mvn deploy
+    - mvn deploy -DskipTests
