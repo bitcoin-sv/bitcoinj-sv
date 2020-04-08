@@ -1,11 +1,12 @@
 image: maven:3-jdk-8
 
-cache:
-  paths:
-    - core/target/
-
 variables:
-  MAVEN_OPTS: -Dmaven.repo.local=/cache/maven.repository
+  MAVEN_OPTS: -Dmaven.repo.local=.m2
+
+cache:
+  key: bitcoinj-mutant-maven-cache
+  paths:
+    - .m2/
 
 build:
   stage: build
