@@ -123,7 +123,7 @@ public class ScriptTest {
         Script s = new Script(bytes);
         assertTrue(s.isSentToRawPubKey());
     }
-    
+
     @Test
     public void testCreateMultiSigInputScript() {
         // Setup transaction and signatures
@@ -234,9 +234,10 @@ public class ScriptTest {
         assertEquals("OP_0 push length", 0, stack.get(0).length);
     }
 
+
     private Script parseScriptString(String string) throws IOException {
         String[] words = string.split("[ \\t\\n]");
-        
+
         UnsafeByteArrayOutputStream out = new UnsafeByteArrayOutputStream();
 
         for(String w : words) {
@@ -264,9 +265,9 @@ public class ScriptTest {
                 out.write(ScriptOpCodes.getOpCode(w.substring(3)));
             } else {
                 throw new RuntimeException("Invalid Data");
-            }                        
+            }
         }
-        
+
         return new Script(out.toByteArray());
     }
 
@@ -283,7 +284,7 @@ public class ScriptTest {
         }
         return flags;
     }
-    
+
     @Test
     public void dataDrivenValidScripts() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
@@ -301,7 +302,7 @@ public class ScriptTest {
             }
         }
     }
-    
+
     @Test
     public void dataDrivenInvalidScripts() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
@@ -320,7 +321,7 @@ public class ScriptTest {
             }
         }
     }
-    
+
     private Map<TransactionOutPoint, Script> parseScriptPubKeys(JsonNode inputs) throws IOException {
         Map<TransactionOutPoint, Script> scriptPubKeys = new HashMap<TransactionOutPoint, Script>();
         for (JsonNode input : inputs) {
@@ -502,4 +503,151 @@ public class ScriptTest {
         Script script = builder.build();
         assertEquals("PUSHDATA(1)[11] 16 15 15 16 PUSHDATA(1)[11]", script.toString());
     }
+
+    /** Bitwise ops **/
+
+    static final int MAX_BITWISE_RANDOM_TESTS = 2000;
+
+    @Test
+    public void testBitwiseRandomData() throws IOException {
+        byte[] a = new byte[MAX_BITWISE_RANDOM_TESTS];
+        byte[] b = new byte[MAX_BITWISE_RANDOM_TESTS];
+        new Random(0).nextBytes(a); //using the same seed always generates the same byte array
+        new Random(1).nextBytes(b);
+
+        for (int x = 0 ; x < MAX_BITWISE_RANDOM_TESTS ; x++) {
+            byte aandb = (byte)(a[x] & b[x]);
+            byte aorb  = (byte)(a[x] | b[x]);
+            byte axorb = (byte)(a[x] ^ b[x]);
+
+            Assert.assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "AND"), aandb);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "AND"), aandb);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "OR"), aorb);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "OR"), aorb);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "XOR"), axorb);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "XOR"), axorb);
+        }
+    }
+
+    @Test
+    public void testBitwiseOpcodes() {
+        for (int x = 0; x < ScriptTestBitwiseData.a.length ; x++) {
+            byte a = (byte) ScriptTestBitwiseData.a[x];
+            byte b = (byte) ScriptTestBitwiseData.b[x];
+            byte expected_xor = (byte)(a^b);
+
+            Assert.assertEquals(generateAndExecuteBitwiseScript(a, b, "AND"), (byte)ScriptTestBitwiseData.aandb[x]);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(b, a, "AND"), (byte)ScriptTestBitwiseData.aandb[x]);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(a, b, "OR"), (byte)ScriptTestBitwiseData.aorb[x]);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(b, a, "OR"), (byte)ScriptTestBitwiseData.aorb[x]);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(a, b, "XOR"), expected_xor);
+            Assert.assertEquals(generateAndExecuteBitwiseScript(b, a, "XOR"), expected_xor);
+        }
+    }
+
+    private byte generateAndExecuteBitwiseScript(byte a, byte b, String opcode) {
+        byte[] result = generateAndExecuteBitwiseScript(new byte[]{a}, new byte[]{b}, opcode);
+        return result[0];
+    }
+
+    private byte[] generateAndExecuteBitwiseScript(byte[] a, byte[] b, String opcode) {
+        Script script = new ScriptBuilder().data(a).data(b).op(ScriptOpCodes.getOpCode(opcode)).build();
+        LinkedList<byte[]> stack = new LinkedList<byte[]>();
+        EnumSet<VerifyFlag> verifyFlags = EnumSet.noneOf(VerifyFlag.class);
+        verifyFlags.add(VerifyFlag.MONOLITH_OPCODES);
+        Script.executeScript(new Transaction(PARAMS), 0, script, stack, Coin.ZERO, verifyFlags);
+        Assert.assertEquals("Stack size must be 1", stack.size(), 1);
+        return stack.peekLast();
+    }
+
+
+    /** Number encoding **/
+
+    public void checkMinimallyEncoded(byte[] data, byte[] expected) {
+        boolean alreadyEncoded = Utils.checkMinimallyEncodedLE(data, data.length);
+        byte[] encoded = Utils.minimallyEncodeLE(data);
+        boolean hasEncoded = data.length != encoded.length;
+        assertEquals(hasEncoded, !alreadyEncoded);
+        assertArrayEquals(encoded, expected);
+    }
+
+    @Test
+    public void minimizeEncodingTest() {
+        checkMinimallyEncoded(new byte[0], new byte[0]);
+
+        try {
+
+            UnsafeByteArrayOutputStream zero = new UnsafeByteArrayOutputStream();
+            UnsafeByteArrayOutputStream negZero = new UnsafeByteArrayOutputStream();
+            for (int i = 0; i < Script.MAX_SCRIPT_ELEMENT_SIZE; i++) {
+
+                zero.write(0x00);
+                checkMinimallyEncoded(zero.toByteArray(), new byte[0]);
+
+                negZero.write(0x80);
+                checkMinimallyEncoded(negZero.toByteArray(), new byte[0]);
+
+                //reset negZero for next round
+                int len = negZero.size();
+                negZero.reset();
+                negZero.write(new byte[len]);
+
+            }
+
+            // Keep one leading zero when sign bit is used.
+            byte[] n = new byte[]{(byte) 0x80, (byte) 0x00};
+            byte[] negn = new byte[]{(byte) 0x80, (byte) 0x80};
+            UnsafeByteArrayOutputStream nPadded = new UnsafeByteArrayOutputStream();
+            nPadded.write(n);
+            UnsafeByteArrayOutputStream negnPadded = new UnsafeByteArrayOutputStream();
+            negnPadded.write(negn);
+
+            for (int i = 0; i < Script.MAX_SCRIPT_ELEMENT_SIZE; i++) {
+                checkMinimallyEncoded(nPadded.toByteArray(), n);
+                nPadded.write(0x00);
+
+                byte[] negnPaddedBytes = negnPadded.toByteArray();
+                checkMinimallyEncoded(negnPaddedBytes, negn);
+
+                //reset to move the 0x80 one to the right
+                negnPadded.reset();
+                negnPadded.write(negnPaddedBytes, 0, negnPaddedBytes.length - 1);
+                negnPadded.write(0x00);
+                negnPadded.write(0x80);
+            }
+
+            // Merge leading byte when sign bit isn't used
+            byte[] k = new byte[]{(byte) 0x7f};
+            byte[] negk = new byte[]{(byte) 0xff};
+            UnsafeByteArrayOutputStream kPadded = new UnsafeByteArrayOutputStream();
+            kPadded.write(k);
+            UnsafeByteArrayOutputStream negkPadded = new UnsafeByteArrayOutputStream();
+            negkPadded.write(negk);
+
+            for (int i = 0; i < Script.MAX_SCRIPT_ELEMENT_SIZE; i++) {
+                checkMinimallyEncoded(kPadded.toByteArray(), k);
+                kPadded.write(0x00);
+
+                byte[] negkPaddedBytes = negkPadded.toByteArray();
+                checkMinimallyEncoded(negkPaddedBytes, negk);
+
+                int last = negkPaddedBytes[negkPaddedBytes.length - 1] & 0x7f;
+                negkPadded.reset();
+                negkPadded.write(negkPaddedBytes, 0, negkPaddedBytes.length - 1);
+                negkPadded.write(last);
+                negkPadded.write(0x80);
+            }
+
+        } catch (IOException e) {
+            //catching UnsafeByteArrayOutputStream.write() should never happen
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** BIN2NUM **/
+
+    public void checkBin2NumOp(byte[] n, byte[] expected) {
+
+    }
+
 }

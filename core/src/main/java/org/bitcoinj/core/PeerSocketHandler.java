@@ -30,6 +30,7 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.NotYetConnectedException;
 import java.util.concurrent.locks.Lock;
 
@@ -76,6 +77,19 @@ public abstract class PeerSocketHandler extends AbstractTimeoutHandler implement
      * TODO: Maybe use something other than the unchecked NotYetConnectedException here
      */
     public void sendMessage(Message message) throws NotYetConnectedException {
+        if (message instanceof Ping || message instanceof Pong) {
+            //ignore
+        } else {
+            if (!(message instanceof GetDataMessage)
+                    && !(message instanceof InventoryMessage)
+                    && !(message instanceof Transaction)
+            ) {
+                log.info("{}: Sending message: {}", this, message.getClass().getSimpleName());
+            }
+            if (message instanceof GetAddrMessage) {
+                int i = 0;
+            }
+        }
         lock.lock();
         try {
             if (writeTarget == null)
@@ -89,6 +103,8 @@ public abstract class PeerSocketHandler extends AbstractTimeoutHandler implement
             serializer.serialize(message, out);
             writeTarget.writeBytes(out.toByteArray());
         } catch (IOException e) {
+            exceptionCaught(e);
+        } catch (CancelledKeyException e) {
             exceptionCaught(e);
         }
     }

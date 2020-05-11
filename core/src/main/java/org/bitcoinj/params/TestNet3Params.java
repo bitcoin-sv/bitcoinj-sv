@@ -129,6 +129,8 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
         } else {
             super.checkDifficultyTransitions(storedPrev, nextBlock, blockStore, blockChain);
         }
+    public static boolean isValidTestnetDateBlock(Block block){
+        return block.getTime().after(testnetDiffDate);
     }
     @Override
     protected void checkNextCashWorkRequired(StoredBlock storedPrev,
@@ -186,4 +188,5 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
             return;
         }
     }
+
 }

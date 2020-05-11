@@ -36,7 +36,7 @@ import static com.google.common.base.Preconditions.checkState;
 public abstract class Message {
     private static final Logger log = LoggerFactory.getLogger(Message.class);
 
-    public static final int MAX_SIZE = 0x02000000; // 32MB
+    public static final int MAX_SIZE = 129000000; // 129MB
 
     public static final int UNKNOWN_LENGTH = Integer.MIN_VALUE;
 

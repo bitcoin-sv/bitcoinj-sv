@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkState;
  * A simple NIO MessageWriteTarget which handles all the business logic of a connection (reading+writing bytes).
  * Used only by the NioClient and NioServer classes
  */
-class ConnectionHandler implements MessageWriteTarget {
+public class ConnectionHandler implements MessageWriteTarget {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ConnectionHandler.class);
 
     private static final int BUFFER_SIZE_LOWER_BOUND = 4096;
@@ -153,13 +153,13 @@ class ConnectionHandler implements MessageWriteTarget {
         } catch (IOException e) {
             lock.unlock();
             andUnlock = false;
-            log.warn("Error writing message to connection, closing connection", e);
+            log.warn("Error writing message to connection, closing connection");
             closeConnection();
             throw e;
         } catch (CancelledKeyException e) {
             lock.unlock();
             andUnlock = false;
-            log.warn("Error writing message to connection, closing connection", e);
+            log.warn("Error writing message to connection, closing connection");
             closeConnection();
             throw new IOException(e);
         } finally {
@@ -232,7 +232,8 @@ class ConnectionHandler implements MessageWriteTarget {
             // This can happen eg if the channel closes while the thread is about to get killed
             // (ClosedByInterruptException), or if handler.connection.receiveBytes throws something
             Throwable t = Throwables.getRootCause(e);
-            log.warn("Error handling SelectionKey: {} {}", t.getClass().getName(), t.getMessage() != null ? t.getMessage() : "", e);
+            //log.warn("Error handling SelectionKey: {} {}", t.getClass().getName(), t.getMessage() != null ? t.getMessage() : "", e);
+            log.warn("Error handling SelectionKey: {} {}", t.getClass().getName(), t.getMessage() != null ? t.getMessage() : "");
             handler.closeConnection();
         }
     }

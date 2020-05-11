@@ -202,7 +202,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
                                    StoredBlock lastBlock) {
          Preconditions.checkState(lastBlock.getHeight() > firstBlock.getHeight());
 
-        /**
+        /*
          * From the total work done and the time it took to produce that much work,
          * we can deduce how much work we expect to be produced in the targeted time
          * between blocks.
