@@ -60,7 +60,6 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
         return ((storedPrev.getHeight() + 1) % this.getInterval()) == 0;
     }
 
-    @Override
     public void checkDifficultyTransitions(final StoredBlock storedPrev, final Block nextBlock,
     	final BlockStore blockStore, AbstractBlockChain blockChain) throws VerificationException, BlockStoreException {
         Block prev = storedPrev.getHeader();
@@ -168,7 +167,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
 
         verifyDifficulty(newTarget, nextBlock);
     }
-    void verifyDifficulty(BigInteger newTarget, Block nextBlock)
+    public void verifyDifficulty(BigInteger newTarget, Block nextBlock)
     {
         if (newTarget.compareTo(this.getMaxTarget()) > 0) {
             log.info("Difficulty hit proof of work limit: {}", newTarget.toString(16));
@@ -198,7 +197,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
      * Compute the a target based on the work done between 2 blocks and the time
      * required to produce that work.
      */
-     BigInteger ComputeTarget(StoredBlock firstBlock,
+     public static BigInteger ComputeTarget(StoredBlock firstBlock,
                                    StoredBlock lastBlock) {
          Preconditions.checkState(lastBlock.getHeight() > firstBlock.getHeight());
 
@@ -208,7 +207,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
          * between blocks.
          */
         BigInteger work = lastBlock.getChainWork().subtract(firstBlock.getChainWork());
-        work = work.multiply(BigInteger.valueOf(this.TARGET_SPACING));
+        work = work.multiply(BigInteger.valueOf(TARGET_SPACING));
 
         // In order to avoid difficulty cliffs, we bound the amplitude of the
         // adjustment we are going to do.
