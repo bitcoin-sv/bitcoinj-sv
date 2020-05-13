@@ -21,13 +21,11 @@ public class EDARuleCheckerFactory extends AbstractRuleCheckerFactory {
 
     @Override
     public RulesPoolChecker getRuleChecker(StoredBlock storedPrev, Block nextBlock) {
-//        if (AbstractBitcoinNetParams.isDifficultyTransitionPoint(storedPrev, networkParameters)) {
-//            return getTransitionPointRulesChecker();
-//        } else {
-//            return getNoTransitionPointRulesChecker(storedPrev, nextBlock);
-//        }
-
-        return getNoTransitionPointRulesChecker(storedPrev, nextBlock);
+        if (AbstractBitcoinNetParams.isDifficultyTransitionPoint(storedPrev, networkParameters)) {
+            return getTransitionPointRulesChecker();
+        } else {
+            return getNoTransitionPointRulesChecker(storedPrev, nextBlock);
+        }
     }
 
     private RulesPoolChecker getTransitionPointRulesChecker() {
