@@ -45,7 +45,6 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     int uahfHeight = 478559;
     /** Activation time at which the cash HF kicks in. */
     protected long cashHardForkActivationTime;
-    protected int daaHeight;
 
     public AbstractBitcoinNetParams() {
         super();
@@ -64,7 +63,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     	final BlockStore blockStore, AbstractBlockChain blockChain) throws VerificationException, BlockStoreException {
         Block prev = storedPrev.getHeader();
 
-        if (storedPrev.getHeight() >= daaHeight) {
+        if (storedPrev.getHeight() >= daaUpdateHeight) {
             checkNextCashWorkRequired(storedPrev, nextBlock, blockStore);
             return;
         }

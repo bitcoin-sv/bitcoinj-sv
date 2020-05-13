@@ -80,7 +80,7 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
 
         /** Activation time at which the cash HF kicks in. */
         cashHardForkActivationTime = 1510600000;
-        daaHeight = 1188697;
+        daaUpdateHeight = 1188697;
     }
 
     private static TestNet3Params instance;
@@ -102,7 +102,7 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
     @Override
     public void checkDifficultyTransitions(final StoredBlock storedPrev, final Block nextBlock,
                                            final BlockStore blockStore, AbstractBlockChain blockChain) throws VerificationException, BlockStoreException {
-        if (storedPrev.getHeight() < daaHeight && !isDifficultyTransitionPoint(storedPrev) && nextBlock.getTime().after(testnetDiffDate)) {
+        if (storedPrev.getHeight() < daaUpdateHeight && !isDifficultyTransitionPoint(storedPrev) && nextBlock.getTime().after(testnetDiffDate)) {
             Block prev = storedPrev.getHeader();
 
             // After 15th February 2012 the rules on the testnet change to avoid people running up the difficulty
