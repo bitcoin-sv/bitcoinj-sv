@@ -38,6 +38,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -48,6 +49,7 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class TestWithNetworkConnections {
     public static final int PEER_SERVERS = 5;
+    public static final long TIMEOUT_SECS = 60;
     protected static final NetworkParameters PARAMS = UnitTestParams.get();
     protected Context context;
     protected BlockStore blockStore;
@@ -199,7 +201,7 @@ public class TestWithNetworkConnections {
         SettableFuture<Void> pingReceivedFuture = SettableFuture.create();
         p.mapPingFutures.put(nonce, pingReceivedFuture);
         p.peer.sendMessage(new Ping(nonce));
-        pingReceivedFuture.get();
+        pingReceivedFuture.get(TIMEOUT_SECS, TimeUnit.SECONDS);
         p.mapPingFutures.remove(nonce);
     }
 
@@ -218,7 +220,7 @@ public class TestWithNetworkConnections {
         };
         p.peer.addPreMessageReceivedEventListener(Threading.SAME_THREAD, listener);
         inbound(p, new Pong(nonce));
-        pongReceivedFuture.get();
+        pongReceivedFuture.get(TIMEOUT_SECS, TimeUnit.SECONDS);
         p.peer.removePreMessageReceivedEventListener(listener);
     }
 
