@@ -77,9 +77,6 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
 
         // Aug, 1 hard fork
         uahfHeight = 1155876;
-
-        /** Activation time at which the cash HF kicks in. */
-        cashHardForkActivationTime = 1510600000;
         daaUpdateHeight = 1188697;
     }
 

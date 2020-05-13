@@ -43,8 +43,6 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
 
     // Aug, 1 hard fork
     int uahfHeight = 478559;
-    /** Activation time at which the cash HF kicks in. */
-    protected long cashHardForkActivationTime;
 
     public AbstractBitcoinNetParams() {
         super();
