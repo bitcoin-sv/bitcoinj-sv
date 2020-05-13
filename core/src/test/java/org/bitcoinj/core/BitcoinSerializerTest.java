@@ -206,10 +206,21 @@ public class BitcoinSerializerTest {
         new BitcoinSerializer.BitcoinPacketHeader(ByteBuffer.wrap(new byte[] { 0 }));
     }
 
+    @Test
+    public void testBitcoinPacketHeaderMaxSize() {
+        // Message with a Message size which is the max size
+        // 129,000,000 = 0x07b06240 (big-endian) = 0x4062b007 (little-endian)
+        byte[] maxMessageLength = HEX.decode("0000000000000000000000004062b0070000000000");
+        BitcoinSerializer.BitcoinPacketHeader hdr = new BitcoinSerializer.BitcoinPacketHeader(ByteBuffer.wrap(maxMessageLength));
+        assertNotNull(hdr);
+    }
+
     @Test(expected = ProtocolException.class)
     public void testBitcoinPacketHeaderTooLong() {
         // Message with a Message size which is 1 too big, in little endian format.
-        byte[] wrongMessageLength = HEX.decode("000000000000000000000000010000020000000000");
+        // 129,000,000 = 0x07b06240 (big-endian) = 0x4062b007 (little-endian)
+        // 129,000,001 = 0x4162b007 (little-endian)
+        byte[] wrongMessageLength = HEX.decode("0000000000000000000000004162b0070000000000");
         new BitcoinSerializer.BitcoinPacketHeader(ByteBuffer.wrap(wrongMessageLength));
     }
 
