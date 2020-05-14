@@ -88,11 +88,11 @@ public class ScriptBuilder {
         byte[] copy = Arrays.copyOf(data, data.length);
         int opcode;
         if (data.length == 0) {
-            opcode = OP_0;
+            return addChunk(index, new ScriptChunk(OP_0, null));
         } else if (data.length == 1) {
             byte b = data[0];
             if (b >= 1 && b <= 16)
-                opcode = Script.encodeToOpN(b);
+                return addChunk(index, new ScriptChunk(Script.encodeToOpN(b), null));
             else
                 opcode = 1;
         } else if (data.length < OP_PUSHDATA1) {
