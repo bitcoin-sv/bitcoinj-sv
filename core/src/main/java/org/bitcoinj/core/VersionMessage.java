@@ -119,7 +119,16 @@ public class VersionMessage extends Message {
     }
 
     @Override
-    protected void parse() throws ProtocolException {
+    protected void parseLite() throws ProtocolException {
+        // NOP.  VersionMessage is never lazy parsed.
+    }
+
+    @Override
+    public void parse() throws ProtocolException {
+        if (parsed)
+            return;
+        parsed = true;
+
         clientVersion = (int) readUint32();
         localServices = readUint64().longValue();
         time = readUint64().longValue();

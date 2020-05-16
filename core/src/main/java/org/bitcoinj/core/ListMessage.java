@@ -1,6 +1,5 @@
 /*
  * Copyright 2011 Google Inc.
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +51,7 @@ public abstract class ListMessage extends Message {
     }
 
     public List<InventoryItem> getItems() {
+        maybeParse();
         return Collections.unmodifiableList(items);
     }
 
@@ -70,12 +70,15 @@ public abstract class ListMessage extends Message {
     }
 
     @Override
-    protected void parse() throws ProtocolException {
+    protected void parseLite() throws ProtocolException {
         arrayLen = readVarInt();
         if (arrayLen > MAX_INVENTORY_ITEMS)
             throw new ProtocolException("Too many items in INV message: " + arrayLen);
         length = (int) (cursor - offset + (arrayLen * InventoryItem.MESSAGE_LENGTH));
+    }
 
+    @Override
+    public void parse() throws ProtocolException {
         // An inv is vector<CInv> where CInv is int+hash. The int is either 1 or 2 for tx or block.
         items = new ArrayList<InventoryItem>((int) arrayLen);
         for (int i = 0; i < arrayLen; i++) {

@@ -1,6 +1,5 @@
 /*
  * Copyright 2011 Google Inc.
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +63,7 @@ public class AlertMessage extends Message {
     }
 
     @Override
-    protected void parse() throws ProtocolException {
+    void parse() throws ProtocolException {
         // Alerts are formatted in two levels. The top level contains two byte arrays: a signature, and a serialized
         // data structure containing the actual alert data.
         int startPos = cursor;
@@ -116,6 +115,11 @@ public class AlertMessage extends Message {
      */
     public boolean isSignatureValid() {
         return ECKey.verify(Sha256Hash.hashTwice(content), signature, params.getAlertSigningKey());
+    }
+
+    @Override
+    protected void parseLite() throws ProtocolException {
+        // Do nothing, lazy parsing isn't useful for alerts.
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

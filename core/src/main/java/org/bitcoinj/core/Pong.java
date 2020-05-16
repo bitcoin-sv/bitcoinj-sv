@@ -1,6 +1,5 @@
 /*
  * Copyright 2012 Matt Corallo
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +38,7 @@ public class Pong extends Message {
     }
     
     @Override
-    protected void parse() throws ProtocolException {
+    void parse() throws ProtocolException {
         nonce = readInt64();
         length = 8;
     }
@@ -49,6 +48,10 @@ public class Pong extends Message {
         Utils.int64ToByteStreamLE(nonce, stream);
     }
     
+    @Override
+    protected void parseLite() {
+    }
+
     /** Returns the nonce sent by the remote peer. */
     public long getNonce() {
         return nonce;

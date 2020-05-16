@@ -1,6 +1,5 @@
 /*
  * Copyright 2014 Piotr Włodarek
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +36,12 @@ public class MessageTest {
         }
 
         @Override
-        protected void parse() throws ProtocolException {
+        void parse() throws ProtocolException {
             readStr();
         }
+
+        @Override
+        protected void parseLite() throws ProtocolException {}
     }
 
     // If readBytes() is vulnerable this causes OutOfMemory
@@ -57,8 +59,12 @@ public class MessageTest {
         }
 
         @Override
-        protected void parse() throws ProtocolException {
+        void parse() throws ProtocolException {
             readByteArray();
         }
+
+        @Override
+        protected void parseLite() throws ProtocolException {}
     }
+
 }

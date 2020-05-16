@@ -244,6 +244,8 @@ public class BitcoinSerializerTest {
             @Override
             protected void parse() throws ProtocolException {
             }
+            @Override
+            protected void parseLite() throws ProtocolException {}
         };
         ByteArrayOutputStream bos = new ByteArrayOutputStream(ADDRESS_MESSAGE_BYTES.length);
         serializer.serialize(unknownMessage, bos);

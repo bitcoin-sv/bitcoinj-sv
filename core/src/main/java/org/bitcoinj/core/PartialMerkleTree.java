@@ -1,7 +1,6 @@
 /*
  * Copyright 2012 The Bitcoin Developers
  * Copyright 2012 Matt Corallo
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +111,7 @@ public class PartialMerkleTree extends Message {
     }
 
     @Override
-    protected void parse() throws ProtocolException {
+    void parse() throws ProtocolException {
         transactionCount = (int)readUint32();
 
         int nHashes = (int) readVarInt();
@@ -170,6 +169,11 @@ public class PartialMerkleTree extends Message {
         return combineLeftRight(left.getBytes(), right.getBytes());
     }
 
+    @Override
+    protected void parseLite() {
+        
+    }
+    
     // helper function to efficiently calculate the number of nodes at given height in the merkle tree
     private static int getTreeWidth(int transactionCount, int height) {
         return (transactionCount + (1 << height) - 1) >> height;

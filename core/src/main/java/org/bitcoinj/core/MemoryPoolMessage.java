@@ -1,6 +1,5 @@
 /*
  * Copyright 2012 Google Inc.
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +30,10 @@ import java.io.OutputStream;
  */
 public class MemoryPoolMessage extends Message {
     @Override
-    protected void parse() throws ProtocolException {}
+    void parse() throws ProtocolException {}
+
+    @Override
+    protected void parseLite() throws ProtocolException {}
 
     @Override
     protected void bitcoinSerializeToStream(OutputStream stream) throws IOException {}

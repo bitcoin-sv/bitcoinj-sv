@@ -37,4 +37,8 @@ public class UnknownMessage extends Message {
     @Override
     protected void parse() throws ProtocolException {
     }
+
+    @Override
+    protected void parseLite() throws ProtocolException {
+    }
 }

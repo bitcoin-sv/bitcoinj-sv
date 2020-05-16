@@ -27,6 +27,7 @@ import com.google.common.base.Objects;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -131,11 +132,18 @@ public class TransactionInput extends ChildMessage {
     }
 
     @Override
-    protected void parse() throws ProtocolException {
+    protected void parseLite() throws ProtocolException {
+        int curs = cursor;
+        int scriptLen = (int) readVarInt(36);
+        length = cursor - offset + scriptLen + 4;
+        cursor = curs;
+    }
+
+    @Override
+    void parse() throws ProtocolException {
         outpoint = new TransactionOutPoint(params, payload, cursor, this, serializer);
         cursor += outpoint.getMessageSize();
         int scriptLen = (int) readVarInt();
-        length = cursor - offset + scriptLen + 4;
         scriptBytes = readBytes(scriptLen);
         sequence = readUint32();
     }
@@ -152,6 +160,7 @@ public class TransactionInput extends ChildMessage {
      * Coinbase transactions have special inputs with hashes of zero. If this is such an input, returns true.
      */
     public boolean isCoinBase() {
+        maybeParse();
         return outpoint.getHash().equals(Sha256Hash.ZERO_HASH) &&
                 (outpoint.getIndex() & 0xFFFFFFFFL) == 0xFFFFFFFFL;  // -1 but all is serialized to the wire as unsigned int.
     }
@@ -165,6 +174,7 @@ public class TransactionInput extends ChildMessage {
         // parameter is overloaded to be something totally different.
         Script script = scriptSig == null ? null : scriptSig.get();
         if (script == null) {
+            maybeParse();
             script = new Script(scriptBytes);
             scriptSig = new WeakReference<Script>(script);
         }
@@ -199,6 +209,7 @@ public class TransactionInput extends ChildMessage {
      * examples of how you can use this feature to build contract protocols.
      */
     public long getSequenceNumber() {
+        maybeParse();
         return sequence;
     }
 
@@ -218,6 +229,7 @@ public class TransactionInput extends ChildMessage {
      * data needed to connect to the output of the transaction we're gathering coins from.
      */
     public TransactionOutPoint getOutpoint() {
+        maybeParse();
         return outpoint;
     }
 
@@ -228,6 +240,7 @@ public class TransactionInput extends ChildMessage {
      * @return the scriptBytes
      */
     public byte[] getScriptBytes() {
+        maybeParse();
         return scriptBytes;
     }
 

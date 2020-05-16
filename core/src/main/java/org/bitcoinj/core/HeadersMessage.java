@@ -72,7 +72,7 @@ public class HeadersMessage extends Message {
                                          MAX_HEADERS);
 
         blockHeaders = new ArrayList<Block>();
-        final BitcoinSerializer serializer = this.params.getSerializer(true);
+        final BitcoinSerializer serializer = this.params.getSerializer(true, false);
 
         for (int i = 0; i < numHeaders; ++i) {
             final Block newBlockHeader = serializer.makeBlock(payload, cursor, UNKNOWN_LENGTH);

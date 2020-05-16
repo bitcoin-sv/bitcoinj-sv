@@ -1,6 +1,5 @@
 /*
  * Copyright 2012 Matt Corallo
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +132,7 @@ public class BloomFilter extends Message {
     }
 
     @Override
-    protected void parse() throws ProtocolException {
+    void parse() throws ProtocolException {
         data = readByteArray();
         if (data.length > MAX_FILTER_SIZE)
             throw new ProtocolException ("Bloom filter out of size range.");
@@ -155,6 +154,11 @@ public class BloomFilter extends Message {
         Utils.uint32ToByteStreamLE(hashFuncs, stream);
         Utils.uint32ToByteStreamLE(nTweak, stream);
         stream.write(nFlags);
+    }
+
+    @Override
+    protected void parseLite() throws ProtocolException {
+        // Do nothing, lazy parsing isn't useful for bloom filters.
     }
 
     private static int rotateLeft32(int x, int r) {

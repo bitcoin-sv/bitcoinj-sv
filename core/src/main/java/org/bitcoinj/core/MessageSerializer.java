@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.bitcoinj.core;
 
 import java.io.IOException;
@@ -45,6 +44,11 @@ public abstract class MessageSerializer {
      * {@link BitcoinSerializer#deserializeHeader}.
      */
     public abstract Message deserializePayload(BitcoinSerializer.BitcoinPacketHeader header, ByteBuffer in) throws ProtocolException, BufferUnderflowException, UnsupportedOperationException;
+
+    /**
+     * Whether the serializer will produce lazy parse mode Messages
+     */
+    abstract boolean isParseLazyMode();
 
     /**
      * Whether the serializer will produce cached mode Messages

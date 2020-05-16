@@ -35,7 +35,7 @@ import static org.bitcoinj.testing.FakeTxBuilder.createFakeBlock;
 import static org.bitcoinj.testing.FakeTxBuilder.createFakeTx;
 import static org.junit.Assert.*;
 
-public class ParseByteCacheTest {
+public class LazyParseByteCacheTest {
     private static final int BLOCK_HEIGHT_GENESIS = 0;
 
     private final byte[] txMessage = HEX.withSeparator(" ", 2).decode(
