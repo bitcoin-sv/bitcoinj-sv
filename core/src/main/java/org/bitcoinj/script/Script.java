@@ -1459,6 +1459,7 @@ public class Script {
                 case OP_ADD:
                 case OP_SUB:
                 case OP_DIV:
+                case OP_MUL:
                 case OP_MOD:
                 case OP_BOOLAND:
                 case OP_BOOLOR:
