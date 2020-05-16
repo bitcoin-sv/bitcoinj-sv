@@ -1062,6 +1062,9 @@ public class Script {
                     verifyFlags
             );
         }
+
+        boolean opReturnCalled = false;
+
         for (ScriptChunk chunk : script) {
             boolean shouldExecute = !ifStack.contains(false);
 
@@ -1164,7 +1167,12 @@ public class Script {
                         throw new ScriptException("OP_VERIFY failed");
                     break;
                 case OP_RETURN:
-                    throw new ScriptException("Script called OP_RETURN");
+                    if (genesisActive) {
+                        //will exit at end of loop so all checks are completed.
+                        opReturnCalled = true;
+                    } else {
+                        throw new ScriptException("Script called OP_RETURN");
+                    }
                 case OP_TOALTSTACK:
                     if (stack.size() < 1)
                         throw new ScriptException("Attempted OP_TOALTSTACK on an empty stack");
@@ -1812,6 +1820,11 @@ public class Script {
             if (scriptStateListener != null) {
                 scriptStateListener.onAfterOpCodeExectuted();
             }
+
+            if (opReturnCalled) {
+                break;
+            }
+
         }
         
         if (!ifStack.isEmpty())
