@@ -853,6 +853,9 @@ public class Script {
     /**
      * shift x right by n bits, implements OP_RSHIFT
      * see: https://github.com/bitcoin-sv/bitcoin-sv/commit/27d24de643dbd3cc852e1de7c90e752e19abb9d8
+     *
+     * Note this does not support shifting more than Integer.MAX_VALUE
+     *
      * @param x
      * @param n
      * @return
@@ -887,6 +890,9 @@ public class Script {
     /**
      * shift x left by n bits, implements OP_LSHIFT
      * see: https://github.com/bitcoin-sv/bitcoin-sv/commit/27d24de643dbd3cc852e1de7c90e752e19abb9d8
+     *
+     * Note this does not support shifting more than Integer.MAX_VALUE
+     *
      * @param x
      * @param n
      * @return
