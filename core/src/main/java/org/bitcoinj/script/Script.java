@@ -94,6 +94,8 @@ public class Script {
     public static final long MAX_SCRIPT_ELEMENT_SIZE = 520;  // bytes
     public static final int MAX_NUM_ELEMENT_SIZE_PRE_GENESIS = 4;
     public static final int MAX_NUM_ELEMENT_SIZE_POST_GENESIS = 750000;
+    public static final int MAX_MULTISIG_PUBKEYS_PRE_GENESIS = 20;
+    public static final int MAX_MULTISIG_PUBKEYS_POST_GENESIS = Integer.MAX_VALUE;
     public static final int MAX_OPCOUNT_PRE_MAGNETIC = 201;
     public static final int MAX_OPCOUNT_PRE_GENESIS = 500;
     public static final int SIG_SIZE = 75;
@@ -1050,6 +1052,7 @@ public class Script {
         final boolean genesisActive = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES);
         final long maxScriptElementSize = genesisActive ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
         final int maxNumElementSize = genesisActive ? MAX_NUM_ELEMENT_SIZE_POST_GENESIS : MAX_NUM_ELEMENT_SIZE_PRE_GENESIS;
+        final int maxMultisigKeys = genesisActive ? MAX_MULTISIG_PUBKEYS_POST_GENESIS : MAX_MULTISIG_PUBKEYS_PRE_GENESIS;
         final int maxOpCount = genesisActive ? Integer.MAX_VALUE :
                 verifyFlags.contains(VerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
                         MAX_OPCOUNT_PRE_MAGNETIC;
@@ -1785,7 +1788,7 @@ public class Script {
                 case OP_CHECKMULTISIGVERIFY:
                     if (txContainingThis == null)
                         throw new IllegalStateException("Script attempted signature check but no tx was provided");
-                    opCount = executeMultiSig(txContainingThis, (int) index, script, stack, opCount, maxOpCount, maxNumElementSize, lastCodeSepLocation, opcode, value, verifyFlags);
+                    opCount = executeMultiSig(txContainingThis, (int) index, script, stack, opCount, maxOpCount, maxMultisigKeys, lastCodeSepLocation, opcode, value, verifyFlags);
                     break;
                 case OP_CHECKLOCKTIMEVERIFY:
                     if (!verifyFlags.contains(VerifyFlag.CHECKLOCKTIMEVERIFY)) {
@@ -1932,7 +1935,7 @@ public class Script {
     }
 
     private static int executeMultiSig(Transaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
-                                       int opCount, int maxOpCount, int maxNumElementSize, int lastCodeSepLocation, int opcode, Coin value,
+                                       int opCount, int maxOpCount, int maxKeys, int lastCodeSepLocation, int opcode, Coin value,
                                        Set<VerifyFlag> verifyFlags) throws ScriptException {
         final boolean requireCanonical = verifyFlags.contains(VerifyFlag.STRICTENC)
             || verifyFlags.contains(VerifyFlag.DERSIG)
@@ -1945,8 +1948,11 @@ public class Script {
 
         StackItem pubKeyCountItem = stack.pollLast();
         polledStackItems.add(pubKeyCountItem);
-        int pubKeyCount = castToBigInteger(pubKeyCountItem.bytes, maxNumElementSize, enforceMinimal).intValue();
-        if (pubKeyCount < 0 || pubKeyCount > 20)
+
+        //we'll allow the highest possible pubKeyCount as it's immediately check after and this ensures
+        //we get a meaningful error message
+        int pubKeyCount = castToBigInteger(pubKeyCountItem.bytes, MAX_NUM_ELEMENT_SIZE_POST_GENESIS, enforceMinimal).intValue();
+        if (pubKeyCount < 0 || pubKeyCount > maxKeys)
             throw new ScriptException("OP_CHECKMULTISIG(VERIFY) with pubkey count out of range");
         opCount += pubKeyCount;
         if (opCount > maxOpCount)
@@ -1964,7 +1970,7 @@ public class Script {
 
         StackItem sigCountItem = stack.pollLast();
         polledStackItems.add(sigCountItem);
-        int sigCount = castToBigInteger(sigCountItem.bytes, maxNumElementSize, enforceMinimal).intValue();
+        int sigCount = castToBigInteger(sigCountItem.bytes, maxKeys, enforceMinimal).intValue();
         if (sigCount < 0 || sigCount > pubKeyCount)
             throw new ScriptException("OP_CHECKMULTISIG(VERIFY) with sig count out of range");
         if (stack.size() < sigCount + 1)
