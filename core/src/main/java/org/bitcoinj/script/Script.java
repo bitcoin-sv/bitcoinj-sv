@@ -1628,22 +1628,10 @@ public class Script {
                             /**
                              * FIXME BigInteger doesn't behave the way we want for modulo operations.  Firstly it's
                              * always garunteed to return a +ve result.  Secondly it will throw an exception
-                             * if the 2nd operand is negative.  So we'll convert the values to longs and use native
-                             * modulo.  When we expand the number limits to arbitrary length we will likely need
-                             * a new BigNum implementation to handle this correctly.
+                             * if the 2nd operand is negative.
+                             * The remainder method behaves as we expect
                              */
-                            long lOp1 = numericOPnum1.longValue();
-                            if (!BigInteger.valueOf(lOp1).equals(numericOPnum1)) {
-                                //in case the value is larger than a long can handle we need to crash and burn.
-                                throw new RuntimeException("Cannot handle large negative operand for modulo operation");
-                            }
-                            long lOp2 = numericOPnum2.longValue();
-                            if (!BigInteger.valueOf(lOp2).equals(numericOPnum2)) {
-                                //in case the value is larger than a long can handle we need to crash and burn.
-                                throw new RuntimeException("Cannot handle large negative operand for modulo operation");
-                            }
-                            long lOpResult = lOp1 % lOp2;
-                            numericOPresult = BigInteger.valueOf(lOpResult);
+                            numericOPresult = numericOPnum1.remainder(numericOPnum2);
 
                             break;
 
