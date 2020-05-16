@@ -294,6 +294,8 @@ public class ScriptTest {
             Script scriptPubKey = parseScriptString(test.get(1).asText());
             Set<VerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
             try {
+                if (test.toString().equals("[\"0x0100\",\"INVERT 0x01FF EQUAL\",\"P2SH,STRICTENC,MAGNETIC_OPCODES\",\"OK\",\"INVERT, simple\"]"))
+                    System.out.println();
                 scriptSig.correctlySpends(new Transaction(PARAMS), 0, scriptPubKey, verifyFlags);
             } catch (ScriptException e) {
                 System.err.println(test);

@@ -1346,7 +1346,17 @@ public class Script {
                     stack.add(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(sizeItem.length), false)), sizeItem);
                     break;
                 case OP_INVERT:
-                    throw new ScriptException("Attempted to use disabled Script Op.");
+                    // (x -- out)
+                    if (stack.size() < 1) {
+                        throw new ScriptException("Invalid stack operation.");
+                    }
+                    StackItem invertItem = stack.pollLast();
+                    for (int i = 0; i < invertItem.length; i++) {
+                        invertItem.bytes[i] = (byte) ~invertItem.bytes[i];
+                    }
+                    stack.addLast(invertItem);
+                    break;
+
                 case OP_AND:
                 case OP_OR:
                 case OP_XOR:
