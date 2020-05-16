@@ -77,17 +77,17 @@ public class Script {
         CLEANSTACK, // Require that only a single stack element remains after evaluation.
         CHECKLOCKTIMEVERIFY, // Enable CHECKLOCKTIMEVERIFY operation
         ENABLESIGHASHFORKID,
-        MONOLITH_ACTIVE, // May 15, 2018 Hard fork
-        MAGNETIC_ACTIVE, //Nov 15 2018 Hard fork
-        GENESIS_ACTIVE, // Feb 4th, 2020 Hard fork
-        CHRONICLE_ACTIVE // Future Chronicle hard fork
+        MONOLITH_OPCODES, // May 15, 2018 Hard fork
+        MAGNETIC_OPCODES, //Nov 15 2018 Hard fork
+        GENESIS_OPCODES, // Feb 4th, 2020 Hard fork
+        CHRONICLE_OPCODES // Future Chronicle hard fork
     }
     public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.allOf(VerifyFlag.class);
 
-    public static final EnumSet<VerifyFlag> MONOLITH_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE);
-    public static final EnumSet<VerifyFlag> MAGNETIC_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.MAGNETIC_ACTIVE);
-    public static final EnumSet<VerifyFlag> GENESIS_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.MAGNETIC_ACTIVE, VerifyFlag.GENESIS_ACTIVE);
-    public static final EnumSet<VerifyFlag> CHRONICLE_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.GENESIS_ACTIVE, VerifyFlag.CHRONICLE_ACTIVE);
+    public static final EnumSet<VerifyFlag> MONOLITH_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES);
+    public static final EnumSet<VerifyFlag> MAGNETIC_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES, VerifyFlag.MAGNETIC_OPCODES);
+    public static final EnumSet<VerifyFlag> GENESIS_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES, VerifyFlag.MAGNETIC_OPCODES, VerifyFlag.GENESIS_OPCODES);
+    public static final EnumSet<VerifyFlag> CHRONICLE_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES, VerifyFlag.GENESIS_OPCODES, VerifyFlag.CHRONICLE_OPCODES);
 
 
     private static final Logger log = LoggerFactory.getLogger(Script.class);
@@ -882,15 +882,18 @@ public class Script {
 
 
         switch (opcode) {
-            case OP_INVERT:
-            case OP_LSHIFT:
-            case OP_RSHIFT:
 
             case OP_2MUL:
             case OP_2DIV:
-            case OP_MUL:
                 //disabled codes
                 return true;
+
+            case OP_INVERT:
+            case OP_LSHIFT:
+            case OP_RSHIFT:
+            case OP_MUL:
+                //enabled codes, still disabled if flag is not activated
+                return !verifyFlags.contains(VerifyFlag.MAGNETIC_OPCODES);
 
             case OP_CAT:
             case OP_SPLIT:
@@ -902,7 +905,7 @@ public class Script {
             case OP_NUM2BIN:
             case OP_BIN2NUM:
                 //enabled codes, still disabled if flag is not activated
-                return !verifyFlags.contains(VerifyFlag.MONOLITH_ACTIVE);
+                return !verifyFlags.contains(VerifyFlag.MONOLITH_OPCODES);
 
             default:
                 //not an opcode that was ever disabled
@@ -968,9 +971,9 @@ public class Script {
         LinkedList<Boolean> ifStack = new LinkedList<Boolean>();
         final boolean enforceMinimal = verifyFlags.contains(VerifyFlag.MINIMALDATA);
 
-        final long maxScriptElementSize = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
-        final int maxOpCount = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? Integer.MAX_VALUE :
-                verifyFlags.contains(VerifyFlag.MAGNETIC_ACTIVE) ? MAX_OPCOUNT_PRE_GENESIS :
+        final long maxScriptElementSize = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES) ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
+        final int maxOpCount = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES) ? Integer.MAX_VALUE :
+                verifyFlags.contains(VerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
                         MAX_OPCOUNT_PRE_MAGNETIC;
 
         if (scriptStateListener != null) {
@@ -1483,6 +1486,10 @@ public class Script {
                         numericOPresult = numericOPnum1.subtract(numericOPnum2);
                         break;
 
+                    case OP_MUL:
+                        numericOPresult = numericOPnum1.multiply(numericOPnum2);
+                        break;
+
                     case OP_DIV:
                         if (numericOPnum2.intValue() == 0)
                             throw new ScriptException("Division by zero error");
@@ -1581,7 +1588,6 @@ public class Script {
                     
                     stack.add(Utils.reverseBytes(Utils.encodeMPI(numericOPresult, false)), numericOpItem1, numericOpItem2);
                     break;
-                case OP_MUL:
                 case OP_LSHIFT:
                 case OP_RSHIFT:
                     throw new ScriptException("Attempted to use disabled Script Op.");
