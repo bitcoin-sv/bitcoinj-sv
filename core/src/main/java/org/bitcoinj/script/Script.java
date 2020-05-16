@@ -98,6 +98,7 @@ public class Script {
     public static final int MAX_MULTISIG_PUBKEYS_POST_GENESIS = Integer.MAX_VALUE;
     public static final int MAX_OPCOUNT_PRE_MAGNETIC = 201;
     public static final int MAX_OPCOUNT_PRE_GENESIS = 500;
+    public static final long MAX_STACK_MEMORY_USAGE_CONSENSUS = 100 * 1000 * 1000;
     public static final int SIG_SIZE = 75;
     /** Max number of sigops allowed in a standard p2sh redeem script */
     public static final int MAX_P2SH_SIGOPS = 15;
@@ -1819,10 +1820,15 @@ public class Script {
                 }
             }
             
-            if (!genesisActive) {
+            if (genesisActive) {
+                long stackBytes = stack.getStackMemoryUsage() + altstack.getStackMemoryUsage();
+                if (stackBytes > MAX_STACK_MEMORY_USAGE_CONSENSUS)
+                    throw new ScriptException("Stack memory usage consensus exceeded");
+            } else {
                 if (stack.size() + altstack.size() > 1000 || stack.size() + altstack.size() < 0)
                     throw new ScriptException("Stack size exceeded range");
             }
+
 
             if (scriptStateListener != null) {
                 scriptStateListener.onAfterOpCodeExectuted();
