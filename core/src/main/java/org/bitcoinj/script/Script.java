@@ -92,7 +92,8 @@ public class Script {
 
     private static final Logger log = LoggerFactory.getLogger(Script.class);
     public static final long MAX_SCRIPT_ELEMENT_SIZE = 520;  // bytes
-    public static final int DEFAULT_MAX_NUM_ELEMENT_SIZE = 4;
+    public static final int MAX_NUM_ELEMENT_SIZE_PRE_GENESIS = 4;
+    public static final int MAX_NUM_ELEMENT_SIZE_POST_GENESIS = 750000;
     public static final int MAX_OPCOUNT_PRE_MAGNETIC = 201;
     public static final int MAX_OPCOUNT_PRE_GENESIS = 500;
     public static final int SIG_SIZE = 75;
@@ -822,9 +823,9 @@ public class Script {
      * @throws ScriptException if the chunk is longer than 4 bytes.
      */
     private static BigInteger castToBigInteger(byte[] chunk, boolean enforceMinimal) throws ScriptException {
-        if (chunk.length > DEFAULT_MAX_NUM_ELEMENT_SIZE)
+        if (chunk.length > MAX_NUM_ELEMENT_SIZE_PRE_GENESIS)
             throw new ScriptException("Script attempted to use an integer larger than 4 bytes");
-        if (enforceMinimal && !Utils.checkMinimallyEncodedLE(chunk, DEFAULT_MAX_NUM_ELEMENT_SIZE))
+        if (enforceMinimal && !Utils.checkMinimallyEncodedLE(chunk, MAX_NUM_ELEMENT_SIZE_PRE_GENESIS))
             throw new ScriptException("Number is not minimally encoded");
         //numbers on the stack or stored LE so convert as MPI requires BE.
         byte[] bytesBE = Utils.reverseBytes(chunk);
@@ -832,9 +833,11 @@ public class Script {
     }
 
     /**
-     * Cast a script chunk to a BigInteger. Normally you would want
+     * Cast a script chunk to a BigInteger. Before Genesis, normally you would want
      * {@link #castToBigInteger(byte[], boolean)} instead, this is only for cases where
      * the normal maximum length does not apply (i.e. CHECKLOCKTIMEVERIFY).
+     *
+     * Post Genesis this is the default
      *
      * @param maxLength the maximum length in bytes.
      * @throws ScriptException if the chunk is longer than the specified maximum.
@@ -843,7 +846,7 @@ public class Script {
         if (chunk.length > maxLength)
             throw new ScriptException("Script attempted to use an integer larger than "
                 + maxLength + " bytes");
-        if (enforceMinimal && !Utils.checkMinimallyEncodedLE(chunk, 5))
+        if (enforceMinimal && !Utils.checkMinimallyEncodedLE(chunk, maxLength))
             throw new ScriptException("Number is not minimally encoded");
         return Utils.decodeMPI(Utils.reverseBytes(chunk), false);
     }
@@ -1046,6 +1049,7 @@ public class Script {
         final boolean enforceMinimal = verifyFlags.contains(VerifyFlag.MINIMALDATA);
         final boolean genesisActive = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES);
         final long maxScriptElementSize = genesisActive ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
+        final int maxNumElementSize = genesisActive ? MAX_NUM_ELEMENT_SIZE_POST_GENESIS : MAX_NUM_ELEMENT_SIZE_PRE_GENESIS;
         final int maxOpCount = genesisActive ? Integer.MAX_VALUE :
                 verifyFlags.contains(VerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
                         MAX_OPCOUNT_PRE_MAGNETIC;
@@ -1287,7 +1291,7 @@ public class Script {
 
                     StackItem rollVal = stack.pollLast();
 
-                    long val = castToBigInteger(rollVal.bytes, enforceMinimal).longValue();
+                    long val = castToBigInteger(rollVal.bytes, maxNumElementSize, enforceMinimal).longValue();
                     if (val < 0 || val >= stack.size())
                         throw new ScriptException("OP_PICK/OP_ROLL attempted to get data deeper than stack size");
                     Iterator<StackItem> itPICK = stack.descendingIterator();
@@ -1344,7 +1348,7 @@ public class Script {
                         throw new ScriptException("Invalid stack operation.");
                     StackItem biSplitPosItem = stack.pollLast();
                     StackItem splitBytesItem = stack.pollLast();
-                    BigInteger biSplitPos = castToBigInteger(biSplitPosItem.bytes, enforceMinimal);
+                    BigInteger biSplitPos = castToBigInteger(biSplitPosItem.bytes, maxNumElementSize, enforceMinimal);
 
                     //sanity check in case we aren't enforcing minimal number encoding
                     //we will check that the biSplitPos value can be safely held in an int
@@ -1375,7 +1379,7 @@ public class Script {
                         throw new ScriptException("Invalid stack operation.");
 
                     StackItem numSizeItem = stack.pollLast();
-                    int numSize = castToBigInteger(numSizeItem.bytes, enforceMinimal).intValue();
+                    int numSize = castToBigInteger(numSizeItem.bytes, maxNumElementSize, enforceMinimal).intValue();
 
                     if (numSize > maxScriptElementSize)
                         throw new ScriptException("Push value size limit exceeded.");
@@ -1415,7 +1419,7 @@ public class Script {
                     StackItem binBytes = stack.pollLast();
                     byte[] numBytes = Utils.minimallyEncodeLE(binBytes.bytes);
 
-                    if (!Utils.checkMinimallyEncodedLE(numBytes, DEFAULT_MAX_NUM_ELEMENT_SIZE))
+                    if (!Utils.checkMinimallyEncodedLE(numBytes, maxNumElementSize))
                         throw new ScriptException("Given operand is not a number within the valid range [-2^31...2^31]");
 
                     stack.addLast(numBytes, binBytes);
@@ -1494,7 +1498,7 @@ public class Script {
                         throw new ScriptException("Invalid stack operation.");
                     StackItem shiftNItem = stack.pollLast();
                     StackItem shiftData = stack.pollLast();
-                    int shiftN = castToBigInteger(shiftNItem.bytes, enforceMinimal).intValueExact();
+                    int shiftN = castToBigInteger(shiftNItem.bytes, maxNumElementSize, enforceMinimal).intValueExact();
                     if (shiftN < 0)
                         throw new ScriptException("Invalid numer range.");
 
@@ -1535,7 +1539,7 @@ public class Script {
                     if (stack.size() < 1)
                         throw new ScriptException("Attempted a numeric op on an empty stack");
                     StackItem numericOpItem = stack.pollLast();
-                    BigInteger numericOPnum = castToBigInteger(numericOpItem.bytes, enforceMinimal);
+                    BigInteger numericOPnum = castToBigInteger(numericOpItem.bytes, maxNumElementSize, enforceMinimal);
                                         
                     switch (opcode) {
                     case OP_1ADD:
@@ -1591,8 +1595,8 @@ public class Script {
                         throw new ScriptException("Attempted a numeric op on a stack with size < 2");
                     StackItem numericOpItem2 = stack.pollLast();
                     StackItem numericOpItem1 = stack.pollLast();
-                    BigInteger numericOPnum2 = castToBigInteger(numericOpItem2.bytes, enforceMinimal);
-                    BigInteger numericOPnum1 = castToBigInteger(numericOpItem1.bytes, enforceMinimal);
+                    BigInteger numericOPnum2 = castToBigInteger(numericOpItem2.bytes, maxNumElementSize, enforceMinimal);
+                    BigInteger numericOPnum1 = castToBigInteger(numericOpItem1.bytes, maxNumElementSize, enforceMinimal);
 
                     BigInteger numericOPresult;
                     switch (opcode) {
@@ -1708,8 +1712,8 @@ public class Script {
                 case OP_NUMEQUALVERIFY:
                     if (stack.size() < 2)
                         throw new ScriptException("Attempted OP_NUMEQUALVERIFY on a stack with size < 2");
-                    BigInteger OPNUMEQUALVERIFYnum2 = castToBigInteger(stack.pollLast().bytes, enforceMinimal);
-                    BigInteger OPNUMEQUALVERIFYnum1 = castToBigInteger(stack.pollLast().bytes, enforceMinimal);
+                    BigInteger OPNUMEQUALVERIFYnum2 = castToBigInteger(stack.pollLast().bytes, maxNumElementSize, enforceMinimal);
+                    BigInteger OPNUMEQUALVERIFYnum1 = castToBigInteger(stack.pollLast().bytes, maxNumElementSize, enforceMinimal);
                     
                     if (!OPNUMEQUALVERIFYnum1.equals(OPNUMEQUALVERIFYnum2))
                         throw new ScriptException("OP_NUMEQUALVERIFY failed");
@@ -1720,9 +1724,9 @@ public class Script {
                     StackItem OPWITHINitem3 = stack.pollLast();
                     StackItem OPWITHINitem2 = stack.pollLast();
                     StackItem OPWITHINitem1 = stack.pollLast();
-                    BigInteger OPWITHINnum3 = castToBigInteger(OPWITHINitem3.bytes, enforceMinimal);
-                    BigInteger OPWITHINnum2 = castToBigInteger(OPWITHINitem2.bytes, enforceMinimal);
-                    BigInteger OPWITHINnum1 = castToBigInteger(OPWITHINitem1.bytes, enforceMinimal);
+                    BigInteger OPWITHINnum3 = castToBigInteger(OPWITHINitem3.bytes, maxNumElementSize, enforceMinimal);
+                    BigInteger OPWITHINnum2 = castToBigInteger(OPWITHINitem2.bytes, maxNumElementSize, enforceMinimal);
+                    BigInteger OPWITHINnum1 = castToBigInteger(OPWITHINitem1.bytes, maxNumElementSize, enforceMinimal);
                     byte[] OPWITHINresult;
                     if (OPWITHINnum2.compareTo(OPWITHINnum1) <= 0 && OPWITHINnum1.compareTo(OPWITHINnum3) < 0)
                         OPWITHINresult = Utils.encodeMPI(BigInteger.ONE, false);
@@ -1781,7 +1785,7 @@ public class Script {
                 case OP_CHECKMULTISIGVERIFY:
                     if (txContainingThis == null)
                         throw new IllegalStateException("Script attempted signature check but no tx was provided");
-                    opCount = executeMultiSig(txContainingThis, (int) index, script, stack, opCount, maxOpCount, lastCodeSepLocation, opcode, value, verifyFlags);
+                    opCount = executeMultiSig(txContainingThis, (int) index, script, stack, opCount, maxOpCount, maxNumElementSize, lastCodeSepLocation, opcode, value, verifyFlags);
                     break;
                 case OP_CHECKLOCKTIMEVERIFY:
                     if (!verifyFlags.contains(VerifyFlag.CHECKLOCKTIMEVERIFY)) {
@@ -1928,7 +1932,7 @@ public class Script {
     }
 
     private static int executeMultiSig(Transaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
-                                       int opCount, int maxOpCount, int lastCodeSepLocation, int opcode, Coin value,
+                                       int opCount, int maxOpCount, int maxNumElementSize, int lastCodeSepLocation, int opcode, Coin value,
                                        Set<VerifyFlag> verifyFlags) throws ScriptException {
         final boolean requireCanonical = verifyFlags.contains(VerifyFlag.STRICTENC)
             || verifyFlags.contains(VerifyFlag.DERSIG)
@@ -1941,7 +1945,7 @@ public class Script {
 
         StackItem pubKeyCountItem = stack.pollLast();
         polledStackItems.add(pubKeyCountItem);
-        int pubKeyCount = castToBigInteger(pubKeyCountItem.bytes, enforceMinimal).intValue();
+        int pubKeyCount = castToBigInteger(pubKeyCountItem.bytes, maxNumElementSize, enforceMinimal).intValue();
         if (pubKeyCount < 0 || pubKeyCount > 20)
             throw new ScriptException("OP_CHECKMULTISIG(VERIFY) with pubkey count out of range");
         opCount += pubKeyCount;
@@ -1960,7 +1964,7 @@ public class Script {
 
         StackItem sigCountItem = stack.pollLast();
         polledStackItems.add(sigCountItem);
-        int sigCount = castToBigInteger(sigCountItem.bytes, enforceMinimal).intValue();
+        int sigCount = castToBigInteger(sigCountItem.bytes, maxNumElementSize, enforceMinimal).intValue();
         if (sigCount < 0 || sigCount > pubKeyCount)
             throw new ScriptException("OP_CHECKMULTISIG(VERIFY) with sig count out of range");
         if (stack.size() < sigCount + 1)
