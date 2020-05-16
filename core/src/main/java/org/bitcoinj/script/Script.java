@@ -1044,9 +1044,9 @@ public class Script {
         ScriptStack altstack = new ScriptStack();
         LinkedList<Boolean> ifStack = new LinkedList<Boolean>();
         final boolean enforceMinimal = verifyFlags.contains(VerifyFlag.MINIMALDATA);
-
-        final long maxScriptElementSize = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES) ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
-        final int maxOpCount = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES) ? Integer.MAX_VALUE :
+        final boolean genesisActive = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES);
+        final long maxScriptElementSize = genesisActive ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
+        final int maxOpCount = genesisActive ? Integer.MAX_VALUE :
                 verifyFlags.contains(VerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
                         MAX_OPCOUNT_PRE_MAGNETIC;
 
@@ -1610,7 +1610,7 @@ public class Script {
                                 throw new ScriptException("Modulo by zero error");
 
                             /**
-                             * BigInteger doesn't behave the way we want for modulo operations.  Firstly it's
+                             * FIXME BigInteger doesn't behave the way we want for modulo operations.  Firstly it's
                              * always garunteed to return a +ve result.  Secondly it will throw an exception
                              * if the 2nd operand is negative.  So we'll convert the values to longs and use native
                              * modulo.  When we expand the number limits to arbitrary length we will likely need
@@ -1804,8 +1804,10 @@ public class Script {
                 }
             }
             
-            if (stack.size() + altstack.size() > 1000 || stack.size() + altstack.size() < 0)
-                throw new ScriptException("Stack size exceeded range");
+            if (!genesisActive) {
+                if (stack.size() + altstack.size() > 1000 || stack.size() + altstack.size() < 0)
+                    throw new ScriptException("Stack size exceeded range");
+            }
 
             if (scriptStateListener != null) {
                 scriptStateListener.onAfterOpCodeExectuted();
