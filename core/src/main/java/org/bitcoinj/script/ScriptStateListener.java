@@ -28,8 +28,8 @@ public abstract class ScriptStateListener {
     private Transaction txContainingThis;
     private long index;
     private ScriptStream script;
-    private List<byte[]> stack;
-    private List<byte[]> altstack;
+    private List<StackItem> stack;
+    private List<StackItem> altstack;
     private List<Boolean> ifStack;
     private Coin value;
     private Set<Script.VerifyFlag> verifyFlags;
@@ -40,7 +40,7 @@ public abstract class ScriptStateListener {
 
 
     void setInitialState(@Nullable Transaction txContainingThis, long index,
-                               ScriptStream script, List<byte[]> stack, List<byte[]> altstack, List<Boolean> ifStack, Coin value, Set<Script.VerifyFlag> verifyFlags) {
+                         ScriptStream script, List<StackItem> stack, List<StackItem> altstack, List<Boolean> ifStack, Coin value, Set<Script.VerifyFlag> verifyFlags) {
         this.chunkIndex = -1;
         this.txContainingThis = txContainingThis;
         this.index = index;
@@ -94,11 +94,11 @@ public abstract class ScriptStateListener {
         return script;
     }
 
-    public List<byte[]> getStack() {
+    public List<StackItem> getStack() {
         return stack;
     }
 
-    public List<byte[]> getAltstack() {
+    public List<StackItem> getAltstack() {
         return altstack;
     }
 

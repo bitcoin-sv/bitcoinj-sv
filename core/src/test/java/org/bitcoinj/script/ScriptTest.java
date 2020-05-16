@@ -229,7 +229,7 @@ public class ScriptTest {
         tx.addInput(new TransactionInput(PARAMS, tx, new byte[] {}));
         Script script = new ScriptBuilder().smallNum(0).build();
 
-        LinkedList<byte[]> stack = new LinkedList<byte[]>();
+        ScriptStack stack = new ScriptStack();
         Script.executeScript(tx, 0, script, stack, Script.ALL_VERIFY_FLAGS);
         assertEquals("OP_0 push length", 0, stack.get(0).length);
     }
@@ -552,12 +552,12 @@ public class ScriptTest {
 
     private byte[] generateAndExecuteBitwiseScript(byte[] a, byte[] b, String opcode) {
         Script script = new ScriptBuilder().data(a).data(b).op(ScriptOpCodes.getOpCode(opcode)).build();
-        LinkedList<byte[]> stack = new LinkedList<byte[]>();
+        ScriptStack stack = new ScriptStack();
         EnumSet<VerifyFlag> verifyFlags = EnumSet.noneOf(VerifyFlag.class);
         verifyFlags.add(VerifyFlag.MONOLITH_OPCODES);
         Script.executeScript(new Transaction(PARAMS), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
-        return stack.peekLast();
+        return stack.peekLast().bytes;
     }
 
 

@@ -40,7 +40,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
         Script scriptPubKey = tx1.getOutput(0).getScriptPubKey();
         Script scriptSig = tx2.getInput(0).getScriptSig();
 
-        LinkedList<byte[]> stack = new LinkedList();
+        ScriptStack stack = new ScriptStack();
 
         ScriptStateListener listener = new InteractiveScriptStateListener(true);
 
@@ -98,7 +98,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
         System.out.println();
 
         //dump stacks
-        List<byte[]> reverseStack = new ArrayList<byte[]>(getStack());
+        List<StackItem> reverseStack = new ArrayList<>(getStack());
         Collections.reverse(reverseStack);
         System.out.println("Stack:");
 
@@ -106,21 +106,21 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
           System.out.println("empty");
         } else {
             int index = 0;
-            for (byte[] bytes : reverseStack) {
+            for (StackItem item : reverseStack) {
 
-                System.out.println(String.format("index[%s] len[%s] [%s]", index++, bytes.length, HEX.encode(bytes)));
+                System.out.println(String.format("index[%s] len[%s] [%s]", index++, item.length(), HEX.encode(item.bytes)));
 
             }
         }
         System.out.println();
 
         if (!getAltstack().isEmpty()) {
-            reverseStack = new ArrayList<byte[]>(getAltstack());
+            reverseStack = new ArrayList<StackItem>(getAltstack());
             Collections.reverse(reverseStack);
             System.out.println("Alt Stack:");
 
-            for (byte[] bytes: reverseStack) {
-                System.out.println(HEX.encode(bytes));
+            for (StackItem item: reverseStack) {
+                System.out.println(HEX.encode(item.bytes));
             }
             System.out.println();
         }
@@ -151,8 +151,8 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
     @Override
     public void onScriptComplete() {
-        List<byte[]> stack = getStack();
-        if (stack.isEmpty() || !Script.castToBool(stack.get(stack.size() - 1))) {
+        List<StackItem> stack = getStack();
+        if (stack.isEmpty() || !Script.castToBool(stack.get(stack.size() - 1).bytes)) {
             System.out.println("Script failed.");
         } else {
             System.out.println("Script success.");
