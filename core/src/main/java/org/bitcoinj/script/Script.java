@@ -848,6 +848,74 @@ public class Script {
         return Utils.decodeMPI(Utils.reverseBytes(chunk), false);
     }
 
+    private static final int[] RSHIFT_MASKS = new int[]{0xFF, 0xFE, 0xFC, 0xF8, 0xF0, 0xE0, 0xC0, 0x80};
+
+    /**
+     * shift x right by n bits, implements OP_RSHIFT
+     * see: https://github.com/bitcoin-sv/bitcoin-sv/commit/27d24de643dbd3cc852e1de7c90e752e19abb9d8
+     * @param x
+     * @param n
+     * @return
+     */
+    private static byte[] rShift(StackItem x, int n) {
+        int bit_shift = n % 8;
+        int byte_shift = n / 8;
+
+        int mask = RSHIFT_MASKS[bit_shift];
+        int overflow_mask = (~mask) & 0xff;
+
+        StackItem result = StackItem.wrap(new byte[x.length]);
+        for (int i = 0; i < x.length; i++) {
+            int k = i + byte_shift;
+            if (k < x.length) {
+                int val = x.bytes[i] & mask;
+                val = val >>> bit_shift;
+                result.bytes[k] |= val;
+            }
+
+            if (k + 1 < x.length) {
+                int carryval = x.bytes[i] & overflow_mask;
+                carryval <<= 8 - bit_shift;
+                result.bytes[k + 1] |= carryval;
+            }
+        }
+        return result.bytes;
+    }
+
+    private static final int[] LSHIFT_MASKS = new int[]{0xFF, 0x7F, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01};
+
+    /**
+     * shift x left by n bits, implements OP_LSHIFT
+     * see: https://github.com/bitcoin-sv/bitcoin-sv/commit/27d24de643dbd3cc852e1de7c90e752e19abb9d8
+     * @param x
+     * @param n
+     * @return
+     */
+    private static byte[] lShift(StackItem x, int n) {
+        int bit_shift = n % 8;
+        int byte_shift = n / 8;
+
+        int mask = LSHIFT_MASKS[bit_shift];
+        int overflow_mask = (~mask) & 0xff;
+
+        StackItem result = StackItem.wrap(new byte[x.length]);
+        for (int i = x.length - 1; i >= 0; i--) {
+            int k = i - byte_shift;
+            if (k >= 0) {
+                int val = x.bytes[i] & mask;
+                val <<= bit_shift;
+                result.bytes[k] |= val;
+            }
+
+            if (k - 1 >= 0) {
+                int carryval = x.bytes[i] & overflow_mask;
+                carryval = carryval >>> 8 - bit_shift;
+                result.bytes[k - 1] |= carryval;
+            }
+        }
+        return result.bytes;
+    }
+
     public boolean isOpReturn() {
         return chunks.size() > 0 && chunks.get(0).equalsOpCode(OP_RETURN);
     }
@@ -1405,7 +1473,31 @@ public class Script {
                     stack.addLast(vch1, vch1Item, vch2Item);
 
                     break;
+                case OP_LSHIFT:
+                case OP_RSHIFT:
+                    // (x n -- out)
+                    if (stack.size() < 2)
+                        throw new ScriptException("Invalid stack operation.");
+                    StackItem shiftNItem = stack.pollLast();
+                    StackItem shiftData = stack.pollLast();
+                    int shiftN = castToBigInteger(shiftNItem.bytes, enforceMinimal).intValueExact();
+                    if (shiftN < 0)
+                        throw new ScriptException("Invalid numer range.");
 
+                    byte[] shifted;
+                    switch (opcode) {
+                        case OP_LSHIFT:
+                            shifted = lShift(shiftData, shiftN);
+                            break;
+                        case OP_RSHIFT:
+                            shifted = rShift(shiftData, shiftN);
+                            break;
+                        default:
+                            throw new ScriptException("switched opcode at runtime"); //can't happen
+                    }
+                    stack.addLast(shifted, shiftNItem, shiftData);
+
+                    break;
                 case OP_EQUAL:
                     if (stack.size() < 2)
                         throw new ScriptException("Attempted OP_EQUAL on a stack with size < 2");
@@ -1599,9 +1691,6 @@ public class Script {
                     
                     stack.add(Utils.reverseBytes(Utils.encodeMPI(numericOPresult, false)), numericOpItem1, numericOpItem2);
                     break;
-                case OP_LSHIFT:
-                case OP_RSHIFT:
-                    throw new ScriptException("Attempted to use disabled Script Op.");
                 case OP_NUMEQUALVERIFY:
                     if (stack.size() < 2)
                         throw new ScriptException("Attempted OP_NUMEQUALVERIFY on a stack with size < 2");
