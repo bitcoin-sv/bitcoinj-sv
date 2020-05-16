@@ -93,6 +93,8 @@ public class Script {
     private static final Logger log = LoggerFactory.getLogger(Script.class);
     public static final long MAX_SCRIPT_ELEMENT_SIZE = 520;  // bytes
     public static final int DEFAULT_MAX_NUM_ELEMENT_SIZE = 4;
+    public static final int MAX_OPCOUNT_PRE_MAGNETIC = 201;
+    public static final int MAX_OPCOUNT_PRE_GENESIS = 500;
     public static final int SIG_SIZE = 75;
     /** Max number of sigops allowed in a standard p2sh redeem script */
     public static final int MAX_P2SH_SIGOPS = 15;
@@ -966,6 +968,10 @@ public class Script {
         LinkedList<Boolean> ifStack = new LinkedList<Boolean>();
         final boolean enforceMinimal = verifyFlags.contains(VerifyFlag.MINIMALDATA);
 
+        final long maxScriptElementSize = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? -1 : MAX_SCRIPT_ELEMENT_SIZE;
+        final int maxOpCount = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? -1 :
+                verifyFlags.contains(VerifyFlag.MAGNETIC_ACTIVE) ? MAX_OPCOUNT_PRE_GENESIS :
+                        MAX_OPCOUNT_PRE_MAGNETIC;
 
         if (scriptStateListener != null) {
             scriptStateListener.setInitialState(
@@ -1003,7 +1009,7 @@ public class Script {
                 int opcode = chunk.opcode;
                 if (opcode > OP_16) {
                     opCount++;
-                    if (opCount > 201)
+                    if (maxOpCount >= 0 && opCount > maxOpCount)
                         throw new ScriptException("More script operations than is allowed");
                 }
                 
@@ -1655,7 +1661,7 @@ public class Script {
                 case OP_CHECKMULTISIGVERIFY:
                     if (txContainingThis == null)
                         throw new IllegalStateException("Script attempted signature check but no tx was provided");
-                    opCount = executeMultiSig(txContainingThis, (int) index, script, stack, opCount, lastCodeSepLocation, opcode, value, verifyFlags);
+                    opCount = executeMultiSig(txContainingThis, (int) index, script, stack, opCount, maxOpCount, lastCodeSepLocation, opcode, value, verifyFlags);
                     break;
                 case OP_CHECKLOCKTIMEVERIFY:
                     if (!verifyFlags.contains(VerifyFlag.CHECKLOCKTIMEVERIFY)) {
@@ -1795,7 +1801,7 @@ public class Script {
     }
 
     private static int executeMultiSig(Transaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
-                                       int opCount, int lastCodeSepLocation, int opcode, Coin value,
+                                       int opCount, int maxOpCount, int lastCodeSepLocation, int opcode, Coin value,
                                        Set<VerifyFlag> verifyFlags) throws ScriptException {
         final boolean requireCanonical = verifyFlags.contains(VerifyFlag.STRICTENC)
             || verifyFlags.contains(VerifyFlag.DERSIG)
@@ -1812,8 +1818,8 @@ public class Script {
         if (pubKeyCount < 0 || pubKeyCount > 20)
             throw new ScriptException("OP_CHECKMULTISIG(VERIFY) with pubkey count out of range");
         opCount += pubKeyCount;
-        if (opCount > 201)
-            throw new ScriptException("Total op count > 201 during OP_CHECKMULTISIG(VERIFY)");
+        if (maxOpCount >= 0 && opCount > maxOpCount)
+            throw new ScriptException("Total op count > " + maxOpCount + " during OP_CHECKMULTISIG(VERIFY)");
         if (stack.size() < pubKeyCount + 1)
             throw new ScriptException("Attempted OP_CHECKMULTISIG(VERIFY) on a stack with size < num_of_pubkeys + 2");
 
