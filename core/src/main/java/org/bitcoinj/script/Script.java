@@ -77,9 +77,18 @@ public class Script {
         CLEANSTACK, // Require that only a single stack element remains after evaluation.
         CHECKLOCKTIMEVERIFY, // Enable CHECKLOCKTIMEVERIFY operation
         ENABLESIGHASHFORKID,
-        MONOLITH_OPCODES // May 15, 2018 Hard fork
+        MONOLITH_ACTIVE, // May 15, 2018 Hard fork
+        MAGNETIC_ACTIVE, //Nov 15 2018 Hard fork
+        GENESIS_ACTIVE, // Feb 4th, 2020 Hard fork
+        CHRONICLE_ACTIVE // Future Chronicle hard fork
     }
     public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.allOf(VerifyFlag.class);
+
+    public static final EnumSet<VerifyFlag> MONOLITH_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE);
+    public static final EnumSet<VerifyFlag> MAGNETIC_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.MAGNETIC_ACTIVE);
+    public static final EnumSet<VerifyFlag> GENESIS_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.GENESIS_ACTIVE);
+    public static final EnumSet<VerifyFlag> CHRONICLE_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.GENESIS_ACTIVE, VerifyFlag.CHRONICLE_ACTIVE);
+
 
     private static final Logger log = LoggerFactory.getLogger(Script.class);
     public static final long MAX_SCRIPT_ELEMENT_SIZE = 520;  // bytes
@@ -891,7 +900,7 @@ public class Script {
             case OP_NUM2BIN:
             case OP_BIN2NUM:
                 //enabled codes, still disabled if flag is not activated
-                return !verifyFlags.contains(VerifyFlag.MONOLITH_OPCODES);
+                return !verifyFlags.contains(VerifyFlag.MONOLITH_ACTIVE);
 
             default:
                 //not an opcode that was ever disabled

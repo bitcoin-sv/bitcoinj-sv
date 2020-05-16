@@ -554,7 +554,7 @@ public class ScriptTest {
         Script script = new ScriptBuilder().data(a).data(b).op(ScriptOpCodes.getOpCode(opcode)).build();
         ScriptStack stack = new ScriptStack();
         EnumSet<VerifyFlag> verifyFlags = EnumSet.noneOf(VerifyFlag.class);
-        verifyFlags.add(VerifyFlag.MONOLITH_OPCODES);
+        verifyFlags.add(VerifyFlag.MONOLITH_ACTIVE);
         Script.executeScript(new Transaction(PARAMS), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
         return stack.peekLast().bytes;
