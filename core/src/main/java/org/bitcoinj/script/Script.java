@@ -86,7 +86,7 @@ public class Script {
 
     public static final EnumSet<VerifyFlag> MONOLITH_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE);
     public static final EnumSet<VerifyFlag> MAGNETIC_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.MAGNETIC_ACTIVE);
-    public static final EnumSet<VerifyFlag> GENESIS_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.GENESIS_ACTIVE);
+    public static final EnumSet<VerifyFlag> GENESIS_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.MAGNETIC_ACTIVE, VerifyFlag.GENESIS_ACTIVE);
     public static final EnumSet<VerifyFlag> CHRONICLE_SET = EnumSet.of(VerifyFlag.MONOLITH_ACTIVE, VerifyFlag.GENESIS_ACTIVE, VerifyFlag.CHRONICLE_ACTIVE);
 
 
