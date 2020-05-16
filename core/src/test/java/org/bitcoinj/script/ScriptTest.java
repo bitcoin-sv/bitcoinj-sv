@@ -579,7 +579,14 @@ public class ScriptTest {
 
             UnsafeByteArrayOutputStream zero = new UnsafeByteArrayOutputStream();
             UnsafeByteArrayOutputStream negZero = new UnsafeByteArrayOutputStream();
-            for (int i = 0; i < Script.MAX_SCRIPT_ELEMENT_SIZE; i++) {
+
+            //This limit is enough to get us into the range of PUSHDATA4
+            long limit = Short.MAX_VALUE * 2 + Script.MAX_SCRIPT_ELEMENT_SIZE;
+
+            for (int i = 0; i < limit; i++) {
+                //speed up tests a bit since we don't need to test every number in range
+                if (i > Script.MAX_SCRIPT_ELEMENT_SIZE)
+                    i = i + 10;
 
                 zero.write(0x00);
                 checkMinimallyEncoded(zero.toByteArray(), new byte[0]);
@@ -602,7 +609,11 @@ public class ScriptTest {
             UnsafeByteArrayOutputStream negnPadded = new UnsafeByteArrayOutputStream();
             negnPadded.write(negn);
 
-            for (int i = 0; i < Script.MAX_SCRIPT_ELEMENT_SIZE; i++) {
+            for (int i = 0; i < limit; i++) {
+                //speed up tests a bit since we don't need to test every number in range
+                if (i > Script.MAX_SCRIPT_ELEMENT_SIZE)
+                    i = i + 10;
+
                 checkMinimallyEncoded(nPadded.toByteArray(), n);
                 nPadded.write(0x00);
 
@@ -624,7 +635,11 @@ public class ScriptTest {
             UnsafeByteArrayOutputStream negkPadded = new UnsafeByteArrayOutputStream();
             negkPadded.write(negk);
 
-            for (int i = 0; i < Script.MAX_SCRIPT_ELEMENT_SIZE; i++) {
+            for (int i = 0; i < limit; i++) {
+                //speed up tests a bit since we don't need to test every number in range
+                if (i > Script.MAX_SCRIPT_ELEMENT_SIZE)
+                    i = i + 100;
+
                 checkMinimallyEncoded(kPadded.toByteArray(), k);
                 kPadded.write(0x00);
 

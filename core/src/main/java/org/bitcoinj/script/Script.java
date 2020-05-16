@@ -968,8 +968,8 @@ public class Script {
         LinkedList<Boolean> ifStack = new LinkedList<Boolean>();
         final boolean enforceMinimal = verifyFlags.contains(VerifyFlag.MINIMALDATA);
 
-        final long maxScriptElementSize = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? -1 : MAX_SCRIPT_ELEMENT_SIZE;
-        final int maxOpCount = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? -1 :
+        final long maxScriptElementSize = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
+        final int maxOpCount = verifyFlags.contains(VerifyFlag.GENESIS_ACTIVE) ? Integer.MAX_VALUE :
                 verifyFlags.contains(VerifyFlag.MAGNETIC_ACTIVE) ? MAX_OPCOUNT_PRE_GENESIS :
                         MAX_OPCOUNT_PRE_MAGNETIC;
 
@@ -998,7 +998,7 @@ public class Script {
 
                 stack.add(new byte[]{});
             } else if (!chunk.isOpCode()) {
-                if (chunk.data.length > MAX_SCRIPT_ELEMENT_SIZE)
+                if (chunk.data.length > maxScriptElementSize)
                     throw new ScriptException("Attempted to push a data string larger than 520 bytes");
                 
                 if (!shouldExecute)
@@ -1009,7 +1009,7 @@ public class Script {
                 int opcode = chunk.opcode;
                 if (opcode > OP_16) {
                     opCount++;
-                    if (maxOpCount >= 0 && opCount > maxOpCount)
+                    if (opCount > maxOpCount)
                         throw new ScriptException("More script operations than is allowed");
                 }
                 
@@ -1244,7 +1244,7 @@ public class Script {
                     StackItem catBytes1 = stack.pollLast();
 
                     int len = catBytes1.length + catBytes2.length;
-                    if (len > MAX_SCRIPT_ELEMENT_SIZE)
+                    if (len > maxScriptElementSize)
                         throw new ScriptException("Push value size limit exceeded.");
 
                     byte[] catOut = new byte[len];
@@ -1292,7 +1292,7 @@ public class Script {
                     StackItem numSizeItem = stack.pollLast();
                     int numSize = castToBigInteger(numSizeItem.bytes, enforceMinimal).intValue();
 
-                    if (numSize > MAX_SCRIPT_ELEMENT_SIZE)
+                    if (numSize > maxScriptElementSize)
                         throw new ScriptException("Push value size limit exceeded.");
 
                     StackItem rawNumItem = stack.pollLast();
@@ -1818,7 +1818,7 @@ public class Script {
         if (pubKeyCount < 0 || pubKeyCount > 20)
             throw new ScriptException("OP_CHECKMULTISIG(VERIFY) with pubkey count out of range");
         opCount += pubKeyCount;
-        if (maxOpCount >= 0 && opCount > maxOpCount)
+        if (opCount > maxOpCount)
             throw new ScriptException("Total op count > " + maxOpCount + " during OP_CHECKMULTISIG(VERIFY)");
         if (stack.size() < pubKeyCount + 1)
             throw new ScriptException("Attempted OP_CHECKMULTISIG(VERIFY) on a stack with size < num_of_pubkeys + 2");
