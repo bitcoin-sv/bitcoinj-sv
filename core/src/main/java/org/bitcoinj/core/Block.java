@@ -40,7 +40,7 @@ import static org.bitcoinj.core.Sha256Hash.*;
  *
  * <p>To get a block, you can either build one from the raw bytes you can get from another implementation, or request one
  * specifically using {@link Peer#getBlock(Sha256Hash)}, or grab one from a downloaded {@link BlockChain}.</p>
- * 
+ *
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
 public class Block extends Message {
@@ -103,6 +103,9 @@ public class Block extends Message {
 
     /** Stores the hash of the block. If null, getHash() will recalculate it. */
     private Sha256Hash hash;
+
+    protected boolean headerParsed;
+    protected boolean transactionsParsed;
 
     protected boolean headerBytesValid;
     protected boolean transactionBytesValid;
@@ -219,6 +222,28 @@ public class Block extends Message {
         return FIFTY_COINS.shiftRight(height / params.getSubsidyDecreaseBlockCount());
     }
 
+    protected void parseHeader() throws ProtocolException {
+        if (headerParsed)
+            return;
+
+        cursor = offset;
+        version = readUint32();
+        prevBlockHash = readHash();
+        merkleRoot = readHash();
+        time = readUint32();
+        difficultyTarget = readUint32();
+        nonce = readUint32();
+
+        hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(payload, offset, cursor));
+
+        headerParsed = true;
+        headerBytesValid = serializer.isParseRetainMode();
+    }
+
+    protected void parseTransactions() throws ProtocolException {
+        parseTransactions(offset + HEADER_SIZE);
+    }
+
     /**
      * Parse transactions from the block.
      * 
@@ -227,10 +252,14 @@ public class Block extends Message {
      * size.
      */
     protected void parseTransactions(final int transactionsOffset) throws ProtocolException {
+        if (transactionsParsed)
+            return;
+
         cursor = transactionsOffset;
         optimalEncodingMessageSize = HEADER_SIZE;
         if (payload.length == cursor) {
             // This message is just a header, it has no transactions.
+            transactionsParsed = true;
             transactionBytesValid = false;
             return;
         }
@@ -246,32 +275,158 @@ public class Block extends Message {
             cursor += tx.getMessageSize();
             optimalEncodingMessageSize += tx.getOptimalEncodingMessageSize();
         }
+        // No need to set length here. If length was not provided then it should be set at the end of parseLight().
+        // If this is a genuine lazy parse then length must have been provided to the constructor.
+        transactionsParsed = true;
         transactionBytesValid = serializer.isParseRetainMode();
     }
 
     @Override
     protected void parse() throws ProtocolException {
-        // header
-        cursor = offset;
-        version = readUint32();
-        prevBlockHash = readHash();
-        merkleRoot = readHash();
-        time = readUint32();
-        difficultyTarget = readUint32();
-        nonce = readUint32();
-        hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(payload, offset, cursor - offset));
-        headerBytesValid = serializer.isParseRetainMode();
-
-        // transactions
-        parseTransactions(offset + HEADER_SIZE);
+        parseHeader();
+        parseTransactions();
         length = cursor - offset;
     }
     
     public int getOptimalEncodingMessageSize() {
         if (optimalEncodingMessageSize != 0)
             return optimalEncodingMessageSize;
+        maybeParseTransactions();
+        if (optimalEncodingMessageSize != 0)
+            return optimalEncodingMessageSize;
         optimalEncodingMessageSize = bitcoinSerialize().length;
         return optimalEncodingMessageSize;
+    }
+
+    @Override
+    protected void parseLite() throws ProtocolException {
+        // Ignore the header since it has fixed length. If length is not provided we will have to
+        // invoke a light parse of transactions to calculate the length.
+        if (length == UNKNOWN_LENGTH) {
+            Preconditions.checkState(serializer.isParseLazyMode(),
+                    "Performing lite parse of block transaction as block was initialised from byte array " +
+                    "without providing length.  This should never need to happen.");
+            parseTransactions();
+            length = cursor - offset;
+        } else {
+            transactionBytesValid = !transactionsParsed || serializer.isParseRetainMode() && length > HEADER_SIZE;
+        }
+        headerBytesValid = !headerParsed || serializer.isParseRetainMode() && length >= HEADER_SIZE;
+    }
+
+    /*
+     * Block uses some special handling for lazy parsing and retention of cached bytes. Parsing and serializing the
+     * block header and the transaction list are both non-trivial so there are good efficiency gains to be had by
+     * separating them. There are many cases where a user may need to access or change one or the other but not both.
+     *
+     * With this in mind we ignore the inherited checkParse() and unCache() methods and implement a separate version
+     * of them for both header and transactions.
+     *
+     * Serializing methods are also handled in their own way. Whilst they deal with separate parts of the block structure
+     * there are some interdependencies. For example altering a tx requires invalidating the Merkle root and therefore
+     * the cached header bytes.
+     */
+    private void maybeParseHeader() {
+        if (headerParsed || payload == null)
+            return;
+        try {
+            parseHeader();
+            if (!(headerBytesValid || transactionBytesValid))
+                payload = null;
+        } catch (ProtocolException e) {
+            throw new LazyParseException(
+                    "ProtocolException caught during lazy parse.  For safe access to fields call ensureParsed before attempting read or write access",
+                    e);
+        }
+    }
+
+    private void maybeParseTransactions() {
+        if (transactionsParsed || payload == null)
+            return;
+        try {
+            parseTransactions();
+            if (!serializer.isParseRetainMode()) {
+                transactionBytesValid = false;
+                if (headerParsed)
+                    payload = null;
+            }
+        } catch (ProtocolException e) {
+            throw new LazyParseException(
+                    "ProtocolException caught during lazy parse.  For safe access to fields call ensureParsed before attempting read or write access",
+                    e);
+        }
+    }
+
+    /**
+     * Ensure the object is parsed if needed. This should be called in every getter before returning a value. If the
+     * lazy parse flag is not set this is a method returns immediately.
+     */
+    @Override
+    protected void maybeParse() {
+        throw new LazyParseException(
+                "checkParse() should never be called on a Block.  Instead use checkParseHeader() and checkParseTransactions()");
+    }
+
+    /**
+     * In lazy parsing mode access to getters and setters may throw an unchecked LazyParseException.  If guaranteed
+     * safe access is required this method will force parsing to occur immediately thus ensuring LazyParseExeption will
+     * never be thrown from this Message. If the Message contains child messages (e.g. a Block containing Transaction
+     * messages) this will not force child messages to parse.
+     *
+     * This method ensures parsing of both headers and transactions.
+     *
+     * @throws ProtocolException
+     */
+    @Override
+    public void ensureParsed() throws ProtocolException {
+        try {
+            maybeParseHeader();
+            maybeParseTransactions();
+        } catch (LazyParseException e) {
+            if (e.getCause() instanceof ProtocolException)
+                throw (ProtocolException) e.getCause();
+            throw new ProtocolException(e);
+        }
+    }
+
+    /**
+     * In lazy parsing mode access to getters and setters may throw an unchecked LazyParseException.  If guaranteed
+     * safe access is required this method will force parsing to occur immediately thus ensuring LazyParseExeption
+     * will never be thrown from this Message. If the Message contains child messages (e.g. a Block containing
+     * Transaction messages) this will not force child messages to parse.
+     *
+     * This method ensures parsing of headers only.
+     *
+     * @throws ProtocolException
+     */
+    public void ensureParsedHeader() throws ProtocolException {
+        try {
+            maybeParseHeader();
+        } catch (LazyParseException e) {
+            if (e.getCause() instanceof ProtocolException)
+                throw (ProtocolException) e.getCause();
+            throw new ProtocolException(e);
+        }
+    }
+
+    /**
+     * In lazy parsing mode access to getters and setters may throw an unchecked LazyParseException.  If guaranteed
+     * safe access is required this method will force parsing to occur immediately thus ensuring LazyParseExeption will
+     * never be thrown from this Message. If the Message contains child messages (e.g. a Block containing Transaction
+     * messages) this will not force child messages to parse.
+     *
+     * This method ensures parsing of transactions only.
+     *
+     * @throws ProtocolException
+     */
+    public void ensureParsedTransactions() throws ProtocolException {
+        try {
+            maybeParseTransactions();
+        } catch (LazyParseException e) {
+            if (e.getCause() instanceof ProtocolException)
+                throw (ProtocolException) e.getCause();
+            throw new ProtocolException(e);
+        }
     }
 
     // default for testing
@@ -282,6 +437,7 @@ public class Block extends Message {
             return;
         }
         // fall back to manual write
+        maybeParseHeader();
         Utils.uint32ToByteStreamLE(version, stream);
         stream.write(prevBlockHash.getReversedBytes());
         stream.write(getMerkleRoot().getReversedBytes());
@@ -293,7 +449,7 @@ public class Block extends Message {
     private void writeTransactions(OutputStream stream) throws IOException {
         // check for no transaction conditions first
         // must be a more efficient way to do this but I'm tired atm.
-        if (transactions == null) {
+        if (transactions == null && transactionsParsed) {
             return;
         }
 
@@ -380,6 +536,7 @@ public class Block extends Message {
     }
 
     private void unCacheHeader() {
+        maybeParseHeader();
         headerBytesValid = false;
         if (!transactionBytesValid)
             payload = null;
@@ -387,6 +544,7 @@ public class Block extends Message {
     }
 
     private void unCacheTransactions() {
+        maybeParseTransactions();
         transactionBytesValid = false;
         if (!headerBytesValid)
             payload = null;
@@ -453,6 +611,7 @@ public class Block extends Message {
 
     /** Returns a copy of the block, but without any transactions. */
     public Block cloneAsHeader() {
+        maybeParseHeader();
         Block block = new Block(params, BLOCK_VERSION_GENESIS);
         copyBitcoinHeaderTo(block);
         return block;
@@ -507,6 +666,7 @@ public class Block extends Message {
      * extraNonce.</p>
      */
     public void solve() {
+        maybeParseHeader();
         while (true) {
             try {
                 // Is our proof of work valid yet?
@@ -526,6 +686,7 @@ public class Block extends Message {
      * is thrown.
      */
     public BigInteger getDifficultyTargetAsInteger() throws VerificationException {
+        maybeParseHeader();
         BigInteger target = Utils.decodeCompactBits(difficultyTarget);
         if (target.signum() <= 0 || target.compareTo(params.maxTarget) > 0)
             throw new VerificationException("Difficulty target is bad: " + target.toString());
@@ -557,6 +718,7 @@ public class Block extends Message {
     }
 
     private void checkTimestamp() throws VerificationException {
+        maybeParseHeader();
         // Allow injection of a fake clock to allow unit testing.
         long currentTime = Utils.currentTimeSeconds();
         if (time > currentTime + ALLOWED_TIME_DRIFT)
@@ -618,6 +780,7 @@ public class Block extends Message {
         //    2     3    4  4
         //  / \   / \   / \
         // t1 t2 t3 t4 t5 t5
+        maybeParseTransactions();
         ArrayList<byte[]> tree = new ArrayList<byte[]>();
         // Start by adding all the hashes of the transactions as leaves of the tree.
         for (Transaction t : transactions) {
@@ -677,6 +840,7 @@ public class Block extends Message {
         //
         // Firstly we need to ensure this block does in fact represent real work done. If the difficulty is high
         // enough, it's probably been done by the network.
+        maybeParseHeader();
         checkProofOfWork(true);
         checkTimestamp();
     }
@@ -697,6 +861,7 @@ public class Block extends Message {
         // transactions that reference spent or non-existant inputs.
         if (transactions.isEmpty())
             throw new VerificationException("Block had no transactions");
+        maybeParseTransactions();
         if (this.getOptimalEncodingMessageSize() > MAX_BLOCK_SIZE)
             throw new VerificationException("Block larger than MAX_BLOCK_SIZE");
         checkTransactions(height, flags);
@@ -735,6 +900,7 @@ public class Block extends Message {
      * Returns the merkle root in big endian form, calculating it from transactions if necessary.
      */
     public Sha256Hash getMerkleRoot() {
+        maybeParseHeader();
         if (merkleRoot == null) {
             //TODO check if this is really necessary.
             unCacheHeader();
@@ -775,6 +941,7 @@ public class Block extends Message {
 
     /** Returns the version of the block data structure as defined by the Bitcoin protocol. */
     public long getVersion() {
+        maybeParseHeader();
         return version;
     }
 
@@ -782,6 +949,7 @@ public class Block extends Message {
      * Returns the hash of the previous block in the chain, as defined by the block header.
      */
     public Sha256Hash getPrevBlockHash() {
+        maybeParseHeader();
         return prevBlockHash;
     }
 
@@ -796,6 +964,7 @@ public class Block extends Message {
      * is measured in seconds since the UNIX epoch (midnight Jan 1st 1970).
      */
     public long getTimeSeconds() {
+        maybeParseHeader();
         return time;
     }
 
@@ -822,6 +991,7 @@ public class Block extends Message {
      * Calculating the difficulty that way is currently unsupported.
      */
     public long getDifficultyTarget() {
+        maybeParseHeader();
         return difficultyTarget;
     }
 
@@ -837,6 +1007,7 @@ public class Block extends Message {
      * difficulty target.
      */
     public long getNonce() {
+        maybeParseHeader();
         return nonce;
     }
 
@@ -850,6 +1021,7 @@ public class Block extends Message {
     /** Returns an immutable list of transactions held in this block, or null if this object represents just a header. */
     @Nullable
     public List<Transaction> getTransactions() {
+        maybeParseTransactions();
         return transactions == null ? null : ImmutableList.copyOf(transactions);
     }
 
@@ -860,7 +1032,7 @@ public class Block extends Message {
     private static int txCounter;
 
     /** Adds a coinbase transaction to the block. This exists for unit tests.
-     * 
+     *
      * @param height block height, if known, or -1 otherwise.
      */
     @VisibleForTesting
@@ -906,7 +1078,7 @@ public class Block extends Message {
     /**
      * Returns a solved block that builds on top of this one. This exists for unit tests.
      * In this variant you can specify a public key (pubkey) for use in generating coinbase blocks.
-     * 
+     *
      * @param height block height, if known, or -1 otherwise.
      */
     Block createNextBlock(@Nullable final Address to, final long version,
@@ -988,6 +1160,16 @@ public class Block extends Message {
     }
 
     @VisibleForTesting
+    boolean isParsedHeader() {
+        return headerParsed;
+    }
+
+    @VisibleForTesting
+    boolean isParsedTransactions() {
+        return transactionsParsed;
+    }
+
+    @VisibleForTesting
     boolean isHeaderBytesValid() {
         return headerBytesValid;
     }
@@ -999,7 +1181,7 @@ public class Block extends Message {
 
     /**
      * Return whether this block contains any transactions.
-     * 
+     *
      * @return  true if the block contains transactions, false otherwise (is
      * purely a header).
      */

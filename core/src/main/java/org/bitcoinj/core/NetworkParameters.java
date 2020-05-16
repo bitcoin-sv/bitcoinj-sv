@@ -437,7 +437,7 @@ public abstract class NetworkParameters {
 
     /**
      * Return the default serializer for this network. This is a shared serializer.
-     * @return the default serializer
+     * @return 
      */
     public final MessageSerializer getDefaultSerializer() {
         // Construct a default serializer if we don't have one
@@ -450,7 +450,7 @@ public abstract class NetworkParameters {
                     // As the serializers are intended to be immutable, creating
                     // two due to a race condition should not be a problem, however
                     // to be safe we ensure only one exists for each network.
-                    this.defaultSerializer = getSerializer(defaultSerializerParseRetain);
+                    this.defaultSerializer = getSerializer(defaultSerializerParseRetain, false);
                 }
             }
         }
@@ -460,7 +460,7 @@ public abstract class NetworkParameters {
     /**
      * Construct and return a custom serializer.
      */
-    public abstract BitcoinSerializer getSerializer(boolean parseRetain);
+    public abstract BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain);
 
     /**
      * The number of blocks in the last {@link #getMajorityWindow()} blocks
@@ -492,7 +492,7 @@ public abstract class NetworkParameters {
      * The flags indicating which block validation tests should be applied to
      * the given block. Enables support for alternative blockchains which enable
      * tests based on different criteria.
-     * 
+     *
      * @param block block to determine flags for.
      * @param height height of the block, if known, null otherwise. Returned
      * tests should be a safe subset if block height is unknown.

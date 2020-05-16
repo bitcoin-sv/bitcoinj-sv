@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2011 Steve Coughlan.
  * Copyright 2014 Andreas Schildbach
  *
@@ -135,34 +135,51 @@ public class LazyParseByteCacheTest {
         assertTrue(arrayContains(b1BytesWithHeader, tx2Bytes));
         assertFalse(arrayContains(tx1BytesWithHeader, b1Bytes));
     }
-    
+
     @Test
-    public void testTransactionsRetain() throws Exception {
-        testTransaction(MainNetParams.get(), txMessage, false, true);
-        testTransaction(PARAMS, tx1BytesWithHeader, false, true);
-        testTransaction(PARAMS, tx2BytesWithHeader, false, true);
+    public void testTransactionsLazyRetain() throws Exception {
+        testTransaction(MainNetParams.get(), txMessage, false, true, true);
+        testTransaction(PARAMS, tx1BytesWithHeader, false, true, true);
+        testTransaction(PARAMS, tx2BytesWithHeader, false, true, true);
+    }
+
+    @Test
+    public void testTransactionsLazyNoRetain() throws Exception {
+        testTransaction(MainNetParams.get(), txMessage, false, true, false);
+        testTransaction(PARAMS, tx1BytesWithHeader, false, true, false);
+        testTransaction(PARAMS, tx2BytesWithHeader, false, true, false);
     }
     
     @Test
-    public void testTransactionsNoRetain() throws Exception {
-        testTransaction(MainNetParams.get(), txMessage, false, false);
-        testTransaction(PARAMS, tx1BytesWithHeader, false, false);
-        testTransaction(PARAMS, tx2BytesWithHeader, false, false);
+    public void testTransactionsNoLazyNoRetain() throws Exception {
+        testTransaction(MainNetParams.get(), txMessage, false, false, false);
+        testTransaction(PARAMS, tx1BytesWithHeader, false, false, false);
+        testTransaction(PARAMS, tx2BytesWithHeader, false, false, false);
+    }
+
+    @Test
+    public void testTransactionsNoLazyRetain() throws Exception {
+        testTransaction(MainNetParams.get(), txMessage, false, false, true);
+        testTransaction(PARAMS, tx1BytesWithHeader, false, false, true);
+        testTransaction(PARAMS, tx2BytesWithHeader, false, false, true);
     }
 
     @Test
     public void testBlockAll() throws Exception {
-        testBlock(b1BytesWithHeader, false, false);
-        testBlock(b1BytesWithHeader, false, true);
+        testBlock(b1BytesWithHeader, false, false, false);
+        testBlock(b1BytesWithHeader, false, true, true);
+        testBlock(b1BytesWithHeader, false, true, false);
+        testBlock(b1BytesWithHeader, false, false, true);
     }
 
-    public void testBlock(byte[] blockBytes, boolean isChild, boolean retain) throws Exception {
-        // reference serializer to produce comparison serialization output after changes to
-        // message structure.
-        MessageSerializer bsRef = PARAMS.getSerializer(false);
+
+    public void testBlock(byte[] blockBytes, boolean isChild, boolean lazy, boolean retain) throws Exception {
+        //reference serializer to produce comparison serialization output after changes to
+        //message structure.
+        MessageSerializer bsRef = PARAMS.getSerializer(false, false);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         
-        BitcoinSerializer bs = PARAMS.getSerializer(retain);
+        BitcoinSerializer bs = PARAMS.getSerializer(lazy, retain);
         Block b1;
         Block bRef;
         b1 = (Block) bs.deserialize(ByteBuffer.wrap(blockBytes));
@@ -173,14 +190,22 @@ public class LazyParseByteCacheTest {
         bsRef.serialize(bRef, bos);
         assertTrue(Arrays.equals(bos.toByteArray(), blockBytes));
         
-        // check retain status survive both before and after a serialization
-        assertEquals(retain, b1.isHeaderBytesValid());
-        assertEquals(retain, b1.isTransactionBytesValid());
+        // check lazy and retain status survive both before and after a serialization
+        assertEquals(!lazy, b1.isParsedTransactions());
+        assertEquals(!lazy, b1.isParsedHeader());
+        if (b1.isParsedHeader())
+            assertEquals(retain, b1.isHeaderBytesValid());
+        if (b1.isParsedTransactions())
+            assertEquals(retain, b1.isTransactionBytesValid());
         
         serDeser(bs, b1, blockBytes, null, null);
         
-        assertEquals(retain, b1.isHeaderBytesValid());
-        assertEquals(retain, b1.isTransactionBytesValid());
+        assertEquals(!lazy, b1.isParsedTransactions());
+        assertEquals(!lazy, b1.isParsedHeader());
+        if (b1.isParsedHeader())
+            assertEquals(retain, b1.isHeaderBytesValid());
+        if (b1.isParsedTransactions())
+            assertEquals(retain, b1.isTransactionBytesValid());
         
         // compare to ref block
         bos.reset();
@@ -189,13 +214,20 @@ public class LazyParseByteCacheTest {
         
         // retrieve a value from a child
         b1.getTransactions();
+        assertTrue(b1.isParsedTransactions());
         if (b1.getTransactions().size() > 0) {
+            assertTrue(b1.isParsedTransactions());
             Transaction tx1 = b1.getTransactions().get(0);
             
             // this will always be true for all children of a block once they are retrieved.
             // the tx child inputs/outputs may not be parsed however.
             
-            assertEquals(retain, tx1.isCached());
+            //no longer forced to parse if length not provided.
+            //assertEquals(true, tx1.isParsed());
+            if (tx1.isParsed())
+                assertEquals(retain, tx1.isCached());
+            else
+                assertTrue(tx1.isCached());
             
             // does it still match ref block?
             serDeser(bs, b1, bos.toByteArray(), null, null);
@@ -207,7 +239,9 @@ public class LazyParseByteCacheTest {
         
         // retrieve a value from header
         b1.getDifficultyTarget();
-        
+        assertTrue(b1.isParsedHeader());
+        assertEquals(lazy, !b1.isParsedTransactions());
+
         // does it still match ref block?
         serDeser(bs, b1, bos.toByteArray(), null, null);
         
@@ -217,12 +251,22 @@ public class LazyParseByteCacheTest {
         
         // retrieve a value from a child and header
         b1.getDifficultyTarget();
+        assertTrue(b1.isParsedHeader());
+        assertEquals(lazy, !b1.isParsedTransactions());
 
         b1.getTransactions();
+        assertTrue(b1.isParsedTransactions());
         if (b1.getTransactions().size() > 0) {
+            assertTrue(b1.isParsedTransactions());
             Transaction tx1 = b1.getTransactions().get(0);
             
-            assertEquals(retain, tx1.isCached());
+            //no longer forced to parse if length not provided.
+            //assertEquals(true, tx1.isParsed());
+
+            if (tx1.isParsed())
+                assertEquals(retain, tx1.isCached());
+            else
+                assertTrue(tx1.isCached());
         }
         // does it still match ref block?
         serDeser(bs, b1, bos.toByteArray(), null, null);
@@ -234,9 +278,14 @@ public class LazyParseByteCacheTest {
         // change a value in header
         b1.setNonce(23);
         bRef.setNonce(23);
+        assertTrue(b1.isParsedHeader());
+        assertEquals(lazy, !b1.isParsedTransactions());
         assertFalse(b1.isHeaderBytesValid());
-        assertEquals(retain , b1.isTransactionBytesValid());
-        // does it still match ref block?
+        if (b1.isParsedTransactions())
+            assertEquals(retain , b1.isTransactionBytesValid());
+        else
+            assertEquals(true, b1.isTransactionBytesValid());
+        //does it still match ref block?
         bos.reset();
         bsRef.serialize(bRef, bos);
         serDeser(bs, b1, bos.toByteArray(), null, null);
@@ -252,7 +301,12 @@ public class LazyParseByteCacheTest {
             
             TransactionInput tin = tx1.getInputs().get(0);
             
-            assertEquals(retain, tin.isCached());
+            assertTrue(tx1.isParsed());
+            assertTrue(b1.isParsedTransactions());
+            assertEquals(!lazy, b1.isParsedHeader());
+
+            assertEquals(!lazy, tin.isParsed());
+            assertEquals(!tin.isParsed() || retain, tin.isCached());
             
             // does it still match ref tx?
             bos.reset();
@@ -275,11 +329,15 @@ public class LazyParseByteCacheTest {
                 bRef.getTransactions().get(0).addInput(bRef.getTransactions().get(0).getInputs().get(0));
                 
                 assertFalse(tx1.isCached());
+                assertTrue(tx1.isParsed());
                 assertFalse(b1.isTransactionBytesValid());
-                
+                assertTrue(b1.isParsedHeader());
+
                 // confirm sibling cache status was unaffected
                 if (tx1.getInputs().size() > 1) {
-                    assertEquals(retain, tx1.getInputs().get(1).isCached());
+                    boolean parsed = tx1.getInputs().get(1).isParsed();
+                    assertEquals(!parsed || retain, tx1.getInputs().get(1).isCached());
+                    assertEquals(!lazy, parsed);
                 }
                 
                 // this has to be false. Altering a tx invalidates the merkle root.
@@ -346,32 +404,37 @@ public class LazyParseByteCacheTest {
             bsRef.serialize(bRef, bos);
             serDeser(bs, b1, bos.toByteArray(), null, null);
         }
+
     }
     
-    public void testTransaction(NetworkParameters params, byte[] txBytes, boolean isChild, boolean retain) throws Exception {
+    public void testTransaction(NetworkParameters params, byte[] txBytes, boolean isChild, boolean lazy, boolean retain) throws Exception {
 
-        // reference serializer to produce comparison serialization output after changes to
-        // message structure.
-        MessageSerializer bsRef = params.getSerializer(false);
+        //reference serializer to produce comparison serialization output after changes to
+        //message structure.
+        MessageSerializer bsRef = params.getSerializer(false, false);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-        BitcoinSerializer bs = params.getSerializer(retain);
+        BitcoinSerializer bs = params.getSerializer(lazy, retain);
         Transaction t1;
         Transaction tRef;
         t1 = (Transaction) bs.deserialize(ByteBuffer.wrap(txBytes));
         tRef = (Transaction) bsRef.deserialize(ByteBuffer.wrap(txBytes));
 
-        // verify our reference BitcoinSerializer produces matching byte array.
+        //verify our reference BitcoinSerializer produces matching byte array.
         bos.reset();
         bsRef.serialize(tRef, bos);
         assertTrue(Arrays.equals(bos.toByteArray(), txBytes));
 
-        // check and retain status survive both before and after a serialization
-        assertEquals(retain, t1.isCached());
+        //check lazy and retain status survive both before and after a serialization
+        assertEquals(!lazy, t1.isParsed());
+        if (t1.isParsed())
+            assertEquals(retain, t1.isCached());
 
         serDeser(bs, t1, txBytes, null, null);
 
-        assertEquals(retain, t1.isCached());
+        assertEquals(lazy, !t1.isParsed());
+        if (t1.isParsed())
+            assertEquals(retain, t1.isCached());
 
         // compare to ref tx
         bos.reset();
@@ -380,11 +443,15 @@ public class LazyParseByteCacheTest {
         
         // retrieve a value from a child
         t1.getInputs();
+        assertTrue(t1.isParsed());
         if (t1.getInputs().size() > 0) {
+            assertTrue(t1.isParsed());
             TransactionInput tin = t1.getInputs().get(0);
-            assertEquals(retain, tin.isCached());
+            assertEquals(!lazy, tin.isParsed());
+            if (tin.isParsed())
+                assertEquals(retain, tin.isCached());
             
-            // does it still match ref tx?
+            //does it still match ref tx?
             serDeser(bs, t1, bos.toByteArray(), null, null);
         }
         
@@ -401,6 +468,7 @@ public class LazyParseByteCacheTest {
             tRef.addInput(tRef.getInputs().get(0));
 
             assertFalse(t1.isCached());
+            assertTrue(t1.isParsed());
 
             bos.reset();
             bsRef.serialize(tRef, bos);
@@ -408,6 +476,7 @@ public class LazyParseByteCacheTest {
             //confirm we still match the reference tx.
             serDeser(bs, t1, source, null, null);
         }
+
     }
     
     private void serDeser(MessageSerializer bs, Message message, byte[] sourceBytes, byte[] containedBytes, byte[] containingBytes) throws Exception {

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2011 Noa Resare
  * Copyright 2014 Andreas Schildbach
  *
@@ -77,8 +77,24 @@ public class BitcoinSerializerTest {
     }
 
     @Test
+    public void testLazyParsing()  throws Exception {
+        MessageSerializer bs = MainNetParams.get().getSerializer(true, false);
+
+    	Transaction tx = (Transaction)bs.deserialize(ByteBuffer.wrap(TRANSACTION_MESSAGE_BYTES));
+        assertNotNull(tx);
+        assertEquals(false, tx.isParsed());
+        assertEquals(true, tx.isCached());
+        tx.getInputs();
+        assertEquals(true, tx.isParsed());
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bs.serialize(tx, bos);
+        assertEquals(true, Arrays.equals(TRANSACTION_MESSAGE_BYTES, bos.toByteArray()));
+    }
+
+    @Test
     public void testCachedParsing() throws Exception {
-        MessageSerializer serializer = MainNetParams.get().getSerializer(true);
+        MessageSerializer serializer = MainNetParams.get().getSerializer(true, false);
         
         // first try writing to a fields to ensure uncaching and children are not affected
         Transaction transaction = (Transaction) serializer.deserialize(ByteBuffer.wrap(TRANSACTION_MESSAGE_BYTES));

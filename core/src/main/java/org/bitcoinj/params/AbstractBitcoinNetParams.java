@@ -23,12 +23,15 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Preconditions;
 import org.bitcoinj.core.*;
 import org.bitcoinj.utils.MonetaryFormat;
+import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
+import static com.google.common.base.Preconditions.checkState;
+import org.bitcoinj.core.BitcoinSerializer;
 
 /**
  * Parameters for Bitcoin-like networks.
@@ -37,7 +40,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     /**
      * Scheme part for Bitcoin URIs.
      */
-    public static final String BITCOIN_SCHEME = "bitcoincash";
+    public static final String BITCOIN_SCHEME = "bitcoin";
 
     private static final Logger log = LoggerFactory.getLogger(AbstractBitcoinNetParams.class);
 
@@ -211,8 +214,8 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     }
 
     @Override
-    public BitcoinSerializer getSerializer(boolean parseRetain) {
-        return new BitcoinSerializer(this, parseRetain);
+    public BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain) {
+        return new BitcoinSerializer(this, parseLazy, parseRetain);
     }
 
     @Override

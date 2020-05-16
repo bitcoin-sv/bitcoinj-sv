@@ -55,6 +55,7 @@ public abstract class Message {
     // The raw message payload bytes themselves.
     protected byte[] payload;
 
+    protected boolean parsed = false;
     protected boolean recached = false;
     protected MessageSerializer serializer;
 
@@ -63,15 +64,17 @@ public abstract class Message {
     protected NetworkParameters params;
 
     protected Message() {
+        parsed = true;
         serializer = DummySerializer.DEFAULT;
     }
 
-    protected Message(NetworkParameters params) {
+    Message(NetworkParameters params) {
         this.params = params;
+        parsed = true;
         serializer = params.getDefaultSerializer();
     }
 
-    protected Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
+    Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
         this(params, payload, offset, protocolVersion, params.getDefaultSerializer(), UNKNOWN_LENGTH);
     }
 
@@ -86,30 +89,38 @@ public abstract class Message {
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    protected Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion, MessageSerializer serializer, int length) throws ProtocolException {
+    Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion, MessageSerializer serializer, int length) throws ProtocolException {
         this.serializer = serializer;
         this.protocolVersion = protocolVersion;
         this.params = params;
         this.payload = payload;
         this.cursor = this.offset = offset;
         this.length = length;
-
-        parse();
+        if (serializer.isParseLazyMode()) {
+            parseLite();
+        } else {
+            parseLite();
+            parse();
+            parsed = true;
+        }
 
         if (this.length == UNKNOWN_LENGTH)
-            checkState(false, "Length field has not been set in constructor for %s after parse.",
-                       getClass().getSimpleName());
+            checkState(false, "Length field has not been set in constructor for %s after %s parse. " +
+                              "Refer to Message.parseLite() for detail of required Length field contract.",
+                       getClass().getSimpleName(), serializer.isParseLazyMode() ? "lite" : "full");
         
         if (SELF_CHECK) {
             selfCheck(payload, offset);
         }
         
-        if (!serializer.isParseRetainMode())
-            this.payload = null;
+        if (serializer.isParseRetainMode() || !parsed)
+            return;
+        this.payload = null;
     }
 
     private void selfCheck(byte[] payload, int offset) {
         if (!(this instanceof VersionMessage)) {
+            maybeParse();
             byte[] payloadBytes = new byte[cursor - offset];
             System.arraycopy(payload, offset, payloadBytes, 0, cursor - offset);
             byte[] reserialized = bitcoinSerialize();
@@ -132,15 +143,68 @@ public abstract class Message {
 
     // These methods handle the serialization/deserialization using the custom Bitcoin protocol.
 
-    protected abstract void parse() throws ProtocolException;
+    abstract void parse() throws ProtocolException;
 
     /**
-     * <p>To be called before any change of internal values including any setters. This ensures any cached byte array is
-     * removed.<p/>
-     * <p>Child messages of this object(e.g. Transactions belonging to a Block) will not have their internal byte caches
-     * invalidated unless they are also modified internally.</p>
+     * Perform the most minimal parse possible to calculate the length of the message payload.
+     * This is only required for subclasses of ChildMessage as root level messages will have their length passed
+     * into the constructor.
+     * <p/>
+     * Implementations should adhere to the following contract:  If parseLazy = true the 'length'
+     * field must be set before returning.  If parseLazy = false the length field must be set either
+     * within the parseLite() method OR the parse() method.  The overriding requirement is that length
+     * must be set to non UNKNOWN_MESSAGE value by the time the constructor exits.
+     *
+     * @return
+     * @throws ProtocolException
+     */
+    protected abstract void parseLite() throws ProtocolException;
+
+    /**
+     * Ensure the object is parsed if needed.  This should be called in every getter before returning a value.
+     * If the lazy parse flag is not set this is a method returns immediately.
+     */
+    protected synchronized void maybeParse() {
+        if (parsed || payload == null)
+            return;
+        try {
+            parse();
+            parsed = true;
+            if (!serializer.isParseRetainMode())
+                payload = null;
+        } catch (ProtocolException e) {
+            throw new LazyParseException("ProtocolException caught during lazy parse.  For safe access to fields call ensureParsed before attempting read or write access", e);
+        }
+    }
+
+    /**
+     * In lazy parsing mode access to getters and setters may throw an unchecked LazyParseException.  If guaranteed safe access is required
+     * this method will force parsing to occur immediately thus ensuring LazyParseExeption will never be thrown from this Message.
+     * If the Message contains child messages (e.g. a Block containing Transaction messages) this will not force child messages to parse.
+     * <p/>
+     * This could be overidden for Transaction and it's child classes to ensure the entire tree of Message objects is parsed.
+     *
+     * @throws ProtocolException
+     */
+    public void ensureParsed() throws ProtocolException {
+        try {
+            maybeParse();
+        } catch (LazyParseException e) {
+            if (e.getCause() instanceof ProtocolException)
+                throw (ProtocolException) e.getCause();
+            throw new ProtocolException(e);
+        }
+    }
+
+    /**
+     * To be called before any change of internal values including any setters.  This ensures any cached byte array is
+     * removed after performing a lazy parse if necessary to ensure the object is fully populated.
+     * <p/>
+     * Child messages of this object(e.g. Transactions belonging to a Block) will not have their internal byte caches
+     * invalidated unless they are also modified internally.
      */
     protected void unCache() {
+        maybeParse();
         payload = null;
         recached = false;
     }
@@ -159,6 +223,13 @@ public abstract class Message {
             length++;  // The assumption here is we never call adjustLength with the same arraySize as before.
         else if (newArraySize != 0)
             length += VarInt.sizeOf(newArraySize) - VarInt.sizeOf(newArraySize - 1);
+    }
+
+    /**
+     * used for unit testing
+     */
+    public boolean isParsed() {
+        return parsed;
     }
 
     /**
@@ -280,11 +351,17 @@ public abstract class Message {
     }
 
     /**
-     * This returns a correct value by parsing the message.
+     * This should be overridden to extract correct message size in the case of lazy parsing.  Until this method is
+     * implemented in a subclass of ChildMessage lazy parsing may have no effect.
+     *
+     * This default implementation is a safe fall back that will ensure it returns a correct value by parsing the message.
      */
-    public final int getMessageSize() {
+    public int getMessageSize() {
+        if (length != UNKNOWN_LENGTH)
+            return length;
+        maybeParse();
         if (length == UNKNOWN_LENGTH)
-            checkState(false, "Length field has not been set in %s.", getClass().getSimpleName());
+            checkState(false, "Length field has not been set in %s after full parse.", getClass().getSimpleName());
         return length;
     }
 
@@ -375,5 +452,17 @@ public abstract class Message {
         if (null != params) {
             this.serializer = params.getDefaultSerializer();
         }
+    }
+
+    public static class LazyParseException extends RuntimeException {
+
+        public LazyParseException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public LazyParseException(String message) {
+            super(message);
+        }
+
     }
 }
