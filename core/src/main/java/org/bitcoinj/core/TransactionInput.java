@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -410,7 +411,7 @@ public class TransactionInput extends ChildMessage {
      * @throws ScriptException If the script doesn't verify.
      * @throws VerificationException If the outpoint doesn't match the given output.
      */
-    public void verify(TransactionOutput output) throws VerificationException {
+    public void verify(TransactionOutput output, Set<Script.VerifyFlag> verifyFlags) throws VerificationException {
         if (output.parent != null) {
             if (!getOutpoint().getHash().equals(output.getParentTransaction().getHash()))
                 throw new VerificationException("This input does not refer to the tx containing the output.");
@@ -419,7 +420,20 @@ public class TransactionInput extends ChildMessage {
         }
         Script pubKey = output.getScriptPubKey();
         int myIndex = getParentTransaction().getInputs().indexOf(this);
-        getScriptSig().correctlySpends(getParentTransaction(), myIndex, pubKey);
+        //this is used in tests for CLTV so we have to be more liberal about disabled opcodes than usual.
+        getScriptSig().correctlySpends(getParentTransaction(), myIndex, pubKey, verifyFlags);
+    }
+
+    /**
+     * Verifies that this input can spend the given output. Note that this input must be a part of a transaction.
+     * Also note that the consistency of the outpoint will be checked, even if this input has not been connected.
+     *
+     * @param output the output that this input is supposed to spend.
+     * @throws ScriptException If the script doesn't verify.
+     * @throws VerificationException If the outpoint doesn't match the given output.
+     */
+    public void verify(TransactionOutput output) throws VerificationException {
+        verify(output, Script.ALL_VERIFY_FLAGS);
     }
 
     /**

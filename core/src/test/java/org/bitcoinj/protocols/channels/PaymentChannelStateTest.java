@@ -434,7 +434,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
             // If the multisig output is connected, the wallet will fail to deserialize
             if (input.getOutpoint().getHash().equals(clientBroadcastedMultiSig.tx.getHash()))
                 assertNull(input.getConnectedOutput().getSpentBy());
-            input.verify(clientBroadcastedMultiSig.tx.getOutput(0));
+            input.verify(clientBroadcastedMultiSig.tx.getOutput(0), Script.ALL_VERIFY_FLAGS_PRE_GENESIS);
         }
         broadcastRefund.future.set(clientBroadcastedRefund);
 

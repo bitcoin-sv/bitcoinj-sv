@@ -83,6 +83,7 @@ public class Script {
         CHRONICLE_OPCODES // Future Chronicle hard fork
     }
     public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.allOf(VerifyFlag.class);
+    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS_PRE_GENESIS = EnumSet.complementOf(EnumSet.of(VerifyFlag.GENESIS_OPCODES));
 
     public static final EnumSet<VerifyFlag> MONOLITH_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES);
     public static final EnumSet<VerifyFlag> MAGNETIC_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES, VerifyFlag.MAGNETIC_OPCODES);

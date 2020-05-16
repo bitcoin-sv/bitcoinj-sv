@@ -232,7 +232,7 @@ public class TransactionTest {
                 ScriptBuilder.createCLTVPaymentChannelRefund(incorrectSig);
 
         try {
-            scriptSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            scriptSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS_PRE_GENESIS);
         } catch (ScriptException e) {
             e.printStackTrace();
             fail("Refund failed to correctly spend the payment channel");
