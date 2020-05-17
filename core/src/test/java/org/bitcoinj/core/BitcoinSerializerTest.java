@@ -218,9 +218,11 @@ public class BitcoinSerializerTest {
     @Test(expected = ProtocolException.class)
     public void testBitcoinPacketHeaderTooLong() {
         // Message with a Message size which is 1 too big, in little endian format.
-        // 129,000,000 = 0x07b06240 (big-endian) = 0x4062b007 (little-endian)
-        // 129,000,001 = 0x4162b007 (little-endian)
-        byte[] wrongMessageLength = HEX.decode("0000000000000000000000004162b0070000000000");
+        long len = Message.MAX_SIZE + 1;
+        byte[] lenBytes = new byte[4];
+        Utils.uint32ToByteArrayLE(len, lenBytes, 0);
+        String asHex = HEX.encode(lenBytes);
+        byte[] wrongMessageLength = HEX.decode("000000000000000000000000" + asHex + "0000000000");
         new BitcoinSerializer.BitcoinPacketHeader(ByteBuffer.wrap(wrongMessageLength));
     }
 

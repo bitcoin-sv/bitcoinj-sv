@@ -37,7 +37,7 @@ public abstract class Message {
     private static final Logger log = LoggerFactory.getLogger(Message.class);
 
     // todo: is this right? add support for protoconf message?
-    public static final int MAX_SIZE = Integer.MAX_VALUE; // 2GB
+    public static final int MAX_SIZE = Integer.MAX_VALUE / 2; // 1GB - we can get problems converting to hex as we double the size of the backing array.
 
     public static final int UNKNOWN_LENGTH = Integer.MIN_VALUE;
 
