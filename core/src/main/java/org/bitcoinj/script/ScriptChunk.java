@@ -39,7 +39,7 @@ public class ScriptChunk<C> {
      * empty. Null for non-push operations.
      */
     @Nullable
-    public final ScriptData data;
+    public final ScriptBytes data;
     private int startLocationInProgram;
 
     public final C context;
@@ -49,18 +49,18 @@ public class ScriptChunk<C> {
     }
 
     public ScriptChunk(int opcode, byte[] data, C context) {
-        this(opcode, ScriptData.of(data), -1, context);
+        this(opcode, ScriptBytes.of(data), -1, context);
     }
 
-    public ScriptChunk(int opcode, ScriptData data, C context) {
+    public ScriptChunk(int opcode, ScriptBytes data, C context) {
         this(opcode, data, -1, context);
     }
 
     public ScriptChunk(int opcode, byte[] data, int startLocationInProgram) {
-        this(opcode, ScriptData.of(data), startLocationInProgram, null);
+        this(opcode, ScriptBytes.of(data), startLocationInProgram, null);
     }
 
-    public ScriptChunk(int opcode, ScriptData data, int startLocationInProgram, C context) {
+    public ScriptChunk(int opcode, ScriptBytes data, int startLocationInProgram, C context) {
         this.opcode = opcode;
         this.data = data;
         this.startLocationInProgram = startLocationInProgram;

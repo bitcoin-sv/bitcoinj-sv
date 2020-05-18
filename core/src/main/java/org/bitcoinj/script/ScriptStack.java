@@ -35,7 +35,7 @@ public class ScriptStack extends LinkedList<StackItem> {
      */
     public void setDerivations(boolean derived) {
         for (int i = 0; i < this.size(); i++) {
-            set(i, StackItem.wrapDerived(this.get(i).bytes, derived));
+            set(i, StackItem.wrapDerived(this.get(i).bytes(), derived));
         }
     }
 
@@ -61,7 +61,7 @@ public class ScriptStack extends LinkedList<StackItem> {
     }
 
     public boolean add(StackItem item) {
-        stackBytes += item.length;
+        stackBytes += item.length();
         return super.add(item);
     }
 
@@ -90,7 +90,7 @@ public class ScriptStack extends LinkedList<StackItem> {
     @Override
     public StackItem pollLast() {
         StackItem item = super.pollLast();
-        stackBytes -= item.length;
+        stackBytes -= item.length();
         return item;
     }
 
@@ -112,8 +112,8 @@ public class ScriptStack extends LinkedList<StackItem> {
     public StackItem set(int index, StackItem element) {
         StackItem old = super.set(index, element);
         if (old != null)
-            stackBytes -= old.length;
-        stackBytes += element.length;
+            stackBytes -= old.length();
+        stackBytes += element.length();
         return old;
     }
 
@@ -161,7 +161,7 @@ public class ScriptStack extends LinkedList<StackItem> {
 
         @Override
         public void remove() {
-            stackBytes -= last.length;
+            stackBytes -= last.length();
             delegate.remove();
             last = null;
         }

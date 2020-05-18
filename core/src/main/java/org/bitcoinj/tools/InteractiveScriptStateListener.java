@@ -108,7 +108,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
             int index = 0;
             for (StackItem item : reverseStack) {
 
-                System.out.println(String.format("index[%s] len[%s] [%s]", index++, item.length(), HEX.encode(item.bytes)));
+                System.out.println(String.format("index[%s] len[%s] [%s]", index++, item.length(), HEX.encode(item.bytes())));
 
             }
         }
@@ -120,7 +120,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
             System.out.println("Alt Stack:");
 
             for (StackItem item: reverseStack) {
-                System.out.println(HEX.encode(item.bytes));
+                System.out.println(HEX.encode(item.bytes()));
             }
             System.out.println();
         }
@@ -152,7 +152,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
     @Override
     public void onScriptComplete() {
         List<StackItem> stack = getStack();
-        if (stack.isEmpty() || !Script.castToBool(stack.get(stack.size() - 1).bytes)) {
+        if (stack.isEmpty() || !Script.castToBool(stack.get(stack.size() - 1))) {
             System.out.println("Script failed.");
         } else {
             System.out.println("Script success.");

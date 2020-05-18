@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Simple interface for script data byte arrays
  */
-public interface ScriptData {
+public interface ScriptBytes {
 
     byte[] data();
 
@@ -13,20 +13,20 @@ public interface ScriptData {
         return data().length;
     }
 
-    default ScriptData copy() {
+    default ScriptBytes copy() {
         byte[] copy = Arrays.copyOf(data(), length());
-        return new SimpleScriptData(copy);
+        return new SimpleScriptBytes(copy);
     }
 
-    static ScriptData of(byte[] data) {
-        return new SimpleScriptData(data);
+    static ScriptBytes of(byte[] data) {
+        return new SimpleScriptBytes(data);
     }
 
-    class SimpleScriptData implements ScriptData {
+    class SimpleScriptBytes implements ScriptBytes {
 
         private final byte[] data;
 
-        private SimpleScriptData(byte[] data) {
+        private SimpleScriptBytes(byte[] data) {
             this.data = data;
         }
 

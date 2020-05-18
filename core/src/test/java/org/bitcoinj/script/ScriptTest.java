@@ -231,7 +231,7 @@ public class ScriptTest {
 
         ScriptStack stack = new ScriptStack();
         Script.executeScript(tx, 0, script, stack, Script.ALL_VERIFY_FLAGS);
-        assertEquals("OP_0 push length", 0, stack.get(0).length);
+        assertEquals("OP_0 push length", 0, stack.get(0).length());
     }
 
 
@@ -557,7 +557,7 @@ public class ScriptTest {
         verifyFlags.add(VerifyFlag.MONOLITH_OPCODES);
         Script.executeScript(new Transaction(PARAMS), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
-        return stack.peekLast().bytes;
+        return stack.peekLast().bytes();
     }
 
 
