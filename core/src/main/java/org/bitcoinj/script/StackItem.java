@@ -93,6 +93,10 @@ public class StackItem<C> {
         return bytes.data();
     }
 
+    public ScriptBytes wrappedBytes() {
+        return bytes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

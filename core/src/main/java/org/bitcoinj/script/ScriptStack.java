@@ -12,6 +12,9 @@ public class ScriptStack extends LinkedList<StackItem> {
 
     private long stackBytes = 0;
 
+    //no opcode removes more than 4 items from the stack except CHECKMULTISIG
+    private List<StackItem> poppedItems = new ArrayList(4);
+
     public ScriptStack(ScriptStack stack) {
         super(stack);
         stackBytes = stack.stackBytes;
@@ -56,6 +59,18 @@ public class ScriptStack extends LinkedList<StackItem> {
         return stackBytes;
     }
 
+    public void clearPoppedItems() {
+        poppedItems.clear();
+    }
+
+    /**
+     * all items popped from the stack since the last time clearPoppedItems() was called
+     * @return
+     */
+    public List<StackItem> getPoppedItems() {
+        return Collections.unmodifiableList(poppedItems);
+    }
+
     public List<StackItem> unmodifiable() {
         return Collections.unmodifiableList(this);
     }
@@ -78,8 +93,13 @@ public class ScriptStack extends LinkedList<StackItem> {
     }
 
     public void addLast(byte[] bytes, StackItem ... derivedFrom) {
-        stackBytes += bytes.length;
         addLast(StackItem.from(bytes, derivedFrom));
+    }
+
+    @Override
+    public void addLast(StackItem stackItem) {
+        stackBytes += stackItem.length();
+        super.addLast(stackItem);
     }
 
     @Override
@@ -91,6 +111,7 @@ public class ScriptStack extends LinkedList<StackItem> {
     public StackItem pollLast() {
         StackItem item = super.pollLast();
         stackBytes -= item.length();
+        poppedItems.add(item);
         return item;
     }
 
@@ -123,7 +144,17 @@ public class ScriptStack extends LinkedList<StackItem> {
     }
 
     public Iterator<StackItem> iterator() {
-        return new StackIterator(super.iterator());
+        return listIterator();
+    }
+
+    @Override
+    public ListIterator<StackItem> listIterator() {
+        return new StackIterator(super.listIterator(0));
+    }
+
+    @Override
+    public ListIterator<StackItem> listIterator(int index) {
+        return new StackIterator(super.listIterator(index));
     }
 
     public String toString() {
@@ -139,7 +170,7 @@ public class ScriptStack extends LinkedList<StackItem> {
         return sb.toString();
     }
 
-    private class StackIterator implements Iterator<StackItem> {
+    private class StackIterator implements ListIterator<StackItem> {
 
         private final Iterator<StackItem> delegate;
         private StackItem last;
@@ -162,50 +193,44 @@ public class ScriptStack extends LinkedList<StackItem> {
         @Override
         public void remove() {
             stackBytes -= last.length();
+            poppedItems.add(last);
             delegate.remove();
             last = null;
         }
+
+        @Override
+        public boolean hasPrevious() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public StackItem previous() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int nextIndex() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int previousIndex() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void set(StackItem stackItem) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(StackItem stackItem) {
+            throw new UnsupportedOperationException();
+        }
+
+
     }
 
-    @Override
-    public boolean addAll(int index, Collection<? extends StackItem> c) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public StackItem removeFirst() {
-        return super.removeFirst();
-    }
-
-    @Override
-    public StackItem removeLast() {
-        return super.removeLast();
-    }
-
-    @Override
-    public void addFirst(StackItem stackItem) {
-        super.addFirst(stackItem);
-    }
-
-    @Override
-    public void addLast(StackItem stackItem) {
-        super.addLast(stackItem);
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        return super.remove(o);
-    }
-
-    @Override
-    public void add(int index, StackItem element) {
-        super.add(index, element);
-    }
-
-    @Override
-    public StackItem remove(int index) {
-        return super.remove(index);
-    }
 
     @Override
     public int indexOf(Object o) {
@@ -222,89 +247,118 @@ public class ScriptStack extends LinkedList<StackItem> {
         return super.element();
     }
 
+
+
+    // NOT IMPLEMENTED
+
+    @Override
+    public boolean addAll(int index, Collection<? extends StackItem> c) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public StackItem removeFirst() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public StackItem removeLast() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addFirst(StackItem stackItem) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void add(int index, StackItem element) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public StackItem remove(int index) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public StackItem poll() {
-        return super.poll();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public StackItem remove() {
-        return super.remove();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean offer(StackItem stackItem) {
-        return super.offer(stackItem);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean offerFirst(StackItem stackItem) {
-        return super.offerFirst(stackItem);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean offerLast(StackItem stackItem) {
-        return super.offerLast(stackItem);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public StackItem pollFirst() {
-        return super.pollFirst();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void push(StackItem stackItem) {
-        super.push(stackItem);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public StackItem pop() {
-        return super.pop();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean removeFirstOccurrence(Object o) {
-        return super.removeFirstOccurrence(o);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean removeLastOccurrence(Object o) {
-        return super.removeLastOccurrence(o);
-    }
-
-    @Override
-    public ListIterator<StackItem> listIterator(int index) {
-        return super.listIterator(index);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Spliterator<StackItem> spliterator() {
-        return super.spliterator();
-    }
-
-    @Override
-    public ListIterator<StackItem> listIterator() {
-        return super.listIterator();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     protected void removeRange(int fromIndex, int toIndex) {
-        super.removeRange(fromIndex, toIndex);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        return super.removeAll(c);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        return super.retainAll(c);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void replaceAll(UnaryOperator<StackItem> operator) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -314,16 +368,15 @@ public class ScriptStack extends LinkedList<StackItem> {
 
     @Override
     public Stream<StackItem> stream() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Stream<StackItem> parallelStream() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void forEach(Consumer<? super StackItem> action) {
-
     }
 }
