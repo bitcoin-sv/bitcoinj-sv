@@ -260,7 +260,7 @@ public class Script {
      */
     public boolean isSentToRawPubKey() {
         return chunks.size() == 2 && chunks.get(1).equalsOpCode(OP_CHECKSIG) &&
-                !chunks.get(0).isOpCode() && chunks.get(0).data.length > 1;
+                !chunks.get(0).isOpCode() && chunks.get(0).data.length() > 1;
     }
 
     /**
@@ -273,7 +273,7 @@ public class Script {
         return chunks.size() == 5 &&
                 chunks.get(0).equalsOpCode(OP_DUP) &&
                 chunks.get(1).equalsOpCode(OP_HASH160) &&
-                chunks.get(2).data.length == Address.LENGTH &&
+                chunks.get(2).data.length() == Address.LENGTH &&
                 chunks.get(3).equalsOpCode(OP_EQUALVERIFY) &&
                 chunks.get(4).equalsOpCode(OP_CHECKSIG);
     }
@@ -299,9 +299,9 @@ public class Script {
      */
     public byte[] getPubKeyHash() throws ScriptException {
         if (isSentToAddress())
-            return chunks.get(2).data;
+            return chunks.get(2).data();
         else if (isPayToScriptHash())
-            return chunks.get(1).data;
+            return chunks.get(1).data();
         else
             throw new ScriptException("Script not in the standard scriptPubKey form");
     }
@@ -319,9 +319,9 @@ public class Script {
             throw new ScriptException("Script not of right size, expecting 2 but got " + chunks.size());
         }
         final ScriptChunk chunk0 = chunks.get(0);
-        final byte[] chunk0data = chunk0.data;
+        final byte[] chunk0data = chunk0.data();
         final ScriptChunk chunk1 = chunks.get(1);
-        final byte[] chunk1data = chunk1.data;
+        final byte[] chunk1data = chunk1.data();
         if (chunk0data != null && chunk0data.length > 2 && chunk1data != null && chunk1data.length > 2) {
             // If we have two large constants assume the input to a pay-to-address output.
             return chunk1data;
@@ -342,7 +342,7 @@ public class Script {
         if (!isSentToCLTVPaymentChannel()) {
             throw new ScriptException("Script not a standard CHECKLOCKTIMVERIFY transaction: " + this);
         }
-        return chunks.get(8).data;
+        return chunks.get(8).data();
     }
 
     /**
@@ -354,7 +354,7 @@ public class Script {
         if (!isSentToCLTVPaymentChannel()) {
             throw new ScriptException("Script not a standard CHECKLOCKTIMVERIFY transaction: " + this);
         }
-        return chunks.get(1).data;
+        return chunks.get(1).data();
     }
 
     public BigInteger getCLTVPaymentChannelExpiry() {
@@ -363,7 +363,7 @@ public class Script {
         }
         //FIXME We may actually need to enforce minimal encoding here.  But we don't have access
         //to the verify flags
-        return castToBigInteger(chunks.get(4).data, 5, false);
+        return castToBigInteger(chunks.get(4).data(), 5, false);
     }
 
     /**
@@ -519,7 +519,7 @@ public class Script {
         List<ScriptChunk> existingChunks = chunks.subList(1, chunks.size() - 1);
         ScriptChunk redeemScriptChunk = chunks.get(chunks.size() - 1);
         checkNotNull(redeemScriptChunk.data);
-        Script redeemScript = new Script(redeemScriptChunk.data);
+        Script redeemScript = new Script(redeemScriptChunk.data());
 
         int sigCount = 0;
         int myIndex = redeemScript.findKeyInRedeem(signingKey);
@@ -528,7 +528,7 @@ public class Script {
                 // OP_0, skip
             } else {
                 checkNotNull(chunk.data);
-                if (myIndex < redeemScript.findSigInRedeem(chunk.data, hash))
+                if (myIndex < redeemScript.findSigInRedeem(chunk.data(), hash))
                     return sigCount;
                 sigCount++;
             }
@@ -540,7 +540,7 @@ public class Script {
         checkArgument(chunks.get(0).isOpCode()); // P2SH scriptSig
         int numKeys = Script.decodeFromOpN(chunks.get(chunks.size() - 2).opcode);
         for (int i = 0; i < numKeys; i++) {
-            if (Arrays.equals(chunks.get(1 + i).data, key.getPubKey())) {
+            if (Arrays.equals(chunks.get(1 + i).data(), key.getPubKey())) {
                 return i;
             }
         }
@@ -560,7 +560,7 @@ public class Script {
         ArrayList<ECKey> result = Lists.newArrayList();
         int numKeys = Script.decodeFromOpN(chunks.get(chunks.size() - 2).opcode);
         for (int i = 0; i < numKeys; i++)
-            result.add(ECKey.fromPublicOnly(chunks.get(1 + i).data));
+            result.add(ECKey.fromPublicOnly(chunks.get(1 + i).data()));
         return result;
     }
 
@@ -569,7 +569,7 @@ public class Script {
         int numKeys = Script.decodeFromOpN(chunks.get(chunks.size() - 2).opcode);
         TransactionSignature signature = TransactionSignature.decodeFromBitcoin(signatureBytes, true);
         for (int i = 0; i < numKeys; i++) {
-            if (ECKey.fromPublicOnly(chunks.get(i + 1).data).verify(hash, signature)) {
+            if (ECKey.fromPublicOnly(chunks.get(i + 1).data()).verify(hash, signature)) {
                 return i;
             }
         }
@@ -652,7 +652,7 @@ public class Script {
         for (int i = script.chunks.size() - 1; i >= 0; i--)
             if (!script.chunks.get(i).isOpCode()) {
                 Script subScript = new Script();
-                subScript.parse(script.chunks.get(i).data);
+                subScript.parse(script.chunks.get(i).data());
                 return getSigOpCount(subScript.chunks, true);
             }
         return 0;
@@ -1107,13 +1107,13 @@ public class Script {
 
                 stack.add(new byte[]{});
             } else if (!chunk.isOpCode()) {
-                if (chunk.data.length > maxScriptElementSize)
+                if (chunk.data.length() > maxScriptElementSize)
                     throw new ScriptException("Attempted to push a data string larger than 520 bytes");
 
                 if (!shouldExecute)
                     continue;
 
-                stack.add(chunk.data);
+                stack.add(chunk.data());
             } else {
                 int opcode = chunk.opcode;
                 if (opcode > OP_16) {

@@ -104,11 +104,11 @@ public class SimpleScriptStream implements ScriptStream {
                 // Read some bytes of data, where how many is the opcode value itself.
                 return 1 + opcode;
             } else if (opcode == OP_PUSHDATA1) {
-                return 1 + 1 + chunk.data.length;
+                return 1 + 1 + chunk.data.length();
             } else if (opcode == OP_PUSHDATA2) {
-                return 1 + 2 + chunk.data.length;
+                return 1 + 2 + chunk.data.length();
             } else if (opcode == OP_PUSHDATA4) {
-                return 1 + 4 + chunk.data.length;
+                return 1 + 4 + chunk.data.length();
             }
         }
         //chunk is an op code

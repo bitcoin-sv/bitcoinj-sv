@@ -1584,7 +1584,7 @@ public class WalletTest extends TestWithWallet {
         assertNotNull(t2);
         // TODO: This code is messy, improve the Script class and fixinate!
         assertEquals(t2.toString(), 1, t2.getInputs().get(0).getScriptSig().getChunks().size());
-        assertTrue(t2.getInputs().get(0).getScriptSig().getChunks().get(0).data.length > 50);
+        assertTrue(t2.getInputs().get(0).getScriptSig().getChunks().get(0).data.length() > 50);
         log.info(t2.toString(chain));
     }
 
@@ -3207,12 +3207,12 @@ public class WalletTest extends TestWithWallet {
         wallet.completeTx(req);
         TransactionInput input = req.tx.getInput(0);
 
-        boolean firstSigIsMissing = Arrays.equals(expectedSig, input.getScriptSig().getChunks().get(1).data);
-        boolean secondSigIsMissing = Arrays.equals(expectedSig, input.getScriptSig().getChunks().get(2).data);
+        boolean firstSigIsMissing = Arrays.equals(expectedSig, input.getScriptSig().getChunks().get(1).data());
+        boolean secondSigIsMissing = Arrays.equals(expectedSig, input.getScriptSig().getChunks().get(2).data());
 
         assertTrue("Only one of the signatures should be missing/dummy", firstSigIsMissing ^ secondSigIsMissing);
         int localSigIndex = firstSigIsMissing ? 2 : 1;
-        int length = input.getScriptSig().getChunks().get(localSigIndex).data.length;
+        int length = input.getScriptSig().getChunks().get(localSigIndex).data.length();
         assertTrue("Local sig should be present: " + length, length >= 70);
     }
 
@@ -3239,9 +3239,9 @@ public class WalletTest extends TestWithWallet {
         for (int i = 0; i < req.tx.getInputs().size(); i++) {
             TransactionInput input = req.tx.getInput(i);
             if (input.getConnectedOutput().getParentTransaction().equals(t1)) {
-                assertArrayEquals(expectedSig, input.getScriptSig().getChunks().get(0).data);
+                assertArrayEquals(expectedSig, input.getScriptSig().getChunks().get(0).data());
             } else if (input.getConnectedOutput().getParentTransaction().equals(t2)) {
-                assertArrayEquals(expectedSig, input.getScriptSig().getChunks().get(0).data);
+                assertArrayEquals(expectedSig, input.getScriptSig().getChunks().get(0).data());
             } else if (input.getConnectedOutput().getParentTransaction().equals(t3)) {
                 input.getScriptSig().correctlySpends(req.tx, i, t3.getOutput(0).getScriptPubKey());
             }

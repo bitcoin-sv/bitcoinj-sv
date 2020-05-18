@@ -183,13 +183,13 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
             if (chunk.isPushData()) {
                 ECDSASignature signature;
                 try {
-                    signature = ECKey.ECDSASignature.decodeFromDER(chunk.data);
+                    signature = ECKey.ECDSASignature.decodeFromDER(chunk.data());
                 } catch (RuntimeException x) {
                     // Doesn't look like a signature.
                     signature = null;
                 }
                 if (signature != null) {
-                    if (!TransactionSignature.isEncodingCanonical(chunk.data))
+                    if (!TransactionSignature.isEncodingCanonical(chunk.data()))
                         return RuleViolation.SIGNATURE_CANONICAL_ENCODING;
                     if (!signature.isCanonical())
                         return RuleViolation.SIGNATURE_CANONICAL_ENCODING;
@@ -207,13 +207,13 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
             if (chunk.isPushData()) {
                 ECDSASignature signature;
                 try {
-                    signature = ECKey.ECDSASignature.decodeFromDER(chunk.data);
+                    signature = ECKey.ECDSASignature.decodeFromDER(chunk.data());
                 } catch (RuntimeException x) {
                     // Doesn't look like a signature.
                     signature = null;
                 }
                 if (signature != null && requireForkId) {
-                    if (!TransactionSignature.hasForkId(chunk.data))
+                    if (!TransactionSignature.hasForkId(chunk.data()))
                         return RuleViolation.SIGNATURE_MISSING_FORKID;
                 }
             }

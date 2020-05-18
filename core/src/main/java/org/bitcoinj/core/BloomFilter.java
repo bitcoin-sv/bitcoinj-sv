@@ -329,7 +329,7 @@ public class BloomFilter extends Message {
             for (ScriptChunk chunk : script.getChunks()) {
                 if (!chunk.isPushData())
                     continue;
-                if (contains(chunk.data)) {
+                if (contains(chunk.data())) {
                     boolean isSendingToPubKeys = script.isSentToRawPubKey() || script.isSentToMultiSig();
                     if (flag == BloomUpdate.UPDATE_ALL || (flag == BloomUpdate.UPDATE_P2PUBKEY_ONLY && isSendingToPubKeys))
                         insert(output.getOutPointFor().unsafeBitcoinSerialize());
@@ -343,7 +343,7 @@ public class BloomFilter extends Message {
                 return true;
             }
             for (ScriptChunk chunk : input.getScriptSig().getChunks()) {
-                if (chunk.isPushData() && contains(chunk.data))
+                if (chunk.isPushData() && contains(chunk.data()))
                     return true;
             }
         }
