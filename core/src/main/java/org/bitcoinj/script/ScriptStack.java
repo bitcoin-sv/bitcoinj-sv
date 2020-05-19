@@ -88,18 +88,19 @@ public class ScriptStack extends LinkedList<StackItem> {
         return add(StackItem.from(bytes, derivedFrom));
     }
 
-    public void addLast(StackItem from, StackItem ... derivedFrom) {
-        addLast(StackItem.from(from, derivedFrom));
-    }
-
-    public void addLast(byte[] bytes, StackItem ... derivedFrom) {
-        addLast(StackItem.from(bytes, derivedFrom));
-    }
+//    public void addLast(StackItem from, StackItem ... derivedFrom) {
+//        addLast(StackItem.from(from, derivedFrom));
+//    }
+//
+//    public void addLast(byte[] bytes, StackItem ... derivedFrom) {
+//        addLast(StackItem.from(bytes, derivedFrom));
+//    }
 
     @Override
     public void addLast(StackItem stackItem) {
-        stackBytes += stackItem.length();
-        super.addLast(stackItem);
+        throw new UnsupportedOperationException();
+//        stackBytes += stackItem.length();
+//        super.addLast(stackItem);
     }
 
     @Override

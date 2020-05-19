@@ -1407,7 +1407,7 @@ public class Script {
                         byte[] catOut = new byte[len];
                         System.arraycopy(catBytes1.bytes(), 0, catOut, 0, catBytes1.length());
                         System.arraycopy(catBytes2.bytes(), 0, catOut, catBytes1.length(), catBytes2.length());
-                        stack.addLast(catOut, catBytes1, catBytes2);
+                        stack.add(catOut, catBytes1, catBytes2);
 
                         break;
 
@@ -1438,8 +1438,8 @@ public class Script {
                         System.arraycopy(splitBytes, 0, splitOut1, 0, splitPos);
                         System.arraycopy(splitBytes, splitPos, splitOut2, 0, splitOut2.length);
 
-                        stack.addLast(splitOut1, splitBytesItem, biSplitPosItem);
-                        stack.addLast(splitOut2, splitBytesItem, biSplitPosItem);
+                        stack.add(splitOut1, splitBytesItem, biSplitPosItem);
+                        stack.add(splitOut2, splitBytesItem, biSplitPosItem);
                         break;
 
                     case OP_NUM2BIN:
@@ -1464,9 +1464,9 @@ public class Script {
 
                         if (minimalNumBytes.length == numSize) {
                             //already the right size so just push it to stack
-                            stack.addLast(minimalNumBytes, numSizeItem, rawNumItem);
+                            stack.add(minimalNumBytes, numSizeItem, rawNumItem);
                         } else if (numSize == 0) {
-                            stack.addLast(Utils.EMPTY_BYTE_ARRAY, numSizeItem, rawNumItem);
+                            stack.add(Utils.EMPTY_BYTE_ARRAY, numSizeItem, rawNumItem);
                         } else {
                             int signBit = 0x00;
                             if (minimalNumBytes.length > 0) {
@@ -1477,7 +1477,7 @@ public class Script {
                             byte[] expandedNumBytes = new byte[numSize]; //initialized to all zeroes
                             System.arraycopy(minimalNumBytes, 0, expandedNumBytes, 0, minimalBytesToCopy);
                             expandedNumBytes[expandedNumBytes.length - 1] = (byte) signBit;
-                            stack.addLast(expandedNumBytes, rawNumItem, numSizeItem);
+                            stack.add(expandedNumBytes, rawNumItem, numSizeItem);
                         }
                         break;
 
@@ -1490,7 +1490,7 @@ public class Script {
                         if (!Utils.checkMinimallyEncodedLE(numBytes, maxNumElementSize))
                             throw new ScriptException(state, "Given operand is not a number within the valid range [-2^31...2^31]");
 
-                        stack.addLast(numBytes, binBytes);
+                        stack.add(numBytes, binBytes);
 
                         break;
                     case OP_SIZE:
@@ -1509,7 +1509,7 @@ public class Script {
                         for (int i = 0; i < invertItem.length(); i++) {
                             invertBytes.data()[i] = (byte) ~invertItem.bytes()[i];
                         }
-                        stack.addLast(StackItem.forBytes(invertBytes, invertItem.getType(), invertItem));
+                        stack.add(StackItem.forBytes(invertBytes, invertItem.getType(), invertItem));
                         break;
 
                     case OP_AND:
@@ -1557,7 +1557,7 @@ public class Script {
                         }
 
                         //put modified copy of vch1 back on stack
-                        stack.addLast(StackItem.forBytes(vch1Bytes, vch1Item.getType(), vch1Item, vch2Item));
+                        stack.add(StackItem.forBytes(vch1Bytes, vch1Item.getType(), vch1Item, vch2Item));
 
                         break;
                     case OP_LSHIFT:
@@ -1582,7 +1582,7 @@ public class Script {
                             default:
                                 throw new ScriptException(state, "switched opcode at runtime"); //can't happen
                         }
-                        stack.addLast(shifted, shiftNItem, shiftData);
+                        stack.add(shifted, shiftNItem, shiftData);
 
                         break;
                     case OP_EQUAL:
