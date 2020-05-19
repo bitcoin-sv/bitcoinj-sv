@@ -43,6 +43,10 @@ public class StackItem<C> {
         return new StackItem(bytes, type, derived);
     }
 
+    public static StackItem forBytes(ScriptBytes bytes, Type type, StackItem ... derivedFrom) {
+        return new StackItem(bytes, type, false, derivedFrom);
+    }
+
     private StackItem(ScriptBytes bytes, Type type, boolean derived, StackItem ... derivedFrom) {
         this.bytes = bytes;
         this.type = type;

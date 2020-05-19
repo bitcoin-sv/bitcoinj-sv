@@ -1505,10 +1505,11 @@ public class Script {
                             throw new ScriptException(state, "Invalid stack operation.");
                         }
                         StackItem invertItem = stack.pollLast();
+                        ScriptBytes invertBytes = invertItem.wrappedBytes().copy();
                         for (int i = 0; i < invertItem.length(); i++) {
-                            invertItem.bytes()[i] = (byte) ~invertItem.bytes()[i];
+                            invertBytes.data()[i] = (byte) ~invertItem.bytes()[i];
                         }
-                        stack.addLast(invertItem);
+                        stack.addLast(StackItem.forBytes(invertBytes, invertItem.getType(), invertItem));
                         break;
 
                     case OP_AND:
@@ -1524,7 +1525,10 @@ public class Script {
                         StackItem vch2Item = stack.pollLast();
                         StackItem vch1Item = stack.pollLast();
                         byte[] vch2 = vch2Item.bytes();
-                        byte[] vch1 = vch1Item.bytes();
+                        //we will operate directly on vch1 bytes so ensure
+                        //it's a copy so the original stack item isn't modified.
+                        ScriptBytes vch1Bytes = vch1Item.wrappedBytes().copy();
+                        byte[] vch1 = vch1Bytes.data();
 
                         // Inputs must be the same size
                         if (vch1.length != vch2.length) {
@@ -1552,11 +1556,8 @@ public class Script {
                                 break;
                         }
 
-                        // And pop vch2.
-                        //popstack(stack);
-
-                        //put vch1 back on stack
-                        stack.addLast(vch1, vch1Item, vch2Item);
+                        //put modified copy of vch1 back on stack
+                        stack.addLast(StackItem.forBytes(vch1Bytes, vch1Item.getType(), vch1Item, vch2Item));
 
                         break;
                     case OP_LSHIFT:

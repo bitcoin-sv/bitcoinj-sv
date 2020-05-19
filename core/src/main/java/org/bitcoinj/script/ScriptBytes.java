@@ -13,6 +13,10 @@ public interface ScriptBytes {
         return data().length;
     }
 
+    /**
+     * Returns a clone. Implementations MUST return a COPY of the backing bytes
+     * @return
+     */
     default ScriptBytes copy() {
         byte[] copy = Arrays.copyOf(data(), length());
         return new SimpleScriptBytes(copy);
