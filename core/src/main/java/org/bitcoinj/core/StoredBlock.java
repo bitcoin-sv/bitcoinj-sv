@@ -48,6 +48,7 @@ public class StoredBlock {
     private int height;
     private int txCount = -1;
     private long blockSize = -1;
+    private Transaction coinbase;
 
     public StoredBlock(Block header, BigInteger chainWork, int height) {
         this.header = header;
@@ -55,7 +56,11 @@ public class StoredBlock {
         this.height = height;
         if (header.getTransactions() != null && !header.getTransactions().isEmpty()) {
             txCount = header.getTransactions().size();
-            blockSize = header.unsafeBitcoinSerialize().length;
+            blockSize = header.getSerializedLength();
+            coinbase = header.getTransactions().get(0);
+            if (!coinbase.isCoinBase()) {
+                throw new RuntimeException("first transaction is not a valid coinbase");
+            }
         }
     }
 
@@ -86,6 +91,15 @@ public class StoredBlock {
 
     public long getBlockSize() { return blockSize; }
 
+    public Transaction getCoinbase() {
+        return coinbase;
+    }
+
+    public void setCoinbase(Transaction coinbase) {
+        this.coinbase = coinbase;
+        coinbase.setParent(header);
+    }
+
     public void setTxCount(int txCount) {
         this.txCount = txCount;
     }
@@ -93,6 +107,7 @@ public class StoredBlock {
     public void setBlockSize(long blockSize) {
         this.blockSize = blockSize;
     }
+
 
     /** Returns true if this objects chainWork is higher than the others. */
     public boolean moreWorkThan(StoredBlock other) {
@@ -172,4 +187,5 @@ public class StoredBlock {
         return String.format(Locale.US, "Block %s at height %d: %s",
                 getHeader().getHashAsString(), getHeight(), getHeader().toString());
     }
+
 }
