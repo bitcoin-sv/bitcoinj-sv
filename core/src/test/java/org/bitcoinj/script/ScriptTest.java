@@ -63,6 +63,7 @@ public class ScriptTest {
     @Before
     public void setUp() throws Exception {
         Context context = new Context(PARAMS);
+        ScriptStack.VERIFY_STACK_MEMEORY_USAGE = true;
     }
 
     @Test
