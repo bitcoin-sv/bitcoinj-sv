@@ -1,5 +1,7 @@
 package org.bitcoinj.script;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
@@ -10,6 +12,17 @@ import java.util.stream.Stream;
 
 public class ScriptStack extends LinkedList<StackItem> {
 
+    private static final Logger log = LoggerFactory.getLogger(ScriptStack.class);
+
+    /**
+     * A global flag to turn on an extra check when getting stackmemoryusage. The extra
+     * check manually iterates the entire stack and calculates the usage manually. This
+     * is far slower than the usual method were it is calculated on the fly but is useful
+     * for testing.
+     */
+    public static boolean VERIFY_STACK_MEMEORY_USAGE = false;
+
+    private final boolean verifyStackMemoryUsage;
     private long stackBytes = 0;
 
     //no opcode removes more than 4 items from the stack except CHECKMULTISIG
@@ -18,15 +31,17 @@ public class ScriptStack extends LinkedList<StackItem> {
     public ScriptStack(ScriptStack stack) {
         super(stack);
         stackBytes = stack.stackBytes;
+        verifyStackMemoryUsage = stack.verifyStackMemoryUsage;
     }
 
-    public ScriptStack(Collection<? extends StackItem> c) {
-        super();
+    public ScriptStack(Collection<? extends StackItem> c, boolean verifyStackMemoryUsage) {
+        this();
         addAll(c);
     }
 
     public ScriptStack() {
         super();
+        this.verifyStackMemoryUsage = VERIFY_STACK_MEMEORY_USAGE;
     }
 
     /**
@@ -43,12 +58,42 @@ public class ScriptStack extends LinkedList<StackItem> {
     }
 
     /**
+     * Used for testing to manually calculate stackmemoryusageconsensus and compare it
+     * against the faster 'on-the-fly' calculated value.
+     * @return
+     */
+    public boolean isVerifyStackMemoryUsage() {
+        return verifyStackMemoryUsage;
+    }
+
+    /**
      * Returns the stack memory usage as defined by the genesis spec:
      * https://github.com/bitcoin-sv-specs/protocol/blob/master/updates/genesis-spec.md
      * @return
      */
     public long getStackMemoryUsage() {
-        return 32 * size() * stackBytes;
+        long memoryUsage = 32 * size() + stackBytes;
+        if (verifyStackMemoryUsage) {
+            long calculated = calculateStackMemoryUsage();
+            if (calculated != memoryUsage) {
+                throw new RuntimeException(String.format("Stack memory usage calculation error. Calculated value: %s, verified value: %s", memoryUsage, calculated));
+            }
+            log.debug("Stack memory usage calculation correct. Calculated value: {}, verified value: {}", memoryUsage, calculated);
+        }
+        return memoryUsage;
+    }
+
+    /**
+     * Manually calculates the maxstackmemoryusage according to the genesis spec.
+     * This iterates the whole stack and isn't performant but is useful to test.
+     * @return
+     */
+    public long calculateStackMemoryUsage() {
+        long memoryUsage = 0;
+        for (StackItem item: this) {
+            memoryUsage += 32 + item.length();
+        }
+        return memoryUsage;
     }
 
     /**
