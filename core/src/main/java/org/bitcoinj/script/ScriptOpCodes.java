@@ -160,6 +160,99 @@ public class ScriptOpCodes {
     public static final int OP_NOP9 = 0xb8;
     public static final int OP_NOP10 = 0xb9;
 
+    /**
+     * Meta op codes.  These are treated by the script engine as reserved op codes
+     * and will cause a script to fail if encountered in normal script execution.
+     * They are used to encode "meta script" which is a template language for scripts
+     * that can be unrolled into a canonical script.
+     *
+     * Meta cop codes are prefixed with "MOP_" by convention
+     *
+     * MOP_VER can be used at the start of a meta script to indicate that it is
+     * meta script.  Reserved op codes will not fail a script if they are in an
+     * unexecuted IF branch so simply playing the script does not guarantee failure if
+     * it's not been unrolled.
+     *
+     * MOP_VER expects the next pushdata to be read as meta op code language version.
+     * If no MOP_VER is encountered before another MOP_ then version 0 is assumed.
+     * In the context of meta script evaluation if the ver is immediately followed
+     * by a pushdata then OP_DROP the OP_DROP is not emitted in the unrolled script.
+     *
+     * If for some reason you wanted to use a script that started
+     * with MOP_VER it would behave identically aside from pushing and dropping the
+     * version from the stack, as the unroll process will do nothing
+     * unless it encounters more meta op codes.
+     */
+
+    //next pushdata is the meta op code language version. Default is 0 and is used
+    //if no MOP_VER is encountered before another MOP code.
+    //The definition of the remainder of MOP codes is specific to version 0
+    //and may change in future versions.
+    public static final int MOP_VER = 0xc0;
+
+    //next pushdata is a URI to obtain a chunk of script
+    public static final int MOP_DATA_REFERENCE = 0xc2;
+    public static final int MOP_RESERVED1 = 0xc3;
+
+    // next pushdata is an integer or hash160 reference to a script template
+    // library.
+    public static final int MOP_LOADLIB = 0xc6;
+
+    //next push data is function call defined by the MOP_LOADLIB
+    //the definition of the that function determines whether parameters
+    //are expected to follow. If so then a specified number of pushdata
+    //ops are expected to follow to specify the params.  In the case where
+    //the function takes a variable number of params the list should be preceeded
+    //with a push of the count of params.
+    public static final int MOP_FN = 0xc7;
+
+    //same as above but the first parameter is expected to be a number
+    //of iterrations. The function is called that many times. The loop iteration
+    //is available using MOP_LOOPINDEX and the loop count with MOP_LOOPCOUNT;
+    public static final int MOP_FN_LOOP = 0xc8;
+
+    //same as above except each iteration will be wrapped in
+    //an OP_IF ... OP_ENDIF
+    public static final int MOP_FN_WHILE = 0xc9;
+
+    //same as above except the *2nd* and subsequent iterations will be wrapped
+    //in a nested OP_IF ... OP_ENDIF
+    public static final int MOP_FN_DOWHILE = 0xca;
+
+    //the current loop index is emitted as a pushdata operation.
+    public static final int MOP_LOOPINDEX = 0xcb;
+    //the total loop count is emitted as a pushdata operation.
+    public static final int MOP_LOOPCOUNT = 0xcd;
+
+
+    public static final int MOP_SETVARLOCAL = 0xd0;
+    public static final int MOP_SETARRAYLOCAL = 0xd1;
+
+    public static final int MOP_PUSHVARLOCAL = 0xd2;
+    public static final int MOP_PUSHARRAYLOCAL = 0xd3;
+
+    public static final int MOP_PUSHVARGLOBAL = 0xd4;
+    public static final int MOP_PUSHARRAYGLOBAL = 0xd5;
+
+    //The next pushdata is the index of the function param
+    //this param should be emitted as a pushdata operation.
+    //If called outside the context of a function call this is invalid.
+    public static final int MOP_PUSHPARAM = 0xde;
+
+
+    //direct pushparam mops
+    public static final int MOP_PUSHPARAM0 = 0xe0;
+    public static final int MOP_PUSHPARAM1 = 0xe1;
+    public static final int MOP_PUSHPARAM2 = 0xe2;
+    public static final int MOP_PUSHPARAM3 = 0xe3;
+    public static final int MOP_PUSHPARAM4 = 0xe4;
+    public static final int MOP_PUSHPARAM5 = 0xe5;
+    public static final int MOP_PUSHPARAM6 = 0xe6;
+    public static final int MOP_PUSHPARAM7 = 0xe7;
+    public static final int MOP_PUSHPARAM8 = 0xe8;
+    public static final int MOP_PUSHPARAM9 = 0xe9;
+
+
     public static final int OP_INVALIDOPCODE = 0xff;
 
     private static final Map<Integer, String> opCodeMap = ImmutableMap.<Integer, String>builder()

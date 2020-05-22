@@ -249,6 +249,17 @@ public abstract class Message {
     }
 
     /**
+     * Attempts to get the length of the serialized block without serializing it if possible.
+     * @return
+     */
+    public long getSerializedLength() {
+        if (length != UNKNOWN_LENGTH) {
+            return length;
+        }
+        return unsafeBitcoinSerialize().length;
+    }
+
+    /**
      * Serialize this message to the provided OutputStream using the bitcoin wire format.
      *
      * @param stream

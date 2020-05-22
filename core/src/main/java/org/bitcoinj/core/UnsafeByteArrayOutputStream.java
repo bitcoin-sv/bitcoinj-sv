@@ -98,7 +98,6 @@ public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
      * output stream is discarded. The output stream can be used again,
      * reusing the already allocated buffer space.
      *
-     * @see java.io.ByteArrayInputStream#count
      */
     @Override
     public void reset() {
@@ -114,8 +113,18 @@ public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
      * @see java.io.ByteArrayOutputStream#size()
      */
     @Override
-    public byte toByteArray()[] {
+    public byte[] toByteArray() {
         return count == buf.length ? buf : Utils.copyOf(buf, count);
+    }
+
+    /**
+     * Returns the backing array of this stream. The length of the array may be greater or equal to size()
+     *
+     * If the array is modified behaviour is unspecified.
+     * @return
+     */
+    public byte[] getBackingArray() {
+        return buf;
     }
 
     /**
