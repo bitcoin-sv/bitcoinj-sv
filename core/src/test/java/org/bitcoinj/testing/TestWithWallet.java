@@ -41,7 +41,7 @@ public class TestWithWallet {
     protected ECKey myKey;
     protected Address myAddress;
     protected Wallet wallet;
-    protected BlockChain chain;
+    protected SPVBlockChain chain;
     protected BlockStore blockStore;
 
     public void setUp() throws Exception {
@@ -51,7 +51,7 @@ public class TestWithWallet {
         myKey = wallet.currentReceiveKey();
         myAddress = myKey.toAddress(PARAMS);
         blockStore = new MemoryBlockStore(PARAMS);
-        chain = new BlockChain(PARAMS, wallet, blockStore);
+        chain = new SPVBlockChain(PARAMS, wallet, blockStore);
     }
 
     public void tearDown() throws Exception {

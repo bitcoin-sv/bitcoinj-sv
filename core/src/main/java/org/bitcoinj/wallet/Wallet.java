@@ -24,11 +24,10 @@ import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.*;
 import net.jcip.annotations.*;
-import org.bitcoin.protocols.payments.Protos.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.core.AbstractBlockChain;
 import org.bitcoinj.core.Address;
-import org.bitcoinj.core.BlockChain;
+import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.BloomFilter;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Context;
@@ -111,7 +110,7 @@ import static com.google.common.base.Preconditions.*;
  * <p>To learn more about this class, read <b><a href="https://bitcoinj.github.io/working-with-the-wallet">
  *     working with the wallet.</a></b></p>
  *
- * <p>To fill up a Wallet with transactions, you need to use it in combination with a {@link BlockChain} and various
+ * <p>To fill up a Wallet with transactions, you need to use it in combination with a {@link SPVBlockChain} and various
  * other objects, see the <a href="https://bitcoinj.github.io/getting-started">Getting started</a> tutorial
  * on the website to learn more about how to set everything up.</p>
  *
@@ -1617,7 +1616,7 @@ public class Wallet extends BaseTaggableObject
     //region Inbound transaction reception and processing
 
     /**
-     * Called by the {@link BlockChain} when we receive a new filtered block that contains a transactions previously
+     * Called by the {@link SPVBlockChain} when we receive a new filtered block that contains a transactions previously
      * received by a call to {@link #receivePending}.<p>
      *
      * This is necessary for the internal book-keeping Wallet does. When a transaction is received that sends us
@@ -1636,7 +1635,7 @@ public class Wallet extends BaseTaggableObject
      */
     @Override
     public boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block,
-                                              BlockChain.NewBlockType blockType,
+                                              SPVBlockChain.NewBlockType blockType,
                                               int relativityOffset) throws VerificationException {
         lock.lock();
         try {
@@ -1859,7 +1858,7 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * Called by the {@link BlockChain} when we receive a new block that sends coins to one of our addresses or
+     * Called by the {@link SPVBlockChain} when we receive a new block that sends coins to one of our addresses or
      * spends coins from one of our addresses (note that a single transaction can do both).<p>
      *
      * This is necessary for the internal book-keeping Wallet does. When a transaction is received that sends us
@@ -1878,7 +1877,7 @@ public class Wallet extends BaseTaggableObject
      */
     @Override
     public void receiveFromBlock(Transaction tx, StoredBlock block,
-                                 BlockChain.NewBlockType blockType,
+                                 SPVBlockChain.NewBlockType blockType,
                                  int relativityOffset) throws VerificationException {
         lock.lock();
         try {
@@ -1893,15 +1892,15 @@ public class Wallet extends BaseTaggableObject
     // Whether to do a saveNow or saveLater when we are notified of the next best block.
     private boolean hardSaveOnNextBlock = false;
 
-    private void receive(Transaction tx, StoredBlock block, BlockChain.NewBlockType blockType,
+    private void receive(Transaction tx, StoredBlock block, SPVBlockChain.NewBlockType blockType,
                          int relativityOffset) throws VerificationException {
         // Runs in a peer thread.
         checkState(lock.isHeldByCurrentThread());
 
         Coin prevBalance = getBalance();
         Sha256Hash txHash = tx.getHash();
-        boolean bestChain = blockType == BlockChain.NewBlockType.BEST_CHAIN;
-        boolean sideChain = blockType == BlockChain.NewBlockType.SIDE_CHAIN;
+        boolean bestChain = blockType == SPVBlockChain.NewBlockType.BEST_CHAIN;
+        boolean sideChain = blockType == SPVBlockChain.NewBlockType.SIDE_CHAIN;
 
         Coin valueSentFromMe = tx.getValueSentFromMe(this);
         Coin valueSentToMe = tx.getValueSentToMe(this);
@@ -2093,7 +2092,7 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * <p>Called by the {@link BlockChain} when a new block on the best chain is seen, AFTER relevant wallet
+     * <p>Called by the {@link SPVBlockChain} when a new block on the best chain is seen, AFTER relevant wallet
      * transactions are extracted and sent to us UNLESS the new block caused a re-org, in which case this will
      * not be called (the {@link Wallet#reorganize(StoredBlock, java.util.List, java.util.List)} method will
      * call this one in that case).</p>
@@ -4389,7 +4388,7 @@ public class Wallet extends BaseTaggableObject
     /**
      * <p>Don't call this directly. It's not intended for API users.</p>
      *
-     * <p>Called by the {@link BlockChain} when the best chain (representing total work done) has changed. This can
+     * <p>Called by the {@link SPVBlockChain} when the best chain (representing total work done) has changed. This can
      * cause the number of confirmations of a transaction to go higher, lower, drop to zero and can even result in
      * a transaction going dead (will never confirm) due to a double spend.</p>
      *
@@ -4519,7 +4518,7 @@ public class Wallet extends BaseTaggableObject
                 for (TxOffsetPair pair : mapBlockTx.get(block.getHeader().getHash())) {
                     log.info("  tx {}", pair.tx.getHash());
                     try {
-                        receive(pair.tx, block, BlockChain.NewBlockType.BEST_CHAIN, pair.offset);
+                        receive(pair.tx, block, SPVBlockChain.NewBlockType.BEST_CHAIN, pair.offset);
                     } catch (ScriptException e) {
                         throw new RuntimeException(e);  // Cannot happen as these blocks were already verified.
                     }

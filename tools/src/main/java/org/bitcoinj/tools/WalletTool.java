@@ -1183,7 +1183,7 @@ public class WalletTool {
         }
         if (mode == ValidationMode.SPV) {
             store = new SPVBlockStore(params, chainFileName);
-            chain = new BlockChain(params, wallet, store);
+            chain = new SPVBlockChain(params, wallet, store);
             if (reset) {
                 try {
                     CheckpointManager.checkpoint(params, CheckpointManager.openStream(params), store,

@@ -58,7 +58,7 @@ public class RestoreFromSeed {
 
         // Setting up the BlochChain, the BlocksStore and connecting to the network.
         SPVBlockStore chainStore = new SPVBlockStore(params, chainFile);
-        BlockChain chain = new BlockChain(params, chainStore);
+        SPVBlockChain chain = new SPVBlockChain(params, chainStore);
         PeerGroup peers = new PeerGroup(params, chain);
         peers.addPeerDiscovery(new DnsDiscovery(params));
 

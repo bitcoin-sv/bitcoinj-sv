@@ -116,15 +116,15 @@ public class TransactionTest {
         int TEST_LOCK_TIME = 20;
         Date now = Calendar.getInstance().getTime();
 
-        BlockChain mockBlockChain = createMock(BlockChain.class);
-        EasyMock.expect(mockBlockChain.estimateBlockTime(TEST_LOCK_TIME)).andReturn(now);
+        SPVBlockChain mockSPVBlockChain = createMock(SPVBlockChain.class);
+        EasyMock.expect(mockSPVBlockChain.estimateBlockTime(TEST_LOCK_TIME)).andReturn(now);
 
         Transaction tx = FakeTxBuilder.createFakeTx(PARAMS);
         tx.setLockTime(TEST_LOCK_TIME); // less than five hundred million
 
-        replay(mockBlockChain);
+        replay(mockSPVBlockChain);
 
-        assertEquals(tx.estimateLockTime(mockBlockChain), now);
+        assertEquals(tx.estimateLockTime(mockSPVBlockChain), now);
     }
 
     @Test
@@ -257,12 +257,12 @@ public class TransactionTest {
         cal.set(2085, 10, 4, 17, 53, 21);
         cal.set(Calendar.MILLISECOND, 0);
 
-        BlockChain mockBlockChain = createMock(BlockChain.class);
-        EasyMock.expect(mockBlockChain.estimateBlockTime(TEST_LOCK_TIME)).andReturn(cal.getTime());
+        SPVBlockChain mockSPVBlockChain = createMock(SPVBlockChain.class);
+        EasyMock.expect(mockSPVBlockChain.estimateBlockTime(TEST_LOCK_TIME)).andReturn(cal.getTime());
 
-        replay(mockBlockChain);
+        replay(mockSPVBlockChain);
 
-        String str = tx.toString(mockBlockChain);
+        String str = tx.toString(mockSPVBlockChain);
 
         assertEquals(str.contains("block " + TEST_LOCK_TIME), true);
         assertEquals(str.contains("estimated to be reached at"), true);

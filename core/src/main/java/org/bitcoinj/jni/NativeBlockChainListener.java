@@ -38,10 +38,10 @@ public class NativeBlockChainListener implements NewBestBlockListener, Reorganiz
     public native void reorganize(StoredBlock splitPoint, List<StoredBlock> oldBlocks, List<StoredBlock> newBlocks) throws VerificationException;
 
     @Override
-    public native void receiveFromBlock(Transaction tx, StoredBlock block, BlockChain.NewBlockType blockType,
+    public native void receiveFromBlock(Transaction tx, StoredBlock block, SPVBlockChain.NewBlockType blockType,
                                         int relativityOffset) throws VerificationException;
 
     @Override
-    public native boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block, BlockChain.NewBlockType blockType,
+    public native boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block, SPVBlockChain.NewBlockType blockType,
                                                      int relativityOffset) throws VerificationException;
 }

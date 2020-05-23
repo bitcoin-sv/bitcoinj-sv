@@ -60,7 +60,7 @@ public class PrivateKeys {
 
             // Find the transactions that involve those coins.
             final MemoryBlockStore blockStore = new MemoryBlockStore(params);
-            BlockChain chain = new BlockChain(params, wallet, blockStore);
+            SPVBlockChain chain = new SPVBlockChain(params, wallet, blockStore);
 
             final PeerGroup peerGroup = new PeerGroup(params, chain);
             peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost()));

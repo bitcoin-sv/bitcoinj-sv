@@ -46,8 +46,8 @@ public class EmergencyDifficultyAdjustmentRuleChecker extends AbstractPowRulesCh
             if(beforeCursor == null)
                 throw new NullPointerException("Not enough blocks to check difficulty.");
         }
-        return BlockChain.getMedianTimestampOfRecentBlocks(storedPrev, blockStore) -
-                BlockChain.getMedianTimestampOfRecentBlocks(cursor, blockStore);
+        return SPVBlockChain.getMedianTimestampOfRecentBlocks(storedPrev, blockStore) -
+                SPVBlockChain.getMedianTimestampOfRecentBlocks(cursor, blockStore);
     }
 
     private void checkEDARules(StoredBlock storedPrev, Block nextBlock, long lastBlocksMPTinSeconds) {

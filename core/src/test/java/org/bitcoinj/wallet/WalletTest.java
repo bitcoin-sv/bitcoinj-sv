@@ -21,7 +21,7 @@ import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
 import org.bitcoinj.core.AbstractBlockChain;
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Block;
-import org.bitcoinj.core.BlockChain;
+import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
@@ -114,7 +114,7 @@ public class WalletTest extends TestWithWallet {
     private void createMarriedWallet(int threshold, int numKeys, boolean addSigners) throws BlockStoreException {
         wallet = new Wallet(PARAMS);
         blockStore = new MemoryBlockStore(PARAMS);
-        chain = new BlockChain(PARAMS, wallet, blockStore);
+        chain = new SPVBlockChain(PARAMS, wallet, blockStore);
 
         List<DeterministicKey> followingKeys = Lists.newArrayList();
         for (int i = 0; i < numKeys - 1; i++) {
@@ -536,7 +536,7 @@ public class WalletTest extends TestWithWallet {
                     wallet.getBalance(Wallet.BalanceType.ESTIMATED)));
 
         // Now confirm the transaction by including it into a block.
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, spend);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, spend);
 
         // Change is confirmed. We started with 5.50 so we should have 4.50 left.
         Coin v4 = valueOf(4, 50);
@@ -650,13 +650,13 @@ public class WalletTest extends TestWithWallet {
         Transaction tx = createFakeTx(PARAMS, COIN, myAddress);
         TransactionOutput output = new TransactionOutput(PARAMS, tx, valueOf(0, 5), OTHER_ADDRESS);
         tx.addOutput(output);
-        wallet.receiveFromBlock(tx, null, BlockChain.NewBlockType.BEST_CHAIN, 0);
+        wallet.receiveFromBlock(tx, null, SPVBlockChain.NewBlockType.BEST_CHAIN, 0);
 
         assertTrue(wallet.isConsistent());
 
         Transaction txClone = PARAMS.getDefaultSerializer().makeTransaction(tx.bitcoinSerialize());
         try {
-            wallet.receiveFromBlock(txClone, null, BlockChain.NewBlockType.BEST_CHAIN, 0);
+            wallet.receiveFromBlock(txClone, null, SPVBlockChain.NewBlockType.BEST_CHAIN, 0);
             fail("Illegal argument not thrown when it should have been.");
         } catch (IllegalStateException ex) {
             // expected
@@ -669,7 +669,7 @@ public class WalletTest extends TestWithWallet {
         Transaction tx = createFakeTx(PARAMS, COIN, myAddress);
         TransactionOutput output = new TransactionOutput(PARAMS, tx, valueOf(0, 5), OTHER_ADDRESS);
         tx.addOutput(output);
-        wallet.receiveFromBlock(tx, null, BlockChain.NewBlockType.BEST_CHAIN, 0);
+        wallet.receiveFromBlock(tx, null, SPVBlockChain.NewBlockType.BEST_CHAIN, 0);
 
         assertTrue(wallet.isConsistent());
 
@@ -1654,7 +1654,7 @@ public class WalletTest extends TestWithWallet {
     public void watchingScriptsConfirmed() throws Exception {
         Address watchedAddress = new ECKey().toAddress(PARAMS);
         wallet.addWatchedAddress(watchedAddress);
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, CENT, watchedAddress);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, CENT, watchedAddress);
         assertEquals(CENT, wallet.getBalance());
 
         // We can't spend watched balances
@@ -1696,7 +1696,7 @@ public class WalletTest extends TestWithWallet {
         // Note that this has a 1e-12 chance of failing this unit test due to a false positive
         assertFalse(wallet.getBloomFilter(1e-12).contains(outPoint.unsafeBitcoinSerialize()));
 
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, t1);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, t1);
         assertTrue(wallet.getBloomFilter(1e-12).contains(outPoint.unsafeBitcoinSerialize()));
     }
 
@@ -1752,7 +1752,7 @@ public class WalletTest extends TestWithWallet {
             // Note that this has a 1e-12 chance of failing this unit test due to a false positive
             assertFalse(wallet.getBloomFilter(1e-12).contains(outPoint.unsafeBitcoinSerialize()));
 
-            sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, t1);
+            sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, t1);
             assertFalse(wallet.getBloomFilter(1e-12).contains(outPoint.unsafeBitcoinSerialize()));
         }
     }
@@ -1769,7 +1769,7 @@ public class WalletTest extends TestWithWallet {
 
         assertFalse(wallet.getBloomFilter(0.001).contains(outPoint.unsafeBitcoinSerialize()));
 
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, t1);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, t1);
         assertTrue(wallet.getBloomFilter(0.001).contains(outPoint.unsafeBitcoinSerialize()));
     }
 
@@ -1821,19 +1821,19 @@ public class WalletTest extends TestWithWallet {
         assertEquals(f, results[1]);
         results[0] = results[1] = null;
 
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN);
         Sha256Hash hash3 = Sha256Hash.of(f);
         assertEquals(hash2, hash3);  // File has NOT changed yet. Just new blocks with no txns - delayed.
         assertNull(results[0]);
         assertNull(results[1]);
 
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, valueOf(5, 0), key);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, valueOf(5, 0), key);
         Sha256Hash hash4 = Sha256Hash.of(f);
         assertFalse(hash3.equals(hash4));  // File HAS changed.
         results[0] = results[1] = null;
 
         // A block that contains some random tx we don't care about.
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, Coin.COIN, OTHER_ADDRESS);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, Coin.COIN, OTHER_ADDRESS);
         assertEquals(hash4, Sha256Hash.of(f));  // File has NOT changed.
         assertNull(results[0]);
         assertNull(results[1]);
@@ -1851,7 +1851,7 @@ public class WalletTest extends TestWithWallet {
         ECKey key2 = new ECKey();
         wallet.importKey(key2);
         assertEquals(hash5, Sha256Hash.of(f)); // File has NOT changed.
-        sendMoneyToWallet(BlockChain.NewBlockType.BEST_CHAIN, valueOf(5, 0), key2);
+        sendMoneyToWallet(SPVBlockChain.NewBlockType.BEST_CHAIN, valueOf(5, 0), key2);
         Thread.sleep(2000); // Wait longer than autosave delay. TODO Fix the racyness.
         assertEquals(hash5, Sha256Hash.of(f)); // File has still NOT changed.
         assertNull(results[0]);
@@ -3379,7 +3379,7 @@ public class WalletTest extends TestWithWallet {
         String serialized = watchKey.serializePubB58(PARAMS);
         Wallet wallet = Wallet.fromWatchingKeyB58(PARAMS, serialized, 0);
         blockStore = new MemoryBlockStore(PARAMS);
-        chain = new BlockChain(PARAMS, wallet, blockStore);
+        chain = new SPVBlockChain(PARAMS, wallet, blockStore);
 
         final DeterministicKeyChain keyChain = new DeterministicKeyChain(new SecureRandom());
         DeterministicKey partnerKey = DeterministicKey.deserializeB58(null, keyChain.getWatchingKey().serializePubB58(PARAMS), PARAMS);

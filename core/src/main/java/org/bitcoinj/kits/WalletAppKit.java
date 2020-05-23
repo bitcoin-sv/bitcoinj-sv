@@ -40,7 +40,7 @@ import static com.google.common.base.Preconditions.*;
 /**
  * <p>Utility class that wraps the boilerplate needed to set up a new SPV bitcoinj app. Instantiate it with a directory
  * and file prefix, optionally configure a few things, then use startAsync and optionally awaitRunning. The object will
- * construct and configure a {@link BlockChain}, {@link SPVBlockStore}, {@link Wallet} and {@link PeerGroup}. Depending
+ * construct and configure a {@link SPVBlockChain}, {@link SPVBlockStore}, {@link Wallet} and {@link PeerGroup}. Depending
  * on the value of the blockingStartup property, startup will be considered complete once the block chain has fully
  * synchronized, so it can take a while.</p>
  *
@@ -64,7 +64,7 @@ public class WalletAppKit extends AbstractIdleService {
 
     protected final String filePrefix;
     protected final NetworkParameters params;
-    protected volatile BlockChain vChain;
+    protected volatile SPVBlockChain vChain;
     protected volatile BlockStore vStore;
     protected volatile Wallet vWallet;
     protected volatile PeerGroup vPeerGroup;
@@ -306,7 +306,7 @@ public class WalletAppKit extends AbstractIdleService {
                     vStore = new SPVBlockStore(params, chainFile);
                 }
             }
-            vChain = new BlockChain(params, vStore);
+            vChain = new SPVBlockChain(params, vStore);
             vPeerGroup = createPeerGroup();
             if (this.userAgent != null)
                 vPeerGroup.setUserAgent(userAgent, version);
@@ -500,7 +500,7 @@ public class WalletAppKit extends AbstractIdleService {
         return params;
     }
 
-    public BlockChain chain() {
+    public SPVBlockChain chain() {
         checkState(state() == State.STARTING || state() == State.RUNNING, "Cannot call until startup is complete");
         return vChain;
     }

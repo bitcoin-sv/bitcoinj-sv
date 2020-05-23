@@ -37,7 +37,7 @@ public class FetchTransactions {
         final NetworkParameters params = TestNet3Params.get();
 
         BlockStore blockStore = new MemoryBlockStore(params);
-        BlockChain chain = new BlockChain(params, blockStore);
+        SPVBlockChain chain = new SPVBlockChain(params, blockStore);
         PeerGroup peerGroup = new PeerGroup(params, chain);
         peerGroup.start();
         peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost(), params.getPort()));

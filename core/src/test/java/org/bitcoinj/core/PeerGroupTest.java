@@ -248,7 +248,7 @@ public class PeerGroupTest extends TestWithPeerGroup {
         Address address2 = key2.toAddress(PARAMS);
         
         peerGroup.addWallet(wallet2);
-        blockChain.addWallet(wallet2);
+        SPVBlockChain.addWallet(wallet2);
 
         assertEquals(BloomFilter.class, waitForOutbound(p1).getClass());
         assertEquals(MemoryPoolMessage.class, waitForOutbound(p1).getClass());
@@ -282,7 +282,7 @@ public class PeerGroupTest extends TestWithPeerGroup {
         // Set up a little block chain. We heard about b1 but not b2 (it is pending download). b3 is solved whilst we
         // are downloading the chain.
         Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BLOCK_HEIGHT_GENESIS).block;
-        blockChain.add(b1);
+        SPVBlockChain.add(b1);
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
         Block b3 = FakeTxBuilder.makeSolvedTestBlock(b2);
 
@@ -822,7 +822,7 @@ public class PeerGroupTest extends TestWithPeerGroup {
         assertNotEquals(epoch, wallet.getKeyChainGroupCombinedKeyLookaheadEpochs());
         // 4th block was end of the lookahead zone and thus was discarded, so we got 3 blocks worth of money (50 each).
         assertEquals(Coin.FIFTY_COINS.multiply(3), wallet.getBalance());
-        assertEquals(exhaustionPoint.getPrevBlockHash(), blockChain.getChainHead().getHeader().getHash());
+        assertEquals(exhaustionPoint.getPrevBlockHash(), SPVBlockChain.getChainHead().getHeader().getHash());
 
         // Await the new filter.
         peerGroup.waitForJobQueue();
@@ -853,7 +853,7 @@ public class PeerGroupTest extends TestWithPeerGroup {
         pingAndWait(p1);
 
         assertEquals(expectedBalance, wallet.getBalance());
-        assertEquals(blocks.get(blocks.size() - 1).getHash(), blockChain.getChainHead().getHeader().getHash());
+        assertEquals(blocks.get(blocks.size() - 1).getHash(), SPVBlockChain.getChainHead().getHeader().getHash());
     }
 
     private void filterAndSend(InboundMessageQueuer p1, List<Block> blocks, BloomFilter filter) {

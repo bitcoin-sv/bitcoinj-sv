@@ -54,7 +54,7 @@ import static com.google.common.base.Preconditions.*;
  *    headers from the genesis block.</li>
  * </ol>
  *
- * <p>Checkpoints are used by the SPV {@link BlockChain} to initialize fresh
+ * <p>Checkpoints are used by the SPV {@link SPVBlockChain} to initialize fresh
  * {@link org.bitcoinj.store.SPVBlockStore}s. They are not used by fully validating mode, which instead has a
  * different concept of checkpoints that are used to hard-code the validity of blocks that violate BIP30 (duplicate
  * coinbase transactions). Those "checkpoints" can be found in NetworkParameters.</p>

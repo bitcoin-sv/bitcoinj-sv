@@ -52,7 +52,7 @@ import static com.google.common.base.Preconditions.*;
  * verification.  It verifies headers and is implements most of what is required to implement SPV mode, but
  * also provides callback hooks which can be used to do full verification.</p>
  *
- * <p>There are two subclasses of AbstractBlockChain that are useful: {@link BlockChain}, which is the simplest
+ * <p>There are two subclasses of AbstractBlockChain that are useful: {@link SPVBlockChain}, which is the simplest
  * class and implements <i>simplified payment verification</i>. This is a lightweight and efficient mode that does
  * not verify the contents of blocks, just their headers. A {@link FullPrunedBlockChain} paired with a
  * {@link org.bitcoinj.store.H2FullPrunedBlockStore} implements full verification, which is equivalent to
@@ -318,7 +318,7 @@ public abstract class AbstractBlockChain {
             throws BlockStoreException, VerificationException;
 
     /**
-     * Rollback the block store to a given height. This is currently only supported by {@link BlockChain} instances.
+     * Rollback the block store to a given height. This is currently only supported by {@link SPVBlockChain} instances.
      * 
      * @throws BlockStoreException
      *             if the operation fails or is unsupported.

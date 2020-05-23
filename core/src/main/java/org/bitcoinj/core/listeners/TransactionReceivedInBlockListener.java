@@ -16,7 +16,7 @@
 
 package org.bitcoinj.core.listeners;
 
-import org.bitcoinj.core.BlockChain;
+import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.core.Transaction;
@@ -28,7 +28,7 @@ import org.bitcoinj.core.VerificationException;
  */
 public interface TransactionReceivedInBlockListener {
     /**
-     * <p>Called by the {@link BlockChain} when we receive a new block that contains a relevant transaction.</p>
+     * <p>Called by the {@link SPVBlockChain} when we receive a new block that contains a relevant transaction.</p>
      *
      * <p>A transaction may be received multiple times if is included into blocks in parallel chains. The blockType
      * parameter describes whether the containing block is on the main/best chain or whether it's on a presently
@@ -41,10 +41,10 @@ public interface TransactionReceivedInBlockListener {
      * rather exists only to order the transaction relative to the others.</p>
      */
     void receiveFromBlock(Transaction tx, StoredBlock block,
-                          BlockChain.NewBlockType blockType,
+                          SPVBlockChain.NewBlockType blockType,
                           int relativityOffset) throws VerificationException;
     /**
-     * <p>Called by the {@link BlockChain} when we receive a new {@link org.bitcoinj.core.FilteredBlock} that contains the given
+     * <p>Called by the {@link SPVBlockChain} when we receive a new {@link org.bitcoinj.core.FilteredBlock} that contains the given
      * transaction hash in its merkle tree.</p>
      *
      * <p>A transaction may be received multiple times if is included into blocks in parallel chains. The blockType
@@ -62,6 +62,6 @@ public interface TransactionReceivedInBlockListener {
      * @return whether the transaction is known about i.e. was considered relevant previously.
      */
     boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block,
-                                       BlockChain.NewBlockType blockType,
+                                       SPVBlockChain.NewBlockType blockType,
                                        int relativityOffset) throws VerificationException;
 }
