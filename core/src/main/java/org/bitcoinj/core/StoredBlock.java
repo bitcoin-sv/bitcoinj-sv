@@ -64,6 +64,12 @@ public class StoredBlock {
         }
     }
 
+    public void checkIsHeaderOnly() {
+        if (header.getTransactions() == null || header.getTransactions().isEmpty())
+            return;
+        throw new RuntimeException("Stored block is contains full block isntance");
+    }
+
     /**
      * The block header this object wraps. The referenced block object must not have any transactions in it.
      */
