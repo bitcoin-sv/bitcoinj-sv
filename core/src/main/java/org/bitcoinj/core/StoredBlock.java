@@ -48,7 +48,6 @@ public class StoredBlock {
     private int height;
     private int txCount = -1;
     private long blockSize = -1;
-    private Transaction coinbase;
 
     public StoredBlock(Block header, BigInteger chainWork, int height) {
         this.header = header;
@@ -117,7 +116,6 @@ public class StoredBlock {
     public void setBlockSize(long blockSize) {
         this.blockSize = blockSize;
     }
-
 
     /** Returns true if this objects chainWork is higher than the others. */
     public boolean moreWorkThan(StoredBlock other) {
@@ -197,5 +195,4 @@ public class StoredBlock {
         return String.format(Locale.US, "Block %s at height %d: %s",
                 getHeader().getHashAsString(), getHeight(), getHeader().toString());
     }
-
 }
