@@ -83,7 +83,7 @@ public class HeadersMessage extends Message {
             throw new ProtocolException("Too many headers: got " + numHeaders + " which is larger than " +
                                          MAX_HEADERS);
 
-        blockHeaders = new ArrayList<Block>((int) numHeaders);
+        blockHeaders = new ArrayList<>((int) numHeaders);
 
         for (int i = 0; i < numHeaders; ++i) {
             final Block newBlockHeader = serializer.makeBlock(payload, cursor, 81);
