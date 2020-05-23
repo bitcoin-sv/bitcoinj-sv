@@ -84,10 +84,9 @@ public class HeadersMessage extends Message {
                                          MAX_HEADERS);
 
         blockHeaders = new ArrayList<Block>((int) numHeaders);
-        final BitcoinSerializer serializer = this.params.getSerializer(true, false);
 
         for (int i = 0; i < numHeaders; ++i) {
-            final Block newBlockHeader = serializer.makeBlock(payload, cursor, UNKNOWN_LENGTH);
+            final Block newBlockHeader = serializer.makeBlock(payload, cursor, 81);
             if (newBlockHeader.hasTransactions()) {
                 throw new ProtocolException("Block header does not end with a null byte");
             }
