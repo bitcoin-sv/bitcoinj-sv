@@ -48,6 +48,7 @@ public class StoredBlock {
     private int height;
     private int txCount = -1;
     private long blockSize = -1;
+    private Transaction coinbase;
 
     public StoredBlock(Block header, BigInteger chainWork, int height) {
         this.header = header;
