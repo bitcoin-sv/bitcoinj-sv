@@ -532,6 +532,22 @@ public class Block extends Message {
         return target;
     }
 
+    private String buildTxList() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{    \"tx\": [");
+        boolean first = true;
+        for (Transaction t: transactions) {
+            if (!first)
+                sb.append(",");
+            first = false;
+            sb.append("\n        \"");
+            sb.append(t.getHashAsString());
+            sb.append("\"");
+        }
+        sb.append("\n]");
+        return sb.toString();
+    }
+
     /** Returns true if the hash of the block is OK (lower than difficulty target). */
     protected boolean checkProofOfWork(boolean throwException) throws VerificationException {
         // This part is key - it is what proves the block was as difficult to make as it claims
@@ -547,10 +563,10 @@ public class Block extends Message {
         BigInteger h = getHash().toBigInteger();
         if (h.compareTo(target) > 0) {
             // Proof of work check failed!
-            if (throwException)
+            if (throwException) {
                 throw new VerificationException("Hash is higher than target: " + getHashAsString() + " vs "
                         + target.toString(16));
-            else
+            } else
                 return false;
         }
         return true;
