@@ -1186,7 +1186,8 @@ public class Block extends Message {
      * purely a header).
      */
     public boolean hasTransactions() {
-        return !this.transactions.isEmpty();
+        maybeParseTransactions();
+        return !transactions.isEmpty();
     }
 
     /**

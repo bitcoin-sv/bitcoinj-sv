@@ -214,8 +214,12 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     }
 
     @Override
+    public BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock) {
+        return new BitcoinSerializer(this, parseLazy, parseRetain, compactTransactionsInBlock);
+    }
+
     public BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain) {
-        return new BitcoinSerializer(this, parseLazy, parseRetain);
+        return getSerializer(parseLazy, parseRetain, defaultSerializerCompactTransactionsInBlock);
     }
 
     @Override

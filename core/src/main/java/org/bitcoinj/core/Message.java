@@ -113,9 +113,18 @@ public abstract class Message {
             selfCheck(payload, offset);
         }
         
-        if (serializer.isParseRetainMode() || !parsed)
+        if (serializer.isParseRetainMode() || !parsed) {
+            compactPayload();
             return;
+        }
         this.payload = null;
+    }
+
+    /**
+     * Called after parse, allows subclass to optionally modify the retained payload to store a short version
+     * the implementing function is expected to set the offset and payload fields
+     */
+    protected void compactPayload() {
     }
 
     private void selfCheck(byte[] payload, int offset) {

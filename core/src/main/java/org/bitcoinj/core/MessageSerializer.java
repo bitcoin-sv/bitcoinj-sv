@@ -55,6 +55,8 @@ public abstract class MessageSerializer {
      */
     public abstract boolean isParseRetainMode();
 
+    public abstract boolean isCompactTransactionsInBlock();
+
     /**
      * Make an address message from the payload. Extension point for alternative
      * serialization format support.

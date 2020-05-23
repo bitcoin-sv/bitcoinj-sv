@@ -50,6 +50,7 @@ public class BitcoinSerializer extends MessageSerializer {
     private final NetworkParameters params;
     private final boolean parseLazy;
     private final boolean parseRetain;
+    private boolean compactTransactionsInBlock = false;
 
     private static final Map<Class<? extends Message>, String> names = new HashMap<Class<? extends Message>, String>();
 
@@ -86,10 +87,8 @@ public class BitcoinSerializer extends MessageSerializer {
      * @deprecated use BitcoinSerializer(NetworkParameters, boolean, boolean) instead.
      */
     @Deprecated
-    BitcoinSerializer(boolean parseLazy, boolean parseRetain) {
-        this.params = null;
-        this.parseLazy = parseLazy;
-        this.parseRetain = parseRetain;
+    BitcoinSerializer(boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock) {
+        this(null, parseLazy, parseRetain, compactTransactionsInBlock);
     }
 
     /**
@@ -99,10 +98,11 @@ public class BitcoinSerializer extends MessageSerializer {
      * @param parseLazy        deserialize messages in lazy mode.
      * @param parseRetain      retain the backing byte array of a message for fast reserialization.
      */
-    public BitcoinSerializer(NetworkParameters params, boolean parseLazy, boolean parseRetain) {
+    public BitcoinSerializer(NetworkParameters params, boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock) {
         this.params = params;
         this.parseLazy = parseLazy;
         this.parseRetain = parseRetain;
+        this.compactTransactionsInBlock = compactTransactionsInBlock;
     }
 
     /**
@@ -375,6 +375,13 @@ public class BitcoinSerializer extends MessageSerializer {
         return parseRetain;
     }
 
+    public boolean isCompactTransactionsInBlock() {
+        return compactTransactionsInBlock;
+    }
+
+    public void setCompactTransactionsInBlock(boolean compactTransactionsInBlock) {
+        this.compactTransactionsInBlock = compactTransactionsInBlock;
+    }
 
     public static class BitcoinPacketHeader {
         /** The largest number of bytes that a header can represent */

@@ -107,6 +107,7 @@ public class HeadersMessage extends Message {
 
 
     public List<Block> getBlockHeaders() {
+        maybeParse();
         return blockHeaders;
     }
 }

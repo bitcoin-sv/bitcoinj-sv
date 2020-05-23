@@ -58,6 +58,11 @@ class DummySerializer extends MessageSerializer {
     }
 
     @Override
+    public boolean isCompactTransactionsInBlock() {
+        return false;
+    }
+
+    @Override
     public AddressMessage makeAddressMessage(byte[] payloadBytes, int length) throws UnsupportedOperationException {
         throw new UnsupportedOperationException(DEFAULT_EXCEPTION_MESSAGE);
     }

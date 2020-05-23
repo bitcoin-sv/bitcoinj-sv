@@ -516,6 +516,16 @@ public class Transaction extends ChildMessage {
     }
 
     @Override
+    protected void compactPayload() {
+        if (length != UNKNOWN_LENGTH && payload.length > length * 2) {
+            byte[] compactPayload = new byte[length];
+            System.arraycopy(payload, offset, compactPayload, 0, length);
+            payload = compactPayload;
+            offset = 0;
+        }
+    }
+
+    @Override
     protected void parseLite() throws ProtocolException {
 
         //skip this if the length has been provided i.e. the tx is not part of a block
@@ -581,7 +591,6 @@ public class Transaction extends ChildMessage {
             return;
 
         cursor = offset;
-
         version = readUint32();
         optimalEncodingMessageSize = 4;
 
@@ -673,6 +682,8 @@ public class Transaction extends ChildMessage {
      * @param chain If provided, will be used to estimate lock times (if set). Can be null.
      */
     public String toString(@Nullable AbstractBlockChain chain) {
+        if (!parsed)
+            return "Unparsed transaction";
         StringBuilder s = new StringBuilder();
         s.append("  ").append(getHashAsString()).append('\n');
         if (updatedAt != null)
@@ -1189,12 +1200,13 @@ public class Transaction extends ChildMessage {
         try {
             // Create a copy of this transaction to operate upon because we need make changes to the inputs and outputs.
             // It would not be thread-safe to change the attributes of the transaction object itself.
-            Transaction tx = this.params.getDefaultSerializer().makeTransaction(this.bitcoinSerialize());
+            Transaction tx = params.getSerializer(false, false, true).makeTransaction(bitcoinSerialize());
+            tx.ensureParsed();
 
             // Clear input scripts in preparation for signing. If we're signing a fresh
             // transaction that step isn't very helpful, but it doesn't add much cost relative to the actual
             // EC math so we'll do it anyway.
-            for (int i = 0; i < tx.inputs.size(); i++) {
+            for (int i = 0; i < tx.getInputs().size(); i++) {
                 tx.inputs.get(i).clearScriptBytes();
             }
 

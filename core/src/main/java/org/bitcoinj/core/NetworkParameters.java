@@ -112,6 +112,7 @@ public abstract class NetworkParameters {
     protected HttpDiscovery.Details[] httpSeeds = {};
     protected Map<Integer, Sha256Hash> checkpoints = new HashMap<Integer, Sha256Hash>();
     protected boolean defaultSerializerParseRetain = false;
+    protected boolean defaultSerializerCompactTransactionsInBlock = true;
     protected transient MessageSerializer defaultSerializer = null;
     protected String cashAddrPrefix;
 
@@ -450,12 +451,14 @@ public abstract class NetworkParameters {
                     // As the serializers are intended to be immutable, creating
                     // two due to a race condition should not be a problem, however
                     // to be safe we ensure only one exists for each network.
-                    this.defaultSerializer = getSerializer(defaultSerializerParseRetain, false);
+                    this.defaultSerializer = getSerializer(false, defaultSerializerParseRetain, defaultSerializerCompactTransactionsInBlock);
                 }
             }
         }
         return defaultSerializer;
     }
+
+    public abstract BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock);
 
     /**
      * Construct and return a custom serializer.
