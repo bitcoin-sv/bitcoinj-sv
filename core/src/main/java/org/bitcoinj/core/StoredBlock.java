@@ -103,7 +103,11 @@ public class StoredBlock {
 
     public void setCoinbase(Transaction coinbase) {
         this.coinbase = coinbase;
-        coinbase.setParent(header);
+        //we don't wan't to set the coinbase only as parent as it won't change
+        //and this will trigger uncaching the merkle root which we can't recalculate
+        //without the rest of the transactions in block.  We'll just set parent to null
+        //to release any block that's attached to the coinbase so it can be garbage collected.
+        coinbase.setParent(null);
     }
 
     public void setTxCount(int txCount) {

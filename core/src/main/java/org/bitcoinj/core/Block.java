@@ -21,12 +21,15 @@ import com.google.common.annotations.*;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import org.bitcoinj.script.*;
+import org.bitcoinj.utils.Threading;
 import org.slf4j.*;
 
 import javax.annotation.*;
 import java.io.*;
 import java.math.*;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 import static org.bitcoinj.core.Coin.*;
 import static org.bitcoinj.core.Sha256Hash.*;
@@ -267,13 +270,35 @@ public class Block extends Message {
         int numTransactions = (int) readVarInt();
         optimalEncodingMessageSize += VarInt.sizeOf(numTransactions);
         transactions = new ArrayList<Transaction>(numTransactions);
+        CountDownLatch hashLatch = new CountDownLatch(numTransactions);
+
         for (int i = 0; i < numTransactions; i++) {
             Transaction tx = new Transaction(params, payload, cursor, this, serializer, UNKNOWN_LENGTH);
-            // Label the transaction as coming from the P2P network, so code that cares where we first saw it knows.
-            tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
+
             transactions.add(tx);
             cursor += tx.getMessageSize();
             optimalEncodingMessageSize += tx.getOptimalEncodingMessageSize();
+
+            //we are doing batches of hashes so we can take advantage of multi threading
+            Threading.THREAD_POOL.execute(new Runnable() {
+                @Override
+                public void run() {
+                    //calculates hash and caches it, this is 99% of the runtime
+                    tx.getHash();
+                    // Label the transaction as coming from the P2P network, so code that cares where we first saw it knows
+                    tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
+                    hashLatch.countDown();
+                }
+            });
+
+
+        }
+        try {
+            ExecutorService exec = Threading.THREAD_POOL;
+            long awaiting = hashLatch.getCount();
+            hashLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
         // No need to set length here. If length was not provided then it should be set at the end of parseLight().
         // If this is a genuine lazy parse then length must have been provided to the constructor.
