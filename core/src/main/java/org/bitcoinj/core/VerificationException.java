@@ -42,6 +42,12 @@ public class VerificationException extends RuntimeException {
         }
     }
 
+    public static class LargerThanMaxTransactionSize extends VerificationException {
+        public LargerThanMaxTransactionSize() {
+            super("Transaction larger than MAX_TRANSACTION_SIZE");
+        }
+    }
+
     public static class DuplicatedOutPoint extends VerificationException {
         public DuplicatedOutPoint() {
             super("Duplicated outpoint");

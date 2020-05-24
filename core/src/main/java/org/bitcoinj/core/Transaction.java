@@ -91,6 +91,9 @@ public class Transaction extends ChildMessage {
     };
     private static final Logger log = LoggerFactory.getLogger(Transaction.class);
 
+    /** Maximum transaction size imposed in Genesis upgrade */
+    public static final int MAX_TRANSACTION_SIZE = 1000 * 1000 * 1000;
+
     /** Threshold for lockTime: below this value it is interpreted as block number, otherwise as timestamp. **/
     public static final int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
     /** Same but as a BigInteger for CHECKLOCKTIMEVERIFY */
@@ -1582,8 +1585,8 @@ public class Transaction extends ChildMessage {
         maybeParse();
         if (inputs.size() == 0 || outputs.size() == 0)
             throw new VerificationException.EmptyInputsOrOutputs();
-        if (this.getMessageSize() > Block.MAX_BLOCK_SIZE)
-            throw new VerificationException.LargerThanMaxBlockSize();
+        if (this.getMessageSize() > Transaction.MAX_TRANSACTION_SIZE)
+            throw new VerificationException.LargerThanMaxTransactionSize();
 
         Coin valueOut = Coin.ZERO;
         HashSet<TransactionOutPoint> outpoints = new HashSet<TransactionOutPoint>();
