@@ -62,9 +62,9 @@ public class TransactionTest {
         tx.verify();
     }
 
-    @Test(expected = VerificationException.LargerThanMaxBlockSize.class)
+    @Test(expected = VerificationException.LargerThanMaxTransactionSize.class)
     public void tooHuge() throws Exception {
-        tx.getInput(0).setScriptBytes(new byte[Block.MAX_BLOCK_SIZE]);
+        tx.getInput(0).setScriptBytes(new byte[Transaction.MAX_TRANSACTION_SIZE]);
         tx.verify();
     }
 
