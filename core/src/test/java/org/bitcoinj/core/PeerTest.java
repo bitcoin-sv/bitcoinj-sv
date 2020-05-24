@@ -437,7 +437,7 @@ public class PeerTest extends TestWithNetworkConnections {
         Block b2 = makeSolvedTestBlock(b1);
         Transaction t = new Transaction(PARAMS);
         t.addInput(b1.getTransactions().get(0).getOutput(0));
-        t.addOutput(new TransactionOutput(PARAMS, t, Coin.ZERO, new byte[Block.MAX_BLOCK_SIZE - 1000]));
+        t.addOutput(new TransactionOutput(PARAMS, t, Coin.ZERO, new byte[Transaction.MAX_TRANSACTION_SIZE - 1000]));
         b2.addTransaction(t);
 
         // Request the block.

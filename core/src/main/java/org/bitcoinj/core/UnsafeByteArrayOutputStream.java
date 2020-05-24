@@ -19,6 +19,8 @@ package org.bitcoinj.core;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 /**
  * An unsynchronized implementation of ByteArrayOutputStream that will return the backing byte array if its length == size().
@@ -90,6 +92,14 @@ public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
     @Override
     public void writeTo(OutputStream out) throws IOException {
         out.write(buf, 0, count);
+    }
+
+    public void writeTo(RandomAccessFile file) throws IOException {
+        file.write(buf, 0, count);
+    }
+
+    public void writeTo(ByteBuffer buffer) throws IOException {
+        buffer.put(buf, 0, count);
     }
 
     /**

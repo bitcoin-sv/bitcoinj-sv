@@ -19,6 +19,7 @@ package org.bitcoinj.core;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
 import com.google.common.base.Objects;
+import org.bitcoinj.utils.ObjectGetter;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -48,7 +49,15 @@ public class StoredBlock {
     private int height;
     private int txCount = -1;
     private long blockSize = -1;
-    private Transaction coinbase;
+
+    private long coinbaseOffsetInFile = -1;
+    private ObjectGetter<Transaction> coinbase;
+    //TODO implement this
+    private Object coinbaseSPVProof;
+    //TODO implement this
+    private Object txCountProof;
+
+
 
     public StoredBlock(Block header, BigInteger chainWork, int height) {
         this.header = header;
@@ -57,8 +66,8 @@ public class StoredBlock {
         if (header.getTransactions() != null && !header.getTransactions().isEmpty()) {
             txCount = header.getTransactions().size();
             blockSize = header.getSerializedLength();
-            coinbase = header.getTransactions().get(0);
-            if (!coinbase.isCoinBase()) {
+            coinbase = ObjectGetter.direct(header.getTransactions().get(0));
+            if (!coinbase.get().isCoinBase()) {
                 throw new RuntimeException("first transaction is not a valid coinbase");
             }
         }
@@ -97,12 +106,20 @@ public class StoredBlock {
 
     public long getBlockSize() { return blockSize; }
 
+    public long getCoinbaseOffsetInFile() {
+        return coinbaseOffsetInFile;
+    }
+
     public Transaction getCoinbase() {
-        return coinbase;
+        return coinbase == null ? null : coinbase.get();
+    }
+
+    public void setCoinbase(ObjectGetter<Transaction> coinbase) {
+        this.coinbase = coinbase;
     }
 
     public void setCoinbase(Transaction coinbase) {
-        this.coinbase = coinbase;
+        this.coinbase = ObjectGetter.direct(coinbase);
         //we don't wan't to set the coinbase only as parent as it won't change
         //and this will trigger uncaching the merkle root which we can't recalculate
         //without the rest of the transactions in block.  We'll just set parent to null
@@ -116,6 +133,10 @@ public class StoredBlock {
 
     public void setBlockSize(long blockSize) {
         this.blockSize = blockSize;
+    }
+
+    public void setCoinbaseOffsetInFile(long coinbaseOffsetInFile) {
+        this.coinbaseOffsetInFile = coinbaseOffsetInFile;
     }
 
     /** Returns true if this objects chainWork is higher than the others. */

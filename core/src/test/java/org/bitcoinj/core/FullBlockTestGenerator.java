@@ -450,7 +450,7 @@ public class FullBlockTestGenerator {
         NewBlock b23 = createNextBlock(b15, chainHeadHeight + 7, out6, null);
         {
             Transaction tx = new Transaction(params);
-            byte[] outputScript = new byte[Block.MAX_BLOCK_SIZE - b23.block.getMessageSize() - 65];
+            byte[] outputScript = new byte[Transaction.MAX_TRANSACTION_SIZE - b23.block.getMessageSize() - 65];
             Arrays.fill(outputScript, (byte) OP_FALSE);
             tx.addOutput(new TransactionOutput(params, tx, ZERO, outputScript));
             addOnlyInputToTransaction(tx, b23);
@@ -464,7 +464,7 @@ public class FullBlockTestGenerator {
         NewBlock b24 = createNextBlock(b15, chainHeadHeight + 7, out6, null);
         {
             Transaction tx = new Transaction(params);
-            byte[] outputScript = new byte[Block.MAX_BLOCK_SIZE - b24.block.getMessageSize() - 64];
+            byte[] outputScript = new byte[Transaction.MAX_TRANSACTION_SIZE - b24.block.getMessageSize() - 64];
             Arrays.fill(outputScript, (byte) OP_FALSE);
             tx.addOutput(new TransactionOutput(params, tx, ZERO, outputScript));
             addOnlyInputToTransaction(tx, b24);
@@ -1212,7 +1212,7 @@ public class FullBlockTestGenerator {
         {
             b64Original = createNextBlock(b60, chainHeadHeight + 19, out18, null);
             Transaction tx = new Transaction(params);
-            byte[] outputScript = new byte[Block.MAX_BLOCK_SIZE - b64Original.block.getMessageSize() - 65];
+            byte[] outputScript = new byte[Transaction.MAX_TRANSACTION_SIZE - b64Original.block.getMessageSize() - 65];
             Arrays.fill(outputScript, (byte) OP_FALSE);
             tx.addOutput(new TransactionOutput(params, tx, ZERO, outputScript));
             addOnlyInputToTransaction(tx, b64Original);
@@ -1644,7 +1644,7 @@ public class FullBlockTestGenerator {
             for (int i = 0; i < LARGE_REORG_SIZE; i++) {
                 nextBlock = createNextBlock(nextBlock, nextHeight, largeReorgOutput, null);
                 Transaction tx = new Transaction(params);
-                byte[] outputScript = new byte[Block.MAX_BLOCK_SIZE - nextBlock.block.getMessageSize() - 65];
+                byte[] outputScript = new byte[Transaction.MAX_TRANSACTION_SIZE - nextBlock.block.getMessageSize() - 65];
                 Arrays.fill(outputScript, (byte) OP_FALSE);
                 tx.addOutput(new TransactionOutput(params, tx, ZERO, outputScript));
                 addOnlyInputToTransaction(tx, nextBlock);
