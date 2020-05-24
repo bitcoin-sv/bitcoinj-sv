@@ -118,6 +118,13 @@ public class Block extends Message {
     // of the size of the ideal encoding in addition to the actual message size (which Message needs)
     protected int optimalEncodingMessageSize;
 
+    /**
+     * Block summary data
+     */
+    private int txCount = -1;
+    private long blockSize = -1;
+    private Transaction coinbase = null;
+
     /** Special case constructor, used for the genesis node, cloneAsHeader and unit tests. */
     Block(NetworkParameters params, long setVersion) {
         super(params);
@@ -286,7 +293,8 @@ public class Block extends Message {
                     //calculates hash and caches it, this is 99% of the runtime
                     tx.getHash();
                     // Label the transaction as coming from the P2P network, so code that cares where we first saw it knows
-                    tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
+                    // This holds references to txHash which may not be cleared automagically.
+                    //tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
                     hashLatch.countDown();
                 }
             });
@@ -634,11 +642,42 @@ public class Block extends Message {
         return LARGEST_HASH.divide(target.add(BigInteger.ONE));
     }
 
+    public int getTxCount() {
+        return txCount;
+    }
+
+    public long getBlockSize() {
+        return blockSize;
+    }
+
+    public Transaction getCoinbase() {
+        if (coinbase != null)
+            return coinbase;
+        if (hasTransactions())
+            return transactions.get(0);
+        return null;
+    }
+
     /** Returns a copy of the block, but without any transactions. */
     public Block cloneAsHeader() {
         maybeParseHeader();
         Block block = new Block(params, BLOCK_VERSION_GENESIS);
         copyBitcoinHeaderTo(block);
+        if (transactions != null && !transactions.isEmpty()) {
+            Transaction ourCoinbase = transactions.get(0);
+            block.coinbase = serializer.makeTransaction(ourCoinbase.unsafeBitcoinSerialize());
+            block.coinbase.setHash(ourCoinbase.getHash());
+            if (transactions.size() == 1) {
+                //check if this is really a block with 1 tx
+                if (getMerkleRoot().equals(block.coinbase.getHash())) {
+                    block.txCount = 1;
+                    block.blockSize = getSerializedLength();
+                }
+            } else {
+                block.txCount = transactions.size();
+                block.blockSize = getSerializedLength();
+            }
+        }
         return block;
     }
 
