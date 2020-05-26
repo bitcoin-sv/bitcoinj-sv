@@ -2,7 +2,6 @@ package org.bitcoinj.script;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -299,7 +298,7 @@ public class ScriptStack extends LinkedList<StackItem> {
 
     @Override
     public boolean addAll(int index, Collection<? extends StackItem> c) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

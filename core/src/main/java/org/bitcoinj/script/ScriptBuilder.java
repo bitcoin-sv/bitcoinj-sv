@@ -204,7 +204,7 @@ public class ScriptBuilder {
      * @see #number(long)
      */
     public ScriptBuilder smallNum(int num, Object context) {
-        return smallNum(chunks.size(), num);
+        return smallNum(chunks.size(), num, context);
     }
 
     /** Adds the given number as a push data chunk.
