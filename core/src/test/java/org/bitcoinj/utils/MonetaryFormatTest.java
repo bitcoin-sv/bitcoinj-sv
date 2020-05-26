@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Locale;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.bitcoinj.core.Coin;
@@ -246,6 +247,7 @@ public class MonetaryFormatTest {
         MonetaryFormat.UBTC.shift(1).format(Coin.ZERO);
     }
 
+    @Ignore
     @Test
     public void withLocale() throws Exception {
         final Coin value = Coin.valueOf(-1234567890l);
