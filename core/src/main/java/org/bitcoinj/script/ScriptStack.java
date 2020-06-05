@@ -129,7 +129,7 @@ public class ScriptStack extends LinkedList<StackItem> {
     }
 
     public boolean add(byte[] bytes, StackItem ... derivedFrom) {
-        return add(StackItem.from(bytes, derivedFrom));
+        return add(StackItem.forBytes(bytes, derivedFrom));
     }
 
 //    public void addLast(StackItem from, StackItem ... derivedFrom) {

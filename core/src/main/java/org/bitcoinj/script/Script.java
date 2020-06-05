@@ -1239,7 +1239,12 @@ public class Script {
                     case OP_14:
                     case OP_15:
                     case OP_16:
-                        stack.add(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(decodeFromOpN(opcode)), false)));
+                        stack.add(StackItem.forSmallNum(decodeFromOpN(opcode)));
+//                        byte[] smallnumBytes = Utils.encodeMPI(BigInteger.valueOf(decodeFromOpN(opcode)), false);
+//                        stack.add(StackItem.forBytes(Utils.reverseBytes(smallnumBytes),
+//                                StackItem.Type.INT, false));
+//
+//                        stack.add(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(decodeFromOpN(opcode)), false)));
                         break;
                     case OP_NOP:
                         break;

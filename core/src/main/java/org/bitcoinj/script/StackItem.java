@@ -6,6 +6,10 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.bitcoinj.script.ScriptOpCodes.*;
+import static org.bitcoinj.script.ScriptOpCodes.OP_16;
+
 public class StackItem<C> {
 
     private final ScriptBytes bytes;
@@ -17,6 +21,30 @@ public class StackItem<C> {
      * to the script (was on the stack before the script started)
      */
     private final boolean derived;
+
+    static final ScriptBytes[] SMALL_NUM_STACKBYTES = new ScriptBytes[17];
+
+    static {
+        for (int i = 0; i < SMALL_NUM_STACKBYTES.length; i++) {
+            byte[] bytes;
+            if (i == 0) {
+                bytes = new byte[0];
+            } else {
+                bytes = Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(i), false));
+            }
+            SMALL_NUM_STACKBYTES[i] = ScriptBytes.of(bytes);
+        }
+    }
+
+    /**
+     * Creates a stack item for number <= 16
+     * @param num
+     * @return
+     */
+    public static final StackItem forSmallNum(int num) {
+        checkArgument(num >= 0 && num <= 16, "smallnum stack bytes outside range 0-16");
+        return StackItem.forBytes(SMALL_NUM_STACKBYTES[num].copy(), StackItem.Type.INT, false);
+    }
 
     /**
      * Wraps a byte array assuming it is not derived
@@ -35,7 +63,11 @@ public class StackItem<C> {
         return new StackItem(from.bytes, from.type, from.derived, derivedFrom);
     }
 
-    public static StackItem from(byte[] bytes, StackItem ... derivedFrom) {
+    public static StackItem forBytes(byte[] bytes, Type type, boolean derived) {
+        return new StackItem(ScriptBytes.of(bytes), type, derived);
+    }
+
+    public static StackItem forBytes(byte[] bytes, StackItem ... derivedFrom) {
         return new StackItem(ScriptBytes.of(bytes), Type.BYTES, false, derivedFrom);
     }
 

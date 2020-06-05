@@ -125,6 +125,8 @@ public class Block extends Message {
     private long blockSize = -1;
     private Transaction coinbase = null;
 
+    private List<Sha256Hash> txids = null;
+
     /** Special case constructor, used for the genesis node, cloneAsHeader and unit tests. */
     Block(NetworkParameters params, long setVersion) {
         super(params);
@@ -678,6 +680,7 @@ public class Block extends Message {
                 block.blockSize = getSerializedLength();
             }
         }
+        block.txids = txids;
         return block;
     }
 
@@ -1103,6 +1106,26 @@ public class Block extends Message {
     public List<Transaction> getTransactions() {
         maybeParseTransactions();
         return transactions == null ? null : ImmutableList.copyOf(transactions);
+    }
+
+    /**
+     * Returns the list of transaction id's for this block, building the list if necessary.
+     * @return
+     */
+    public List<Sha256Hash> getTxids() {
+        if (txids == null) {
+            if (transactions == null)
+                return null;
+            List<Sha256Hash> ids = new ArrayList<>(transactions.size());
+            for (Transaction t: transactions)
+                ids.add(t.getHash());
+            txids = ids;
+        }
+        return txids;
+    }
+
+    public void clearTxids() {
+        txids = null;
     }
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,6 +23,7 @@ import org.bitcoinj.utils.ObjectGetter;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Locale;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -57,6 +58,9 @@ public class StoredBlock {
     //TODO implement this
     private Object txCountProof;
 
+    private int txidFileNum = -1;
+    private long txidFileOffset = -1;
+    private ObjectGetter<List<Sha256Hash>> txids; 
 
 
     public StoredBlock(Block header, BigInteger chainWork, int height) {
@@ -71,6 +75,7 @@ public class StoredBlock {
                 throw new RuntimeException("first transaction is not a valid coinbase");
             }
         }
+        txids = ObjectGetter.direct(header.getTxids());
     }
 
     public void checkIsHeaderOnly() {
@@ -116,6 +121,30 @@ public class StoredBlock {
 
     public void setCoinbase(ObjectGetter<Transaction> coinbase) {
         this.coinbase = coinbase;
+    }
+
+    public int getTxidFileNum() {
+        return txidFileNum;
+    }
+
+    public void setTxidFileNum(int txidFileNum) {
+        this.txidFileNum = txidFileNum;
+    }
+
+    public long getTxidFileOffset() {
+        return txidFileOffset;
+    }
+
+    public void setTxidFileOffset(long txidFileOffset) {
+        this.txidFileOffset = txidFileOffset;
+    }
+
+    public List<Sha256Hash> getTxids() {
+        return txids == null ? null : txids.get();
+    }
+
+    public void setTxids(ObjectGetter<List<Sha256Hash>> txids) {
+        this.txids = txids;
     }
 
     public void setCoinbase(Transaction coinbase) {

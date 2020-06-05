@@ -17,7 +17,9 @@
 package org.bitcoinj.script;
 
 import com.google.common.collect.ImmutableMap;
+import org.bitcoinj.core.Utils;
 
+import java.math.BigInteger;
 import java.util.Map;
 
 /**
@@ -193,6 +195,9 @@ public class ScriptOpCodes {
     //next pushdata is a URI to obtain a chunk of script
     public static final int MOP_DATA_REFERENCE = 0xc2;
     public static final int MOP_RESERVED1 = 0xc3;
+    public static final int MOP_RESERVED2 = 0xc4;
+    public static final int MOP_RESERVED3 = 0xc5;
+
 
     // next pushdata is an integer or hash160 reference to a script template
     // library.
@@ -233,6 +238,9 @@ public class ScriptOpCodes {
 
     public static final int MOP_PUSHVARGLOBAL = 0xd4;
     public static final int MOP_PUSHARRAYGLOBAL = 0xd5;
+
+    public static final int MOP_PUSH_FNCALLRESULT = 0xd4;
+    public static final int MOP_PUSHARRAY_FN_CALL_RESULT= 0xd5;
 
     //The next pushdata is the index of the function param
     //this param should be emitted as a pushdata operation.
