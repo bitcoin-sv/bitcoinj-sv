@@ -17,8 +17,7 @@
 
 package org.bitcoinj.params;
 
-import org.bitcoinj.core.Block;
-import org.bitcoinj.core.Utils;
+import org.bitcoinj.msg.protocol.Block;
 
 import java.util.Date;
 

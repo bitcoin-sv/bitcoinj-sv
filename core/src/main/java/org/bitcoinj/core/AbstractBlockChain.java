@@ -17,10 +17,14 @@
 
 package org.bitcoinj.core;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.listeners.*;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.p2p.FilteredBlock;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.pow.factory.RuleCheckerFactory;
@@ -116,8 +120,8 @@ public abstract class AbstractBlockChain {
         final Map<Sha256Hash, Transaction> filteredTxn;
         OrphanBlock(Block block, @Nullable List<Sha256Hash> filteredTxHashes, @Nullable Map<Sha256Hash, Transaction> filteredTxn) {
             final boolean filtered = filteredTxHashes != null && filteredTxn != null;
-            Preconditions.checkArgument((block.transactions == null && filtered)
-                                        || (block.transactions != null && !filtered));
+            Preconditions.checkArgument((block.getParsedTransactions() == null && filtered)
+                                        || (block.getParsedTransactions() != null && !filtered));
             this.block = block;
             this.filteredTxHashes = filteredTxHashes;
             this.filteredTxn = filteredTxn;
@@ -443,7 +447,7 @@ public abstract class AbstractBlockChain {
             }
 
             // If we want to verify transactions (ie we are running with full blocks), verify that block has transactions
-            if (shouldVerifyTransactions() && block.transactions == null)
+            if (shouldVerifyTransactions() && block.getParsedTransactions() == null)
                 throw new VerificationException("Got a block header while running in full-block mode");
 
             // Check for already-seen block, but only for full pruned mode, where the DB is
@@ -532,8 +536,8 @@ public abstract class AbstractBlockChain {
         if (!params.passesCheckpoint(storedPrev.getHeight() + 1, block.getHash()))
             throw new VerificationException("Block failed checkpoint lockin at " + (storedPrev.getHeight() + 1));
         if (shouldVerifyTransactions()) {
-            checkNotNull(block.transactions);
-            for (Transaction tx : block.transactions)
+            checkNotNull(block.getParsedTransactions());
+            for (Transaction tx : block.getParsedTransactions())
                 if (!tx.isFinal(storedPrev.getHeight() + 1, block.getTimeSeconds()))
                    throw new VerificationException("Block contains non-final transaction");
         }
@@ -566,7 +570,7 @@ public abstract class AbstractBlockChain {
             if (shouldVerifyTransactions())
                 txOutChanges = connectTransactions(storedPrev.getHeight() + 1, block);
             StoredBlock newStoredBlock = addToBlockStore(storedPrev,
-                    block.transactions == null ? block : block.cloneAsHeader(), txOutChanges);
+                    block.getParsedTransactions() == null ? block : block.cloneAsHeader(), txOutChanges);
             versionTally.add(block.getVersion());
             setChainHead(newStoredBlock);
             log.debug("Chain is now {} blocks high, running listeners", newStoredBlock.getHeight());
@@ -608,7 +612,7 @@ public abstract class AbstractBlockChain {
             // We may not have any transactions if we received only a header, which can happen during fast catchup.
             // If we do, send them to the wallet but state that they are on a side chain so it knows not to try and
             // spend them until they become activated.
-            if (block.transactions != null || filtered) {
+            if (block.getParsedTransactions() != null || filtered) {
                 informListenersForNewBlock(block, NewBlockType.SIDE_CHAIN, filteredTxHashList, filteredTxn, newBlock);
             }
             
@@ -688,13 +692,13 @@ public abstract class AbstractBlockChain {
                                                          StoredBlock newStoredBlock, boolean first,
                                                          TransactionReceivedInBlockListener listener,
                                                          Set<Sha256Hash> falsePositives) throws VerificationException {
-        if (block.transactions != null) {
+        if (block.getParsedTransactions() != null) {
             // If this is not the first wallet, ask for the transactions to be duplicated before being given
             // to the wallet when relevant. This ensures that if we have two connected wallets and a tx that
             // is relevant to both of them, they don't end up accidentally sharing the same object (which can
             // result in temporary in-memory corruption during re-orgs). See bug 257. We only duplicate in
             // the case of multiple wallets to avoid an unnecessary efficiency hit in the common case.
-            sendTransactionsToListener(newStoredBlock, newBlockType, listener, 0, block.transactions,
+            sendTransactionsToListener(newStoredBlock, newBlockType, listener, 0, block.getParsedTransactions(),
                     !first, falsePositives);
         } else if (filteredTxHashList != null) {
             checkNotNull(filteredTxn);
@@ -883,7 +887,7 @@ public abstract class AbstractBlockChain {
             try {
                 falsePositives.remove(tx.getHash());
                 if (clone)
-                    tx = tx.params.getDefaultSerializer().makeTransaction(tx.bitcoinSerialize());
+                    tx = tx.getParams().getDefaultSerializer().makeTransaction(tx.bitcoinSerialize());
                 listener.receiveFromBlock(tx, block, blockType, relativityOffset++);
             } catch (ScriptException e) {
                 // We don't want scripts we don't understand to break the block chain so just note that this tx was
@@ -1037,7 +1041,8 @@ public abstract class AbstractBlockChain {
      * count includes filtered transactions, transactions that were passed in and were relevant
      * and transactions that were false positives (i.e. includes all transactions in the block).
      */
-    protected void trackFilteredTransactions(int count) {
+    @VisibleForTesting
+    public void trackFilteredTransactions(int count) {
         // Track non-false-positives in batch.  Each non-false-positive counts as
         // 0.0 towards the estimate.
         //
@@ -1064,7 +1069,8 @@ public abstract class AbstractBlockChain {
     }
 
     /* Irrelevant transactions were received.  Update false-positive estimate. */
-    void trackFalsePositives(int count) {
+    @VisibleForTesting
+    public void trackFalsePositives(int count) {
         // Track false positives in batch by adding alpha to the false positive estimate once per count.
         // Each false positive counts as 1.0 towards the estimate.
         falsePositiveRate += FP_ESTIMATOR_ALPHA * count;

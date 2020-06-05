@@ -18,8 +18,13 @@
 package org.bitcoinj.core;
 
 import com.google.common.util.concurrent.*;
-import junit.runner.Version;
 import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
+import org.bitcoinj.msg.*;
+import org.bitcoinj.msg.p2p.InventoryMessage;
+import org.bitcoinj.msg.p2p.RejectMessage;
+import org.bitcoinj.msg.p2p.VersionMessage;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.testing.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.wallet.SendRequest;

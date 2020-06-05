@@ -16,7 +16,7 @@
 
 package org.bitcoinj.wallet;
 
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

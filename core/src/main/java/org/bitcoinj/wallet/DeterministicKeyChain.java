@@ -17,7 +17,7 @@
 
 package org.bitcoinj.wallet;
 
-import org.bitcoinj.core.BloomFilter;
+import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Utils;

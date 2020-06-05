@@ -16,6 +16,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.protocol.Transaction;
+
 /**
  * A general interface which declares the ability to broadcast transactions. This is implemented
  * by {@link org.bitcoinj.core.PeerGroup}.

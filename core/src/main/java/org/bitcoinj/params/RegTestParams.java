@@ -16,7 +16,7 @@
 
 package org.bitcoinj.params;
 
-import org.bitcoinj.core.Block;
+import org.bitcoinj.msg.protocol.Block;
 
 import java.math.BigInteger;
 

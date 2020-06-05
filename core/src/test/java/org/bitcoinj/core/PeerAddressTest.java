@@ -17,6 +17,7 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.MainNetParams;
 import org.junit.Test;
 

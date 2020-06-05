@@ -14,6 +14,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.p2p.VersionMessage;
 import org.slf4j.*;
 
 import static com.google.common.base.Preconditions.*;

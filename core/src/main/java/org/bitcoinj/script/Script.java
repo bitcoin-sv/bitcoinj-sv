@@ -25,13 +25,15 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ProtocolException;
 
 import org.bitcoinj.crypto.TransactionSignature;
 
 import com.google.common.collect.Lists;
+import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
@@ -980,12 +982,12 @@ public class Script {
 
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
-     * {@link org.bitcoinj.core.TransactionInput#verify(org.bitcoinj.core.TransactionOutput)} or
-     * {@link org.bitcoinj.script.Script#correctlySpends(org.bitcoinj.core.Transaction, long, Script)}. This method
+     * {@link TransactionInput#verify(TransactionOutput)} or
+     * {@link org.bitcoinj.script.Script#correctlySpends(Transaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      *
-     * @deprecated Use {@link #executeScript(org.bitcoinj.core.Transaction, long, org.bitcoinj.script.Script, org.bitcoinj.script.ScriptStack, java.util.Set)}
+     * @deprecated Use {@link #executeScript(Transaction, long, org.bitcoinj.script.Script, org.bitcoinj.script.ScriptStack, java.util.Set)}
      * instead.
      */
     @Deprecated
@@ -1045,8 +1047,8 @@ public class Script {
 
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
-     * {@link org.bitcoinj.core.TransactionInput#verify(org.bitcoinj.core.TransactionOutput)} or
-     * {@link org.bitcoinj.script.Script#correctlySpends(org.bitcoinj.core.Transaction, long, Script)}. This method
+     * {@link TransactionInput#verify(TransactionOutput)} or
+     * {@link org.bitcoinj.script.Script#correctlySpends(Transaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      */
@@ -1083,8 +1085,8 @@ public class Script {
 
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
-     * {@link org.bitcoinj.core.TransactionInput#verify(org.bitcoinj.core.TransactionOutput)} or
-     * {@link org.bitcoinj.script.Script#correctlySpends(org.bitcoinj.core.Transaction, long, Script)}. This method
+     * {@link TransactionInput#verify(TransactionOutput)} or
+     * {@link org.bitcoinj.script.Script#correctlySpends(Transaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      */
@@ -2130,7 +2132,7 @@ public class Script {
      *                         Accessing txContainingThis from another thread while this method runs results in undefined behavior.
      * @param scriptSigIndex   The index in txContainingThis of the scriptSig (note: NOT the index of the scriptPubKey).
      * @param scriptPubKey     The connected scriptPubKey containing the conditions needed to claim the value.
-     * @deprecated Use {@link #correctlySpends(org.bitcoinj.core.Transaction, long, org.bitcoinj.script.Script, java.util.Set)}
+     * @deprecated Use {@link #correctlySpends(Transaction, long, org.bitcoinj.script.Script, java.util.Set)}
      * instead so that verification flags do not change as new verification options
      * are added.
      */

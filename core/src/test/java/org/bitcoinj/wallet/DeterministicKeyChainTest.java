@@ -18,6 +18,7 @@ package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
+import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.utils.BriefLogFormatter;

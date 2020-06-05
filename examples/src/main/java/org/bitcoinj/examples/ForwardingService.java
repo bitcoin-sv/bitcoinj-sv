@@ -20,6 +20,7 @@ package org.bitcoinj.examples;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.KeyCrypterException;
 import org.bitcoinj.kits.WalletAppKit;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;

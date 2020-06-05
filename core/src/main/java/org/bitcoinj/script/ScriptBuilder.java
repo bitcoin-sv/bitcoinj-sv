@@ -21,6 +21,7 @@ import org.bitcoinj.core.Address;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.msg.protocol.Transaction;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
@@ -36,7 +37,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*;
 
 /**
  * <p>Tools for the construction of commonly used script types. You don't normally need this as it's hidden behind
- * convenience methods on {@link org.bitcoinj.core.Transaction}, but they are useful when working with the
+ * convenience methods on {@link Transaction}, but they are useful when working with the
  * protocol at a lower level.</p>
  */
 public class ScriptBuilder {

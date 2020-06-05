@@ -17,6 +17,8 @@
 package org.bitcoinj.protocols.channels;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.testing.TestWithWallet;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;

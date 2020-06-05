@@ -17,7 +17,7 @@
 package org.bitcoinj.wallet.listeners;
 
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.wallet.Wallet;
 
 /**
@@ -30,7 +30,7 @@ public interface WalletCoinsReceivedEventListener {
      * was broadcast across the network or because a block was received. If a transaction is seen when it was broadcast,
      * onCoinsReceived won't be called again when a block containing it is received. If you want to know when such a
      * transaction receives its first confirmation, register a {@link org.bitcoinj.core.TransactionConfidence} event listener using
-     * the object retrieved via {@link org.bitcoinj.core.Transaction#getConfidence()}. It's safe to modify the
+     * the object retrieved via {@link Transaction#getConfidence()}. It's safe to modify the
      * wallet in this callback, for example, by spending the transaction just received.
      *
      * @param wallet      The wallet object that received the coins

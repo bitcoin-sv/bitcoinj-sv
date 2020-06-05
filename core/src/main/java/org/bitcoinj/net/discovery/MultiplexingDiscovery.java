@@ -21,8 +21,7 @@ import com.google.common.collect.Lists;
 import com.squareup.okhttp.OkHttpClient;
 
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.VersionMessage;
-import org.bitcoinj.net.discovery.HttpDiscovery;
+import org.bitcoinj.msg.p2p.VersionMessage;
 import org.bitcoinj.net.discovery.DnsDiscovery.DnsSeedDiscovery;
 import org.bitcoinj.utils.*;
 import org.slf4j.Logger;

@@ -16,6 +16,8 @@ package org.bitcoinj.protocols.payments;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TrustStoreLoader;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.protocols.payments.PaymentProtocol.PkiVerificationData;
 import org.bitcoinj.uri.BitcoinURI;

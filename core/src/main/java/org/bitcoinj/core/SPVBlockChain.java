@@ -19,6 +19,8 @@ package org.bitcoinj.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.wallet.Wallet;
@@ -91,7 +93,7 @@ public class SPVBlockChain extends AbstractBlockChain {
     @Override
     protected StoredBlock addToBlockStore(StoredBlock storedPrev, Block blockHeader)
             throws BlockStoreException, VerificationException {
-        if (blockHeader.transactions != null)
+        if (blockHeader.hasTransactions())
             blockHeader = blockHeader.cloneAsHeader();
         StoredBlock newBlock = storedPrev.build(blockHeader);
         blockStore.put(newBlock);

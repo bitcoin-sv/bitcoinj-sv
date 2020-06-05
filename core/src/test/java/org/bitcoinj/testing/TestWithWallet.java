@@ -17,6 +17,8 @@
 package org.bitcoinj.testing;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.MemoryBlockStore;

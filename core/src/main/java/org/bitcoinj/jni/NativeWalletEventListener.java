@@ -18,7 +18,7 @@ package org.bitcoinj.jni;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.listeners.WalletEventListener;

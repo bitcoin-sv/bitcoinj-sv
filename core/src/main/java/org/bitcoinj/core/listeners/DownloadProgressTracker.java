@@ -17,8 +17,8 @@
 
 package org.bitcoinj.core.listeners;
 
-import org.bitcoinj.core.Block;
-import org.bitcoinj.core.FilteredBlock;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.core.Peer;
 import org.bitcoinj.core.Utils;
 import com.google.common.util.concurrent.ListenableFuture;

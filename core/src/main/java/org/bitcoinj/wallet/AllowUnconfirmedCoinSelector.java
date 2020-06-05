@@ -14,7 +14,7 @@
 
 package org.bitcoinj.wallet;
 
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 
 /**
  * This coin selector will select any transaction at all, regardless of where it came from or whether it was

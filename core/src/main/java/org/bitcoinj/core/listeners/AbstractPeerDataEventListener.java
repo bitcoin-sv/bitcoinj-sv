@@ -17,6 +17,10 @@
 package org.bitcoinj.core.listeners;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.p2p.FilteredBlock;
+import org.bitcoinj.msg.p2p.GetDataMessage;
+import org.bitcoinj.msg.Message;
 
 import javax.annotation.*;
 import java.util.*;

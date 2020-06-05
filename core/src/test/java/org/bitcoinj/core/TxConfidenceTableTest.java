@@ -16,6 +16,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.*;
 import org.bitcoinj.testing.*;
 import org.bitcoinj.utils.*;

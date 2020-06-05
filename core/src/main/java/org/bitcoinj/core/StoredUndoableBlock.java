@@ -17,6 +17,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.protocol.Transaction;
+
 import java.util.List;
 
 /**

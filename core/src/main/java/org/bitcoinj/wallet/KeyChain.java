@@ -16,7 +16,7 @@
 
 package org.bitcoinj.wallet;
 
-import org.bitcoinj.core.BloomFilter;
+import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 
@@ -88,7 +88,7 @@ public interface KeyChain {
      * <p>This is used to generate a {@link BloomFilter} which can be {@link BloomFilter#merge(BloomFilter)}d with
      * another. It could also be used if you have a specific target for the filter's size.</p>
      *
-     * <p>See the docs for {@link org.bitcoinj.core.BloomFilter#BloomFilter(int, double, long)} for a brief
+     * <p>See the docs for {@link BloomFilter#BloomFilter(int, double, long)} for a brief
      * explanation of anonymity when using bloom filters, and for the meaning of these parameters.</p>
      */
     BloomFilter getFilter(int size, double falsePositiveRate, long tweak);

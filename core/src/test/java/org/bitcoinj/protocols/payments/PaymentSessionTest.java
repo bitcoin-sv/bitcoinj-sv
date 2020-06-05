@@ -19,6 +19,9 @@ package org.bitcoinj.protocols.payments;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TrustStoreLoader;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 import com.google.common.util.concurrent.ListenableFuture;

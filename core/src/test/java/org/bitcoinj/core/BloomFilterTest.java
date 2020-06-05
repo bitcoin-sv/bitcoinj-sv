@@ -17,6 +17,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.p2p.BloomFilter;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.wallet.KeyChainGroup;
 import org.bitcoinj.wallet.Wallet;

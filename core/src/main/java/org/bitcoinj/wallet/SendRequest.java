@@ -25,6 +25,8 @@ import java.util.Date;
 
 import org.bitcoin.protocols.payments.Protos.PaymentDetails;
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.utils.ExchangeRate;

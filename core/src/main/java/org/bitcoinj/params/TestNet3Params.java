@@ -21,8 +21,7 @@ import java.math.BigInteger;
 import java.util.Date;
 
 import com.google.common.base.Preconditions;
-import org.bitcoinj.core.AbstractBlockChain;
-import org.bitcoinj.core.Block;
+import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.core.Utils;

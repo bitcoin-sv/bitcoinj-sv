@@ -21,6 +21,8 @@ import java.util.EnumSet;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.Script.VerifyFlag;
 import org.bitcoinj.wallet.KeyBag;
@@ -38,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * {@link TransactionSigner.ProposedTransaction} object that will be also passed then to the next signer in chain. This allows other
  * signers to use correct signing key for P2SH inputs, because all the keys involved in a single P2SH address have
  * the same derivation path.</p>
- * <p>This signer always uses {@link org.bitcoinj.core.Transaction.SigHash#ALL} signing mode.</p>
+ * <p>This signer always uses {@link Transaction.SigHash#ALL} signing mode.</p>
  */
 public class LocalTransactionSigner extends StatelessTransactionSigner {
     private static final Logger log = LoggerFactory.getLogger(LocalTransactionSigner.class);

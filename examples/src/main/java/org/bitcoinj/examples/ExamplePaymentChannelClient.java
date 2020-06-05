@@ -22,6 +22,7 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import org.bitcoinj.core.*;
 import org.bitcoinj.kits.WalletAppKit;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.protocols.channels.PaymentChannelClient;
 import org.bitcoinj.protocols.channels.PaymentChannelClientConnection;

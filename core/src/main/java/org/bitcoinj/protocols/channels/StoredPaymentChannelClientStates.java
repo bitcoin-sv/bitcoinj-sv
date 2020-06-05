@@ -19,6 +19,7 @@ package org.bitcoinj.protocols.channels;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.WalletExtension;

@@ -17,6 +17,10 @@
 package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.*;
 import org.bitcoinj.testing.*;
 import org.junit.*;

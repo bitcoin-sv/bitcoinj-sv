@@ -18,6 +18,7 @@ package org.bitcoinj.protocols.payments;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.X509Utils;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.protocols.payments.PaymentProtocol.Output;

@@ -17,6 +17,7 @@
 package org.bitcoinj.testing;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;
 

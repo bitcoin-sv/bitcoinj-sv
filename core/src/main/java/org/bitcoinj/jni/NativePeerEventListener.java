@@ -18,6 +18,12 @@ package org.bitcoinj.jni;
 
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.*;
+import org.bitcoinj.msg.p2p.FilteredBlock;
+import org.bitcoinj.msg.p2p.GetDataMessage;
+import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.Transaction;
 
 import javax.annotation.*;
 import java.util.List;

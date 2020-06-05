@@ -16,7 +16,7 @@
 
 package org.bitcoinj.signers;
 
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.crypto.ChildNumber;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.wallet.KeyBag;

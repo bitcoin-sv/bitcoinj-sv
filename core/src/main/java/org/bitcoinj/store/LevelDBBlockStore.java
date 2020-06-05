@@ -15,6 +15,7 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Block;
 import org.fusesource.leveldbjni.*;
 import org.iq80.leveldb.*;
 

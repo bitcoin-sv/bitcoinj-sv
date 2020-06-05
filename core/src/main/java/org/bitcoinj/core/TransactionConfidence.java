@@ -19,6 +19,8 @@ package org.bitcoinj.core;
 
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
+import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.wallet.Wallet;
 

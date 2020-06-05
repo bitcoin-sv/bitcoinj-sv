@@ -1,6 +1,6 @@
 package org.bitcoinj.core.listeners;
 
-import org.bitcoinj.core.EmptyMessage;
+import org.bitcoinj.msg.EmptyMessage;
 import org.bitcoinj.core.NetworkParameters;
 
 /**

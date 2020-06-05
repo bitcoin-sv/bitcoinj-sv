@@ -16,6 +16,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.protocol.Block;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

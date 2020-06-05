@@ -17,6 +17,10 @@
 package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TransactionOutPoint;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 
 import java.util.HashSet;
 import java.util.Iterator;

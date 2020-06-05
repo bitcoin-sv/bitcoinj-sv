@@ -19,6 +19,12 @@ package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
+import org.bitcoinj.msg.p2p.FilteredBlock;
+import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;

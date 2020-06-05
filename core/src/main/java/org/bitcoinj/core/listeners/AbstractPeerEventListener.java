@@ -16,13 +16,13 @@
 
 package org.bitcoinj.core.listeners;
 
-import org.bitcoinj.core.Block;
-import org.bitcoinj.core.FilteredBlock;
-import org.bitcoinj.core.GetDataMessage;
-import org.bitcoinj.core.Message;
-import org.bitcoinj.core.PeerAddress;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.p2p.FilteredBlock;
+import org.bitcoinj.msg.p2p.GetDataMessage;
+import org.bitcoinj.msg.Message;
+import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.core.Peer;
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 import javax.annotation.*;
 import java.util.List;
 import java.util.Set;

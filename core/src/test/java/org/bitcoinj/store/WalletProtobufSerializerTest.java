@@ -18,9 +18,14 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
-import org.bitcoinj.core.Transaction.Purpose;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.BlockTest;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.Transaction.Purpose;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.DeterministicKey;
+import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.ScriptBuilder;

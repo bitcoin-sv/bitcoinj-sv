@@ -2,7 +2,7 @@ package org.bitcoinj.script;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ScriptException;
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

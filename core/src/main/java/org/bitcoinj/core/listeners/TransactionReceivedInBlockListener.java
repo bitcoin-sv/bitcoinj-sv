@@ -19,8 +19,9 @@ package org.bitcoinj.core.listeners;
 import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.StoredBlock;
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.msg.p2p.FilteredBlock;
 
 /**
  * Listener interface for when we receive a new block that contains a relevant
@@ -44,7 +45,7 @@ public interface TransactionReceivedInBlockListener {
                           SPVBlockChain.NewBlockType blockType,
                           int relativityOffset) throws VerificationException;
     /**
-     * <p>Called by the {@link SPVBlockChain} when we receive a new {@link org.bitcoinj.core.FilteredBlock} that contains the given
+     * <p>Called by the {@link SPVBlockChain} when we receive a new {@link FilteredBlock} that contains the given
      * transaction hash in its merkle tree.</p>
      *
      * <p>A transaction may be received multiple times if is included into blocks in parallel chains. The blockType

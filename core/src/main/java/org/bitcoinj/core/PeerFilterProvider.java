@@ -17,6 +17,8 @@
 package org.bitcoinj.core;
 
 
+import org.bitcoinj.msg.p2p.BloomFilter;
+
 /**
  * An interface which provides the information required to properly filter data downloaded from Peers.
  * Note that an implementer is responsible for calling {@link PeerGroup#recalculateFastCatchupAndFilter(org.bitcoinj.core.PeerGroup.FilterRecalculateMode)}

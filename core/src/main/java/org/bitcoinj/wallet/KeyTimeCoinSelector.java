@@ -17,6 +17,8 @@
 package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.script.Script;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -34,7 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class KeyTimeCoinSelector implements CoinSelector {
     private static final Logger log = LoggerFactory.getLogger(KeyTimeCoinSelector.class);
 
-    /** A number of inputs chosen to avoid hitting {@link org.bitcoinj.core.Transaction#MAX_STANDARD_TX_SIZE} */
+    /** A number of inputs chosen to avoid hitting {@link Transaction#MAX_STANDARD_TX_SIZE} */
     public static final int MAX_SIMULTANEOUS_INPUTS = 600;
 
     private final long unixTimeSeconds;

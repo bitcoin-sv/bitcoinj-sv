@@ -1,6 +1,7 @@
 package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.script.*;
 

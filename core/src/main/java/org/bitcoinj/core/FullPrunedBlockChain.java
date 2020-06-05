@@ -17,6 +17,10 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.Script.VerifyFlag;
 import org.bitcoinj.store.BlockStoreException;
@@ -58,7 +62,6 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     /**
      * Constructs a block chain connected to the given wallet and store. To obtain a {@link Wallet} you can construct
      * one from scratch, or you can deserialize a saved wallet from disk using
-     * {@link Wallet#loadFromFile(java.io.File, WalletExtension...)}
      */
     public FullPrunedBlockChain(Context context, Wallet wallet, FullPrunedBlockStore blockStore) throws BlockStoreException {
         this(context, new ArrayList<Wallet>(), blockStore);
@@ -68,7 +71,6 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     /**
      * Constructs a block chain connected to the given wallet and store. To obtain a {@link Wallet} you can construct
      * one from scratch, or you can deserialize a saved wallet from disk using
-     * {@link Wallet#loadFromFile(java.io.File, WalletExtension...)}
      */
     public FullPrunedBlockChain(NetworkParameters params, Wallet wallet, FullPrunedBlockStore blockStore) throws BlockStoreException {
         this(Context.getOrCreate(params), wallet, blockStore);
@@ -118,7 +120,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     protected StoredBlock addToBlockStore(StoredBlock storedPrev, Block block)
             throws BlockStoreException, VerificationException {
         StoredBlock newBlock = storedPrev.build(block);
-        blockStore.put(newBlock, new StoredUndoableBlock(newBlock.getHeader().getHash(), block.transactions));
+        blockStore.put(newBlock, new StoredUndoableBlock(newBlock.getHeader().getHash(), block.getParsedTransactions()));
         return newBlock;
     }
 
@@ -211,7 +213,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     protected TransactionOutputChanges connectTransactions(int height, Block block)
             throws VerificationException, BlockStoreException {
         checkState(lock.isHeldByCurrentThread());
-        if (block.transactions == null)
+        if (block.getParsedTransactions() == null)
             throw new RuntimeException("connectTransactions called with Block that didn't have transactions!");
         if (!params.passesCheckpoint(height, block.getHash()))
             throw new VerificationException("Block failed checkpoint lockin at " + height);
@@ -225,13 +227,13 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
         if (scriptVerificationExecutor.isShutdown())
             scriptVerificationExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        List<Future<VerificationException>> listScriptVerificationResults = new ArrayList<Future<VerificationException>>(block.transactions.size());
+        List<Future<VerificationException>> listScriptVerificationResults = new ArrayList<Future<VerificationException>>(block.getParsedTransactions().size());
         try {
             if (!params.isCheckpoint(height)) {
                 // BIP30 violator blocks are ones that contain a duplicated transaction. They are all in the
                 // checkpoints list and we therefore only check non-checkpoints for duplicated transactions here. See the
                 // BIP30 document for more details on this: https://github.com/bitcoin/bips/blob/master/bip-0030.mediawiki
-                for (Transaction tx : block.transactions) {
+                for (Transaction tx : block.getParsedTransactions()) {
                     final Set<VerifyFlag> verifyFlags = params.getTransactionVerificationFlags(block, tx, getVersionTally(), height);
                     Sha256Hash hash = tx.getHash();
                     // If we already have unspent outputs for this hash, we saw the tx already. Either the block is
@@ -244,7 +246,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
             }
             Coin totalFees = Coin.ZERO;
             Coin coinbaseValue = null;
-            for (final Transaction tx : block.transactions) {
+            for (final Transaction tx : block.getParsedTransactions()) {
                 boolean isCoinBase = tx.isCoinBase();
                 Coin valueIn = Coin.ZERO;
                 Coin valueOut = Coin.ZERO;

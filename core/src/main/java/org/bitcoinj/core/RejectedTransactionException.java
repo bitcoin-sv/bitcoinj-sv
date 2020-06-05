@@ -16,6 +16,9 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.p2p.RejectMessage;
+import org.bitcoinj.msg.protocol.Transaction;
+
 /**
  * This exception is used by the TransactionBroadcast class to indicate that a broadcast
  * Transaction has been rejected by the network, for example because it violates a

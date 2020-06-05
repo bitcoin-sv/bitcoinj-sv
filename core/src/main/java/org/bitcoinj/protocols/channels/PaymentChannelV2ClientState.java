@@ -21,6 +21,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.wallet.AllowUnconfirmedCoinSelector;
@@ -51,7 +54,8 @@ public class PaymentChannelV2ClientState extends PaymentChannelClientState {
 
     // The refund is a time locked transaction that spends all the money of the channel back to the client.
     // Unlike in V1 this refund isn't signed by the server - we only have to sign it ourselves.
-    @VisibleForTesting Transaction refundTx;
+    @VisibleForTesting
+    Transaction refundTx;
     private Coin refundFees;
 
     // The multi-sig contract locks the value of the channel up such that the agreement of both parties is required

@@ -17,6 +17,8 @@ package org.bitcoinj.examples;
 import org.bitcoinj.core.listeners.PreMessageReceivedEventListener;
 import org.bitcoinj.core.*;
 import org.bitcoinj.kits.WalletAppKit;
+import org.bitcoinj.msg.Message;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;

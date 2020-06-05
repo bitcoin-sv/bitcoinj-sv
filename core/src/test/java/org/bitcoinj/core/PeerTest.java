@@ -18,6 +18,9 @@ package org.bitcoinj.core;
 
 import com.google.common.collect.*;
 import org.bitcoinj.core.listeners.*;
+import org.bitcoinj.msg.*;
+import org.bitcoinj.msg.p2p.*;
+import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.testing.FakeTxBuilder;
 import org.bitcoinj.testing.InboundMessageQueuer;
@@ -351,7 +354,7 @@ public class PeerTest extends TestWithNetworkConnections {
         });
         peer.addBlocksDownloadedEventListener(Threading.SAME_THREAD, new BlocksDownloadedEventListener() {
             @Override
-            public synchronized void onBlocksDownloaded(Peer p, Block block, @Nullable FilteredBlock filteredBlock,  int blocksLeft) {
+            public synchronized void onBlocksDownloaded(Peer p, Block block, @Nullable FilteredBlock filteredBlock, int blocksLeft) {
                 int newValue = newBlockMessagesReceived.incrementAndGet();
                 if (newValue != 3 || p != peer || !block.equals(b2) || blocksLeft != OTHER_PEER_CHAIN_HEIGHT - 2)
                     fail.set(true);
@@ -437,7 +440,7 @@ public class PeerTest extends TestWithNetworkConnections {
         Block b2 = makeSolvedTestBlock(b1);
         Transaction t = new Transaction(PARAMS);
         t.addInput(b1.getTransactions().get(0).getOutput(0));
-        t.addOutput(new TransactionOutput(PARAMS, t, Coin.ZERO, new byte[Transaction.MAX_TRANSACTION_SIZE - 1000]));
+        t.addOutput(new TransactionOutput(PARAMS, t, Coin.ZERO, new byte[Transaction.MAX_TRANSACTION_SIZE_FOR_TESTS - 1000]));
         b2.addTransaction(t);
 
         // Request the block.

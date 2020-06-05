@@ -17,9 +17,9 @@
 package org.bitcoinj.crypto;
 
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.Transaction;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.VerificationException;
-import org.bitcoinj.core.Transaction.SigHash;
+import org.bitcoinj.msg.protocol.Transaction.SigHash;
 import com.google.common.base.Preconditions;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

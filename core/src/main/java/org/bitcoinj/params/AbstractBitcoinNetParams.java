@@ -18,20 +18,19 @@
 package org.bitcoinj.params;
 
 import java.math.BigInteger;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.utils.MonetaryFormat;
-import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Stopwatch;
 import static com.google.common.base.Preconditions.checkState;
-import org.bitcoinj.core.BitcoinSerializer;
+import org.bitcoinj.msg.BitcoinSerializer;
 
 /**
  * Parameters for Bitcoin-like networks.
@@ -158,7 +157,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
      * input, this ensures the algorithm is more resistant to malicious inputs.
      */
     protected void checkNextCashWorkRequired(StoredBlock storedPrev,
-                                   Block newBlock, BlockStore blockStore) {
+                                             Block newBlock, BlockStore blockStore) {
 
         // Compute the difficulty based on the full adjustment interval.
         int height = storedPrev.getHeight();

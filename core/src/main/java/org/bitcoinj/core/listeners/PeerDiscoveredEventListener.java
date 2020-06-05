@@ -17,7 +17,7 @@
 package org.bitcoinj.core.listeners;
 
 import org.bitcoinj.core.Peer;
-import org.bitcoinj.core.PeerAddress;
+import org.bitcoinj.msg.p2p.PeerAddress;
 import java.util.Set;
 
 /**

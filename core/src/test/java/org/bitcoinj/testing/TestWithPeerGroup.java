@@ -19,6 +19,7 @@ package org.bitcoinj.testing;
 import com.google.common.base.*;
 import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.net.*;
 import org.bitcoinj.store.*;
 import org.bitcoinj.utils.*;

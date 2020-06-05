@@ -16,6 +16,9 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.*;
+import org.bitcoinj.msg.p2p.*;
+import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.net.AbstractTimeoutHandler;
 import org.bitcoinj.net.MessageWriteTarget;
 import org.bitcoinj.net.StreamConnection;

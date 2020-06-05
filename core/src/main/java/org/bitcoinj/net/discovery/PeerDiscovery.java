@@ -17,6 +17,8 @@
 
 package org.bitcoinj.net.discovery;
 
+import org.bitcoinj.msg.p2p.VersionMessage;
+
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +31,7 @@ public interface PeerDiscovery {
 
     /**
      * Returns an array of addresses. This method may block.
-     * @param services Required services as a bitmask, e.g. {@link org.bitcoinj.core.VersionMessage#NODE_NETWORK}.
+     * @param services Required services as a bitmask, e.g. {@link VersionMessage#NODE_NETWORK}.
      */
     InetSocketAddress[] getPeers(long services, long timeoutValue, TimeUnit timeoutUnit) throws PeerDiscoveryException;
 

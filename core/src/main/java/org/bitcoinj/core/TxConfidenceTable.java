@@ -16,6 +16,7 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.utils.*;
 
 import javax.annotation.*;

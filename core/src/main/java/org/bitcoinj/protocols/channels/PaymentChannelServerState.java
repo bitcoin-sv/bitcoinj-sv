@@ -16,6 +16,8 @@
 
 package org.bitcoinj.protocols.channels;
 
+import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 

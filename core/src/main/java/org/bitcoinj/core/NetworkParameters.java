@@ -18,6 +18,9 @@
 package org.bitcoinj.core;
 
 import com.google.common.base.Objects;
+import org.bitcoinj.msg.*;
+import org.bitcoinj.msg.p2p.AlertMessage;
+import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.net.discovery.HttpDiscovery;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.Script;
@@ -122,7 +125,7 @@ public abstract class NetworkParameters {
     }
 
     private static Block createGenesis(NetworkParameters n) {
-        Block genesisBlock = new Block(n, Block.BLOCK_VERSION_GENESIS);
+        Block genesisBlock = DefaultMsgAccessors.newBlock(n, Block.BLOCK_VERSION_GENESIS);
         Transaction t = new Transaction(n);
         try {
             // A script containing the difficulty bits and the following message:
@@ -380,7 +383,7 @@ public abstract class NetworkParameters {
     }
 
     /**
-     * The key used to sign {@link org.bitcoinj.core.AlertMessage}s. You can use {@link org.bitcoinj.core.ECKey#verify(byte[], byte[], byte[])} to verify
+     * The key used to sign {@link AlertMessage}s. You can use {@link org.bitcoinj.core.ECKey#verify(byte[], byte[], byte[])} to verify
      * signatures using it.
      */
     public byte[] getAlertSigningKey() {

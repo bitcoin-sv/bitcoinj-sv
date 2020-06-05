@@ -17,6 +17,7 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.p2p.AlertMessage;
 import org.bitcoinj.params.UnitTestParams;
 import org.junit.Before;
 import org.junit.Test;
