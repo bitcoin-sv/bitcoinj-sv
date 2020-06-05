@@ -14,6 +14,8 @@
 
 package org.bitcoinj.store;
 
+import org.bitcoinj.exception.BlockStoreException;
+
 /**
  * Thrown by {@link SPVBlockStore} when the process cannot gain exclusive access to the chain file.
  */

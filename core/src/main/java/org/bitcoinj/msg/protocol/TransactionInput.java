@@ -18,9 +18,11 @@
 package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.wallet.DefaultRiskAnalysis;
 import org.bitcoinj.wallet.KeyBag;
 import org.bitcoinj.wallet.RedeemData;
@@ -426,7 +428,7 @@ public class TransactionInput extends ChildMessage {
      * @throws ScriptException If the script doesn't verify.
      * @throws VerificationException If the outpoint doesn't match the given output.
      */
-    public void verify(TransactionOutput output, Set<Script.VerifyFlag> verifyFlags) throws VerificationException {
+    public void verify(TransactionOutput output, Set<ScriptVerifyFlag> verifyFlags) throws VerificationException {
         if (output.getParent() != null) {
             if (!getOutpoint().getHash().equals(output.getParentTransaction().getHash()))
                 throw new VerificationException("This input does not refer to the tx containing the output.");

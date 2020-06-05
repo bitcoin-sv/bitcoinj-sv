@@ -20,7 +20,7 @@ import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 
 /**

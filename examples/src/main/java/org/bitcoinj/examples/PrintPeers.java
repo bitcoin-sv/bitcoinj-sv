@@ -23,7 +23,7 @@ import org.bitcoinj.core.Peer;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.p2p.VersionMessage;
 import org.bitcoinj.net.discovery.DnsDiscovery;
-import org.bitcoinj.net.discovery.PeerDiscoveryException;
+import org.bitcoinj.exception.PeerDiscoveryException;
 import org.bitcoinj.net.NioClientManager;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.utils.BriefLogFormatter;

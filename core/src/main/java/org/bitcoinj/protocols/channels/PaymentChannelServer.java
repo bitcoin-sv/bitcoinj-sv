@@ -18,6 +18,7 @@ package org.bitcoinj.protocols.channels;
 
 import com.google.common.collect.ImmutableMap;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.utils.Threading;

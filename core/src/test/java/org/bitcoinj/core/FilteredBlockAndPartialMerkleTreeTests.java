@@ -19,6 +19,7 @@ package org.bitcoinj.core;
 
 import com.google.common.collect.*;
 import org.bitcoinj.core.TransactionConfidence.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;

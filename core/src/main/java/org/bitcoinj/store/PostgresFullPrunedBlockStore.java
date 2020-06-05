@@ -19,6 +19,7 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -17,6 +17,7 @@
 
 package org.bitcoinj.net.discovery;
 
+import org.bitcoinj.exception.PeerDiscoveryException;
 import org.bitcoinj.msg.p2p.VersionMessage;
 
 import java.net.InetSocketAddress;

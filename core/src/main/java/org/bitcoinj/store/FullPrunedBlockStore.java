@@ -17,6 +17,7 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.BlockStoreException;
 
 
 /**

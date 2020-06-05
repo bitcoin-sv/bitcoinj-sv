@@ -17,6 +17,7 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.exception.BlockStoreException;
 
 import java.util.ArrayList;
 import java.util.Collections;

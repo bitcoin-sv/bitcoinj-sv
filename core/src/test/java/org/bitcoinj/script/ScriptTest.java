@@ -21,6 +21,7 @@ package org.bitcoinj.script;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.Transaction.SigHash;
 import org.bitcoinj.crypto.TransactionSignature;
@@ -29,7 +30,6 @@ import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.script.Script.VerifyFlag;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -254,14 +254,14 @@ public class ScriptTest {
                 if (val >= -1 && val <= 16)
                     out.write(Script.encodeToOpN((int)val));
                 else
-                    Script.writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(val), false)));
+                    ScriptUtil.writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(val), false)));
             } else if (w.matches("^0x[0-9a-fA-F]*$")) {
                 // Raw hex data, inserted NOT pushed onto stack:
                 out.write(HEX.decode(w.substring(2).toLowerCase()));
             } else if (w.length() >= 2 && w.startsWith("'") && w.endsWith("'")) {
                 // Single-quoted string, pushed as data. NOTE: this is poor-man's
                 // parsing, spaces/tabs/newlines in single-quoted strings won't work.
-                Script.writeBytes(out, w.substring(1, w.length() - 1).getBytes(Charset.forName("UTF-8")));
+                ScriptUtil.writeBytes(out, w.substring(1, w.length() - 1).getBytes(Charset.forName("UTF-8")));
             } else if (ScriptOpCodes.getOpCode(w) != OP_INVALIDOPCODE) {
                 // opcode, e.g. OP_ADD or OP_1:
                 out.write(ScriptOpCodes.getOpCode(w));
@@ -276,12 +276,12 @@ public class ScriptTest {
         return new Script(out.toByteArray());
     }
 
-    private Set<VerifyFlag> parseVerifyFlags(String str) {
-        Set<VerifyFlag> flags = EnumSet.noneOf(VerifyFlag.class);
+    private Set<ScriptVerifyFlag> parseVerifyFlags(String str) {
+        Set<ScriptVerifyFlag> flags = EnumSet.noneOf(ScriptVerifyFlag.class);
         if (!"NONE".equals(str)) {
             for (String flag : str.split(",")) {
                 try {
-                    flags.add(VerifyFlag.valueOf(flag));
+                    flags.add(ScriptVerifyFlag.valueOf(flag));
                 } catch (IllegalArgumentException x) {
                     log.debug("Cannot handle verify flag {} -- ignored.", flag);
                 }
@@ -297,7 +297,7 @@ public class ScriptTest {
         for (JsonNode test : json) {
             Script scriptSig = parseScriptString(test.get(0).asText());
             Script scriptPubKey = parseScriptString(test.get(1).asText());
-            Set<VerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
+            Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
             try {
                 scriptSig.correctlySpends(new Transaction(PARAMS), 0, scriptPubKey, verifyFlags);
             } catch (ScriptException e) {
@@ -316,7 +316,7 @@ public class ScriptTest {
             try {
                 Script scriptSig = parseScriptString(test.get(0).asText());
                 Script scriptPubKey = parseScriptString(test.get(1).asText());
-                Set<VerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
+                Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
                 scriptSig.correctlySpends(new Transaction(PARAMS), 0, scriptPubKey, verifyFlags);
                 System.err.println(test);
                 System.err.flush();
@@ -351,7 +351,7 @@ public class ScriptTest {
                 Map<TransactionOutPoint, Script> scriptPubKeys = parseScriptPubKeys(test.get(0));
                 transaction = PARAMS.getDefaultSerializer().makeTransaction(HEX.decode(test.get(1).asText().toLowerCase()));
                 transaction.verify();
-                Set<VerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
+                Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
 
                 for (int i = 0; i < transaction.getInputs().size(); i++) {
                     TransactionInput input = transaction.getInputs().get(i);
@@ -379,7 +379,7 @@ public class ScriptTest {
                 continue; // This is a comment.
             Map<TransactionOutPoint, Script> scriptPubKeys = parseScriptPubKeys(test.get(0));
             Transaction transaction = PARAMS.getDefaultSerializer().makeTransaction(HEX.decode(test.get(1).asText().toLowerCase()));
-            Set<VerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
+            Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
 
             boolean valid = true;
             try {
@@ -558,8 +558,8 @@ public class ScriptTest {
     private byte[] generateAndExecuteBitwiseScript(byte[] a, byte[] b, String opcode) {
         Script script = new ScriptBuilder().data(a).data(b).op(ScriptOpCodes.getOpCode(opcode)).build();
         ScriptStack stack = new ScriptStack();
-        EnumSet<VerifyFlag> verifyFlags = EnumSet.noneOf(VerifyFlag.class);
-        verifyFlags.add(VerifyFlag.MONOLITH_OPCODES);
+        EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
+        verifyFlags.add(ScriptVerifyFlag.MONOLITH_OPCODES);
         Script.executeScript(new Transaction(PARAMS), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
         return stack.peekLast().bytes();

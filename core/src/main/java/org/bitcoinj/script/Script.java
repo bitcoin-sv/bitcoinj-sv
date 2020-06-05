@@ -77,35 +77,13 @@ public class Script {
         P2SH
     }
 
-    /**
-     * Flags to pass to {@link Script#correctlySpends(Transaction, long, Script, Coin, Set)}.
-     * Note currently only P2SH, DERSIG and NULLDUMMY are actually supported.
-     */
-    public enum VerifyFlag {
-        P2SH, // Enable BIP16-style subscript evaluation.
-        STRICTENC, // Passing a non-strict-DER signature or one with undefined hashtype to a checksig operation causes script failure.
-        DERSIG, // Passing a non-strict-DER signature to a checksig operation causes script failure (softfork safe, BIP66 rule 1)
-        LOW_S, // Passing a non-strict-DER signature or one with S > order/2 to a checksig operation causes script failure
-        NULLDUMMY, // Verify dummy stack item consumed by CHECKMULTISIG is of zero-length.
-        SIGPUSHONLY, // Using a non-push operator in the scriptSig causes script failure (softfork safe, BIP62 rule 2).
-        MINIMALDATA, // Require minimal encodings for all push operations and number encodings
-        DISCOURAGE_UPGRADABLE_NOPS, // Discourage use of NOPs reserved for upgrades (NOP1-10)
-        CLEANSTACK, // Require that only a single stack element remains after evaluation.
-        CHECKLOCKTIMEVERIFY, // Enable CHECKLOCKTIMEVERIFY operation
-        ENABLESIGHASHFORKID,
-        MONOLITH_OPCODES, // May 15, 2018 Hard fork
-        MAGNETIC_OPCODES, //Nov 15 2018 Hard fork
-        GENESIS_OPCODES, // Feb 4th, 2020 Hard fork
-        CHRONICLE_OPCODES, // Future Chronicle hard fork
-    }
+    public static final EnumSet<ScriptVerifyFlag> ALL_VERIFY_FLAGS = EnumSet.allOf(ScriptVerifyFlag.class);
+    public static final EnumSet<ScriptVerifyFlag> ALL_VERIFY_FLAGS_PRE_GENESIS = EnumSet.complementOf(EnumSet.of(ScriptVerifyFlag.GENESIS_OPCODES));
 
-    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.allOf(VerifyFlag.class);
-    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS_PRE_GENESIS = EnumSet.complementOf(EnumSet.of(VerifyFlag.GENESIS_OPCODES));
-
-    public static final EnumSet<VerifyFlag> MONOLITH_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES);
-    public static final EnumSet<VerifyFlag> MAGNETIC_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES, VerifyFlag.MAGNETIC_OPCODES);
-    public static final EnumSet<VerifyFlag> GENESIS_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES, VerifyFlag.MAGNETIC_OPCODES, VerifyFlag.GENESIS_OPCODES);
-    public static final EnumSet<VerifyFlag> CHRONICLE_SET = EnumSet.of(VerifyFlag.MONOLITH_OPCODES, VerifyFlag.GENESIS_OPCODES, VerifyFlag.CHRONICLE_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> MONOLITH_SET = EnumSet.of(ScriptVerifyFlag.MONOLITH_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> MAGNETIC_SET = EnumSet.of(ScriptVerifyFlag.MONOLITH_OPCODES, ScriptVerifyFlag.MAGNETIC_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> GENESIS_SET = EnumSet.of(ScriptVerifyFlag.MONOLITH_OPCODES, ScriptVerifyFlag.MAGNETIC_OPCODES, ScriptVerifyFlag.GENESIS_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> CHRONICLE_SET = EnumSet.of(ScriptVerifyFlag.MONOLITH_OPCODES, ScriptVerifyFlag.GENESIS_OPCODES, ScriptVerifyFlag.CHRONICLE_OPCODES);
 
 
     private static final Logger log = LoggerFactory.getLogger(Script.class);
@@ -422,28 +400,6 @@ public class Script {
     ////////////////////// Interface for writing scripts from scratch ////////////////////////////////
 
     /**
-     * Writes out the given byte buffer to the output stream with the correct opcode prefix
-     * To write an integer call writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(val, false)));
-     */
-    public static void writeBytes(OutputStream os, byte[] buf) throws IOException {
-        if (buf.length < OP_PUSHDATA1) {
-            os.write(buf.length);
-            os.write(buf);
-        } else if (buf.length < 256) {
-            os.write(OP_PUSHDATA1);
-            os.write(buf.length);
-            os.write(buf);
-        } else if (buf.length < 65536) {
-            os.write(OP_PUSHDATA2);
-            os.write(0xFF & (buf.length));
-            os.write(0xFF & (buf.length >> 8));
-            os.write(buf);
-        } else {
-            throw new RuntimeException("Unimplemented");
-        }
-    }
-
-    /**
      * Creates a program that requires at least N of the given keys to sign, using OP_CHECKMULTISIG.
      */
     public static byte[] createMultiSigOutputScript(int threshold, List<ECKey> pubkeys) {
@@ -457,7 +413,7 @@ public class Script {
             ByteArrayOutputStream bits = new ByteArrayOutputStream();
             bits.write(encodeToOpN(threshold));
             for (ECKey key : pubkeys) {
-                writeBytes(bits, key.getPubKey());
+                ScriptUtil.writeBytes(bits, key.getPubKey());
             }
             bits.write(encodeToOpN(pubkeys.size()));
             bits.write(OP_CHECKMULTISIG);
@@ -471,8 +427,8 @@ public class Script {
         try {
             // TODO: Do this by creating a Script *first* then having the script reassemble itself into bytes.
             ByteArrayOutputStream bits = new UnsafeByteArrayOutputStream(signature.length + pubkey.length + 2);
-            writeBytes(bits, signature);
-            writeBytes(bits, pubkey);
+            ScriptUtil.writeBytes(bits, signature);
+            ScriptUtil.writeBytes(bits, pubkey);
             return bits.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -483,7 +439,7 @@ public class Script {
         try {
             // TODO: Do this by creating a Script *first* then having the script reassemble itself into bytes.
             ByteArrayOutputStream bits = new UnsafeByteArrayOutputStream(signature.length + 2);
-            writeBytes(bits, signature);
+            ScriptUtil.writeBytes(bits, signature);
             return bits.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -993,20 +949,20 @@ public class Script {
     @Deprecated
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
                                      Script script, ScriptStack stack, boolean enforceNullDummy) throws ScriptException {
-        final EnumSet<VerifyFlag> flags = enforceNullDummy
-                ? EnumSet.of(VerifyFlag.NULLDUMMY)
-                : EnumSet.noneOf(VerifyFlag.class);
+        final EnumSet<ScriptVerifyFlag> flags = enforceNullDummy
+                ? EnumSet.of(ScriptVerifyFlag.NULLDUMMY)
+                : EnumSet.noneOf(ScriptVerifyFlag.class);
 
         executeScript(txContainingThis, index, script, stack, Coin.ZERO, flags);
     }
 
     @Deprecated
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
-                                     Script script, ScriptStack stack, Set<VerifyFlag> verifyFlags) throws ScriptException {
+                                     Script script, ScriptStack stack, Set<ScriptVerifyFlag> verifyFlags) throws ScriptException {
         executeScript(txContainingThis, index, script, stack, Coin.ZERO, verifyFlags);
     }
 
-    private static boolean isOpcodeDisabled(int opcode, Set<VerifyFlag> verifyFlags) {
+    private static boolean isOpcodeDisabled(int opcode, Set<ScriptVerifyFlag> verifyFlags) {
 
 
         switch (opcode) {
@@ -1021,7 +977,7 @@ public class Script {
             case OP_RSHIFT:
             case OP_MUL:
                 //enabled codes, still disabled if flag is not activated
-                return !verifyFlags.contains(VerifyFlag.MAGNETIC_OPCODES);
+                return !verifyFlags.contains(ScriptVerifyFlag.MAGNETIC_OPCODES);
 
             case OP_CAT:
             case OP_SPLIT:
@@ -1033,7 +989,7 @@ public class Script {
             case OP_NUM2BIN:
             case OP_BIN2NUM:
                 //enabled codes, still disabled if flag is not activated
-                return !verifyFlags.contains(VerifyFlag.MONOLITH_OPCODES);
+                return !verifyFlags.contains(ScriptVerifyFlag.MONOLITH_OPCODES);
 
             default:
                 //not an opcode that was ever disabled
@@ -1053,7 +1009,7 @@ public class Script {
      * likely to change in future.
      */
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
-                                     Script script, ScriptStack stack, Coin value, Set<VerifyFlag> verifyFlags) throws ScriptException {
+                                     Script script, ScriptStack stack, Coin value, Set<ScriptVerifyFlag> verifyFlags) throws ScriptException {
         executeScript(txContainingThis, index, new SimpleScriptStream(script), stack, value, verifyFlags, null);
     }
 
@@ -1062,7 +1018,7 @@ public class Script {
      * and passed to the listener before being rethrown.
      */
     public static void executeDebugScript(@Nullable Transaction txContainingThis, long index,
-                                          ScriptStream script, ScriptStack stack, Coin value, Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
+                                          ScriptStream script, ScriptStack stack, Coin value, Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
         try {
             executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener);
         } catch (ScriptException e) {
@@ -1079,7 +1035,7 @@ public class Script {
 
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
-                                     Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
+                                     Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
         executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener, false, 0L);
     }
 
@@ -1092,7 +1048,7 @@ public class Script {
      */
     public static void executeScript(@Nullable Transaction txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
-                                     Set<VerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
+                                     Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
                                      boolean allowFakeChecksig, long fakeChecksigDelay) throws ScriptException {
         int opCount = 0;
         int lastCodeSepLocation = 0;
@@ -1104,13 +1060,13 @@ public class Script {
         stack.setDerivations(!initialStackStateKnown);
         ScriptStack altstack = new ScriptStack();
         LinkedList<Boolean> ifStack = new LinkedList<Boolean>();
-        final boolean enforceMinimal = verifyFlags.contains(VerifyFlag.MINIMALDATA);
-        final boolean genesisActive = verifyFlags.contains(VerifyFlag.GENESIS_OPCODES);
+        final boolean enforceMinimal = verifyFlags.contains(ScriptVerifyFlag.MINIMALDATA);
+        final boolean genesisActive = verifyFlags.contains(ScriptVerifyFlag.GENESIS_OPCODES);
         final long maxScriptElementSize = genesisActive ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
         final int maxNumElementSize = genesisActive ? MAX_NUM_ELEMENT_SIZE_POST_GENESIS : MAX_NUM_ELEMENT_SIZE_PRE_GENESIS;
         final int maxMultisigKeys = genesisActive ? MAX_MULTISIG_PUBKEYS_POST_GENESIS : MAX_MULTISIG_PUBKEYS_PRE_GENESIS;
         final int maxOpCount = genesisActive ? Integer.MAX_VALUE :
-                verifyFlags.contains(VerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
+                verifyFlags.contains(ScriptVerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
                         MAX_OPCOUNT_PRE_MAGNETIC;
 
         if (scriptStateListener != null) {
@@ -1868,9 +1824,9 @@ public class Script {
                         state.opCount = opCount;
                         break;
                     case OP_CHECKLOCKTIMEVERIFY:
-                        if (genesisActive || !verifyFlags.contains(VerifyFlag.CHECKLOCKTIMEVERIFY)) {
+                        if (genesisActive || !verifyFlags.contains(ScriptVerifyFlag.CHECKLOCKTIMEVERIFY)) {
                             // not enabled; treat as a NOP2
-                            if (verifyFlags.contains(VerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
+                            if (verifyFlags.contains(ScriptVerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
                                 throw new ScriptException(state, "Script used a reserved opcode " + opcode);
                             }
                             break;
@@ -1886,7 +1842,7 @@ public class Script {
                     case OP_NOP8:
                     case OP_NOP9:
                     case OP_NOP10:
-                        if (verifyFlags.contains(VerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
+                        if (verifyFlags.contains(ScriptVerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
                             throw new ScriptException(state, "Script used a reserved opcode " + opcode);
                         }
                         break;
@@ -1928,7 +1884,7 @@ public class Script {
     // This is more or less a direct translation of the code in Bitcoin Core
     private static void executeCheckLockTimeVerify(ScriptExecutionState state, Transaction txContainingThis, int index, ScriptStack stack,
                                                    int lastCodeSepLocation, int opcode,
-                                                   Set<VerifyFlag> verifyFlags) throws ScriptException {
+                                                   Set<ScriptVerifyFlag> verifyFlags) throws ScriptException {
         if (stack.size() < 1)
             throw new ScriptException(state, "Attempted OP_CHECKLOCKTIMEVERIFY on a stack with size < 1");
 
@@ -1936,7 +1892,7 @@ public class Script {
         // to 5-byte bignums to avoid year 2038 issue.
         StackItem nLockTimeItem = stack.getLast();
         //we don't modify the stack so no need to worry about passing on derivation status of stack items.
-        final BigInteger nLockTime = castToBigInteger(state, nLockTimeItem, 5, verifyFlags.contains(VerifyFlag.MINIMALDATA));
+        final BigInteger nLockTime = castToBigInteger(state, nLockTimeItem, 5, verifyFlags.contains(ScriptVerifyFlag.MINIMALDATA));
 
         if (nLockTime.compareTo(BigInteger.ZERO) < 0)
             throw new ScriptException(state, "Negative locktime");
@@ -1969,12 +1925,12 @@ public class Script {
 
     private static void executeCheckSig(ScriptExecutionState state, Transaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
                                         int lastCodeSepLocation, int opcode, Coin value,
-                                        Set<VerifyFlag> verifyFlags, boolean allowFakeChecksig) throws ScriptException {
+                                        Set<ScriptVerifyFlag> verifyFlags, boolean allowFakeChecksig) throws ScriptException {
 
         final boolean requireCanonical = !allowFakeChecksig &&
-                (verifyFlags.contains(VerifyFlag.STRICTENC)
-                        || verifyFlags.contains(VerifyFlag.DERSIG)
-                        || verifyFlags.contains(VerifyFlag.LOW_S));
+                (verifyFlags.contains(ScriptVerifyFlag.STRICTENC)
+                        || verifyFlags.contains(ScriptVerifyFlag.DERSIG)
+                        || verifyFlags.contains(ScriptVerifyFlag.LOW_S));
 
         if (stack.size() < 2)
             throw new ScriptException(state, "Attempted OP_CHECKSIG(VERIFY) on a stack with size < 2");
@@ -1987,7 +1943,7 @@ public class Script {
 
         UnsafeByteArrayOutputStream outStream = new UnsafeByteArrayOutputStream(sigBytes.length() + 1);
         try {
-            writeBytes(outStream, sigBytes.bytes());
+            ScriptUtil.writeBytes(outStream, sigBytes.bytes());
         } catch (IOException e) {
             throw new RuntimeException(e); // Cannot happen
         }
@@ -1996,7 +1952,7 @@ public class Script {
         // TODO: Use int for indexes everywhere, we can't have that many inputs/outputs
         try {
             TransactionSignature sig = TransactionSignature.decodeFromBitcoin(sigBytes.bytes(), requireCanonical,
-                    verifyFlags.contains(VerifyFlag.LOW_S));
+                    verifyFlags.contains(ScriptVerifyFlag.LOW_S));
 
             // TODO: Should check hash type is known
             Sha256Hash hash = sig.useForkId() ?
@@ -2023,13 +1979,13 @@ public class Script {
 
     private static int executeMultiSig(ScriptExecutionState state, Transaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
                                        int opCount, int maxOpCount, int maxKeys, int lastCodeSepLocation, int opcode, Coin value,
-                                       Set<VerifyFlag> verifyFlags, boolean allowFakeChecksig) throws ScriptException {
+                                       Set<ScriptVerifyFlag> verifyFlags, boolean allowFakeChecksig) throws ScriptException {
         final boolean requireCanonical = !allowFakeChecksig &&
-                (verifyFlags.contains(VerifyFlag.STRICTENC)
-                        || verifyFlags.contains(VerifyFlag.DERSIG)
-                        || verifyFlags.contains(VerifyFlag.LOW_S));
+                (verifyFlags.contains(ScriptVerifyFlag.STRICTENC)
+                        || verifyFlags.contains(ScriptVerifyFlag.DERSIG)
+                        || verifyFlags.contains(ScriptVerifyFlag.LOW_S));
 
-        final boolean enforceMinimal = !allowFakeChecksig && verifyFlags.contains(VerifyFlag.MINIMALDATA);
+        final boolean enforceMinimal = !allowFakeChecksig && verifyFlags.contains(ScriptVerifyFlag.MINIMALDATA);
         if (stack.size() < 2)
             throw new ScriptException(state, "Attempted OP_CHECKMULTISIG(VERIFY) on a stack with size < 2");
 
@@ -2077,7 +2033,7 @@ public class Script {
         for (StackItem sig : sigs) {
             UnsafeByteArrayOutputStream outStream = new UnsafeByteArrayOutputStream(sig.length() + 1);
             try {
-                writeBytes(outStream, sig.bytes());
+                ScriptUtil.writeBytes(outStream, sig.bytes());
             } catch (IOException e) {
                 throw new RuntimeException(e); // Cannot happen
             }
@@ -2111,7 +2067,7 @@ public class Script {
         StackItem nullDummy = stack.pollLast();
         //this could have been provided in scriptSig so still has an impact on whether the result is derived
         polledStackItems.add(nullDummy);
-        if (verifyFlags.contains(VerifyFlag.NULLDUMMY) && nullDummy.length() > 0)
+        if (verifyFlags.contains(ScriptVerifyFlag.NULLDUMMY) && nullDummy.length() > 0)
             throw new ScriptException(state, "OP_CHECKMULTISIG(VERIFY) with non-null nulldummy: " + Arrays.toString(nullDummy.bytes()));
 
         if (opcode == OP_CHECKMULTISIG) {
@@ -2144,7 +2100,7 @@ public class Script {
 
     @Deprecated
     public void correctlySpends(Transaction txContainingThis, long scriptSigIndex, Script scriptPubKey,
-                                Set<VerifyFlag> verifyFlags)
+                                Set<ScriptVerifyFlag> verifyFlags)
             throws ScriptException {
         correctlySpends(txContainingThis, scriptSigIndex, scriptPubKey, Coin.ZERO, verifyFlags);
     }
@@ -2160,7 +2116,7 @@ public class Script {
      *                         which sets all flags.
      */
     public void correctlySpends(Transaction txContainingThis, long scriptSigIndex, Script scriptPubKey, Coin value,
-                                Set<VerifyFlag> verifyFlags) throws ScriptException {
+                                Set<ScriptVerifyFlag> verifyFlags) throws ScriptException {
         // Clone the transaction because executing the script involves editing it, and if we die, we'll leave
         // the tx half broken (also it's not so thread safe to work on it directly.
         try {
@@ -2177,7 +2133,7 @@ public class Script {
         ScriptExecutionState state = new ScriptExecutionState();
 
         executeScript(txContainingThis, scriptSigIndex, this, stack, value, verifyFlags);
-        if (verifyFlags.contains(VerifyFlag.P2SH))
+        if (verifyFlags.contains(ScriptVerifyFlag.P2SH))
             p2shStack = new ScriptStack(stack);
         executeScript(txContainingThis, scriptSigIndex, scriptPubKey, stack, value, verifyFlags);
 
@@ -2200,7 +2156,7 @@ public class Script {
         //     overall scalability and performance.
 
         // TODO: Check if we can take out enforceP2SH if there's a checkpoint at the enforcement block.
-        if (verifyFlags.contains(VerifyFlag.P2SH) && scriptPubKey.isPayToScriptHash()) {
+        if (verifyFlags.contains(ScriptVerifyFlag.P2SH) && scriptPubKey.isPayToScriptHash()) {
             for (ScriptChunk chunk : chunks)
                 if (chunk.isOpCode() && chunk.opcode > OP_16)
                     throw new ScriptException("Attempted to spend a P2SH scriptPubKey with a script that contained script ops");
@@ -2265,7 +2221,7 @@ public class Script {
         public ScriptChunk lastOpCode;
         public ScriptChunk currentOpCode;
         public int currentOpCodeIndex = 0;
-        public Set<VerifyFlag> verifyFlags;
+        public Set<ScriptVerifyFlag> verifyFlags;
         public boolean initialStackStateKnown;
     }
 }

@@ -18,13 +18,14 @@
 package org.bitcoinj.core;
 
 import com.google.common.base.Objects;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.*;
-import org.bitcoinj.msg.p2p.AlertMessage;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.net.discovery.HttpDiscovery;
 import org.bitcoinj.params.*;
-import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptOpCodes;
+import org.bitcoinj.script.ScriptUtil;
+import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.utils.MonetaryFormat;
 import org.bitcoinj.utils.VersionTally;
 
@@ -135,7 +136,7 @@ public abstract class NetworkParameters {
                     ("04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73");
             t.addInput(new TransactionInput(n, t, bytes));
             ByteArrayOutputStream scriptPubKeyBytes = new ByteArrayOutputStream();
-            Script.writeBytes(scriptPubKeyBytes, Utils.HEX.decode
+            ScriptUtil.writeBytes(scriptPubKeyBytes, Utils.HEX.decode
                     ("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f"));
             scriptPubKeyBytes.write(ScriptOpCodes.OP_CHECKSIG);
             t.addOutput(new TransactionOutput(n, t, FIFTY_COINS, scriptPubKeyBytes.toByteArray()));
@@ -383,7 +384,7 @@ public abstract class NetworkParameters {
     }
 
     /**
-     * The key used to sign {@link AlertMessage}s. You can use {@link org.bitcoinj.core.ECKey#verify(byte[], byte[], byte[])} to verify
+     * The key used to sign {AlertMessage}s. You can use { org.bitcoinj.core.ECKey#verify(byte[], byte[], byte[])} to verify
      * signatures using it.
      */
     public byte[] getAlertSigningKey() {
@@ -526,17 +527,17 @@ public abstract class NetworkParameters {
      * @param height height of the block, if known, null otherwise. Returned
      * tests should be a safe subset if block height is unknown.
      */
-    public EnumSet<Script.VerifyFlag> getTransactionVerificationFlags(final Block block,
-            final Transaction transaction, final VersionTally tally, final Integer height) {
-        final EnumSet<Script.VerifyFlag> verifyFlags = EnumSet.noneOf(Script.VerifyFlag.class);
+    public EnumSet<ScriptVerifyFlag> getTransactionVerificationFlags(final Block block,
+                                                                     final Transaction transaction, final VersionTally tally, final Integer height) {
+        final EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
         if (block.getTimeSeconds() >= NetworkParameters.BIP16_ENFORCE_TIME)
-            verifyFlags.add(Script.VerifyFlag.P2SH);
+            verifyFlags.add(ScriptVerifyFlag.P2SH);
 
         // Start enforcing CHECKLOCKTIMEVERIFY, (BIP65) for block.nVersion=4
         // blocks, when 75% of the network has upgraded:
         if (block.getVersion() >= Block.BLOCK_VERSION_BIP65 &&
             tally.getCountAtOrAbove(Block.BLOCK_VERSION_BIP65) > this.getMajorityEnforceBlockUpgrade()) {
-            verifyFlags.add(Script.VerifyFlag.CHECKLOCKTIMEVERIFY);
+            verifyFlags.add(ScriptVerifyFlag.CHECKLOCKTIMEVERIFY);
         }
 
         return verifyFlags;

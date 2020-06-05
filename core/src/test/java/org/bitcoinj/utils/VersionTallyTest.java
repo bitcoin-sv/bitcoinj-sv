@@ -22,7 +22,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.testing.FakeTxBuilder;
 import org.junit.Test;

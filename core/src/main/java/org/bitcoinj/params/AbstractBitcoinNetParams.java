@@ -25,7 +25,7 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.utils.MonetaryFormat;
 import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.exception.BlockStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

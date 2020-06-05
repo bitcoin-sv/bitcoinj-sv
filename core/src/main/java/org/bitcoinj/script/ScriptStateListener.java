@@ -32,7 +32,7 @@ public abstract class ScriptStateListener {
     private List<StackItem> altstack;
     private List<Boolean> ifStack;
     private Coin value;
-    private Set<Script.VerifyFlag> verifyFlags;
+    private Set<ScriptVerifyFlag> verifyFlags;
 
     private int chunkIndex;
     private ScriptChunk currentChunk;
@@ -40,7 +40,7 @@ public abstract class ScriptStateListener {
 
 
     void setInitialState(@Nullable Transaction txContainingThis, long index,
-                         ScriptStream script, List<StackItem> stack, List<StackItem> altstack, List<Boolean> ifStack, Coin value, Set<Script.VerifyFlag> verifyFlags) {
+                         ScriptStream script, List<StackItem> stack, List<StackItem> altstack, List<Boolean> ifStack, Coin value, Set<ScriptVerifyFlag> verifyFlags) {
         this.chunkIndex = -1;
         this.txContainingThis = txContainingThis;
         this.index = index;
@@ -110,7 +110,7 @@ public abstract class ScriptStateListener {
         return value;
     }
 
-    public Set<Script.VerifyFlag> getVerifyFlags() {
+    public Set<ScriptVerifyFlag> getVerifyFlags() {
         return verifyFlags;
     }
 

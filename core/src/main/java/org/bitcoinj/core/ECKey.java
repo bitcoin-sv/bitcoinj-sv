@@ -29,7 +29,7 @@ import org.bitcoin.NativeSecp256k1;
 import org.bitcoin.NativeSecp256k1Util;
 import org.bitcoin.Secp256k1Context;
 import org.bitcoinj.wallet.Protos;
-import org.bitcoinj.wallet.Wallet;
+//import org.bitcoinj.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;
@@ -1127,7 +1127,7 @@ public class ECKey implements EncryptableItem {
      * bitcoins controlled by the private key) you can use this method to check when you *encrypt* a wallet that
      * it can definitely be decrypted successfully.</p>
      *
-     * <p>See {@link Wallet#encrypt(KeyCrypter keyCrypter, KeyParameter aesKey)} for example usage.</p>
+     * <p>See { Wallet#encrypt(KeyCrypter keyCrypter, KeyParameter aesKey)} for example usage.</p>
      *
      * @return true if the encrypted key can be decrypted back to the original key successfully.
      */

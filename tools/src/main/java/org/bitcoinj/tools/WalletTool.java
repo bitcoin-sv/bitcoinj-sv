@@ -19,6 +19,10 @@ package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
+import org.bitcoinj.exception.AddressFormatException;
+import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.exception.WrongNetworkException;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Block;

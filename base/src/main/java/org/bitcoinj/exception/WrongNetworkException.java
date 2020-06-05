@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.exception;
 
 import java.util.Arrays;
 

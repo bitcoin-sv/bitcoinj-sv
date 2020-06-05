@@ -17,6 +17,7 @@
 package org.bitcoinj.core;
 
 import junit.framework.TestCase;
+import org.bitcoinj.exception.AddressFormatException;
 import org.junit.Test;
 
 import java.math.BigInteger;

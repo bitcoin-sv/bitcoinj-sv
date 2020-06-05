@@ -22,6 +22,8 @@ import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
+import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.net.*;

@@ -19,10 +19,11 @@ package org.bitcoinj.msg.protocol;
 
 import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.Script;
-import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.FullPrunedBlockStore;
 import org.bitcoinj.utils.BlockFileLoader;
 import org.bitcoinj.utils.BriefLogFormatter;

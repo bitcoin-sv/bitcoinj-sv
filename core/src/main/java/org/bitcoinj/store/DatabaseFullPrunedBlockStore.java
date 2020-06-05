@@ -20,6 +20,8 @@ package org.bitcoinj.store;
 
 import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.script.Script;

@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.bitcoinj.exception;
 
-/**
- * Thrown when something goes wrong with storing a block. Examples: out of disk space.
- */
-public class BlockStoreException extends Exception {
-    public BlockStoreException(String message) {
+public class PeerDiscoveryException extends Exception {
+    private static final long serialVersionUID = -2863411151549391392L;
+
+    public PeerDiscoveryException() {
+        super();
+    }
+
+    public PeerDiscoveryException(String message) {
         super(message);
     }
 
-    public BlockStoreException(Throwable t) {
-        super(t);
+    public PeerDiscoveryException(Throwable arg0) {
+        super(arg0);
     }
 
-    public BlockStoreException(String message, Throwable t) {
-        super(message, t);
+    public PeerDiscoveryException(String message, Throwable arg0) {
+        super(message, arg0);
     }
 }

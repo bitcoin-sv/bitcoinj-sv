@@ -19,6 +19,7 @@ package org.bitcoinj.tools;
 
 import org.bitcoinj.core.listeners.NewBestBlockListener;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;

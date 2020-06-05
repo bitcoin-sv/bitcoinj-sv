@@ -21,6 +21,7 @@ import com.google.common.annotations.*;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.MessageSerializer;

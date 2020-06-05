@@ -25,9 +25,9 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.exception.BlockStoreException;
 
 import static com.google.common.base.Preconditions.checkState;
 

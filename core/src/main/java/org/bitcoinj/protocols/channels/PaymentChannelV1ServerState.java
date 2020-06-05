@@ -19,6 +19,7 @@ package org.bitcoinj.protocols.channels;
 import com.google.common.collect.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;

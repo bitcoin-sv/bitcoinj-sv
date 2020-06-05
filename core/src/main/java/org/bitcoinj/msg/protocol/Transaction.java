@@ -20,6 +20,7 @@ package org.bitcoinj.msg.protocol;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.MessageSerializer;

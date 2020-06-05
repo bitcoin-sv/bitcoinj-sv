@@ -16,9 +16,10 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.FullPrunedBlockStore;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;

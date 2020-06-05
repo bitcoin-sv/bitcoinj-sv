@@ -20,6 +20,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.exception.BlockStoreException;
 
 /**
  * An implementor of BlockStore saves StoredBlock objects to disk. Different implementations store them in

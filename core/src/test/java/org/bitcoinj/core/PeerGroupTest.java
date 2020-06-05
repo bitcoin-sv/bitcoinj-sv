@@ -22,6 +22,7 @@ import com.google.common.collect.*;
 import com.google.common.net.*;
 import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.listeners.*;
+import org.bitcoinj.exception.PeerDiscoveryException;
 import org.bitcoinj.msg.*;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;

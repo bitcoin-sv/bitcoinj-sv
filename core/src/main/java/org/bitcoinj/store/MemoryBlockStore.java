@@ -17,6 +17,8 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 
 import java.util.LinkedHashMap;

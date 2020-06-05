@@ -19,7 +19,7 @@ package org.bitcoinj.core.listeners;
 import org.bitcoinj.core.AbstractBlockChain;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.exception.VerificationException;
 
 /**
  * Listener interface for when a new block on the best chain is seen.

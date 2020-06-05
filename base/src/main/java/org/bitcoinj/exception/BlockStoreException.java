@@ -1,6 +1,5 @@
 /*
  * Copyright 2011 Google Inc.
- * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.exception;
 
-@SuppressWarnings("serial")
-public class AddressFormatException extends IllegalArgumentException {
-    public AddressFormatException() {
-        super();
+/**
+ * Thrown when something goes wrong with storing a block. Examples: out of disk space.
+ */
+public class BlockStoreException extends Exception {
+    public BlockStoreException(String message) {
+        super(message);
     }
 
-    public AddressFormatException(String message) {
-        super(message);
+    public BlockStoreException(Throwable t) {
+        super(t);
+    }
+
+    public BlockStoreException(String message, Throwable t) {
+        super(message, t);
     }
 }

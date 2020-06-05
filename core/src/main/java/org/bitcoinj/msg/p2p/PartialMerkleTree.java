@@ -26,6 +26,7 @@ import java.util.List;
 import static org.bitcoinj.core.Utils.*;
 import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.Message;
 

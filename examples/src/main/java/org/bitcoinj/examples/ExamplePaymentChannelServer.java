@@ -23,7 +23,7 @@ import joptsimple.OptionSpec;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.protocols.channels.*;

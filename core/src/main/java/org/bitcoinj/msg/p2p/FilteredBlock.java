@@ -18,6 +18,7 @@ package org.bitcoinj.msg.p2p;
 
 import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.protocol.Transaction;

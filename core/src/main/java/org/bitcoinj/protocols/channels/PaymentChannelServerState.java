@@ -16,6 +16,7 @@
 
 package org.bitcoinj.protocols.channels;
 
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.wallet.SendRequest;

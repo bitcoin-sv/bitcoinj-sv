@@ -38,6 +38,8 @@ import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
+
+import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.signers.LocalTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner.ProposedTransaction;
 import org.bitcoinj.wallet.KeyBag;
@@ -95,7 +97,7 @@ public class GenerateLowSTests {
 
         input.verify(output);
         input.getScriptSig().correctlySpends(outputTransaction, 0, output.getScriptPubKey(),
-            EnumSet.of(Script.VerifyFlag.DERSIG, Script.VerifyFlag.P2SH));
+            EnumSet.of(ScriptVerifyFlag.DERSIG, ScriptVerifyFlag.P2SH));
 
         final Script scriptSig = input.getScriptSig();
         final TransactionSignature signature = TransactionSignature.decodeFromBitcoin(scriptSig.getChunks().get(0).data(), true, false);
@@ -107,13 +109,13 @@ public class GenerateLowSTests {
             + output.getIndex() + ", \""
             + scriptToString(output.getScriptPubKey()) + "\"]],\n"
             + "\"" + Utils.HEX.encode(proposedTransaction.partialTx.unsafeBitcoinSerialize()) + "\", \""
-            + Script.VerifyFlag.P2SH.name() + "," + Script.VerifyFlag.LOW_S.name() + "\"],");
+            + ScriptVerifyFlag.P2SH.name() + "," + ScriptVerifyFlag.LOW_S.name() + "\"],");
 
         final BigInteger highS = HIGH_S_DIFFERENCE.subtract(signature.s);
         final TransactionSignature highSig = new TransactionSignature(signature.r, highS);
         input.setScriptSig(new ScriptBuilder().data(highSig.encodeToBitcoin()).data(scriptSig.getChunks().get(1).data()).build());
         input.getScriptSig().correctlySpends(outputTransaction, 0, output.getScriptPubKey(),
-            EnumSet.of(Script.VerifyFlag.P2SH));
+            EnumSet.of(ScriptVerifyFlag.P2SH));
 
         // A high-S transaction without the LOW_S flag, for the tx_valid.json set
         System.out.println("[\"A transaction with a high-S signature.\"],");
@@ -122,7 +124,7 @@ public class GenerateLowSTests {
             + output.getIndex() + ", \""
             + scriptToString(output.getScriptPubKey()) + "\"]],\n"
             + "\"" + Utils.HEX.encode(proposedTransaction.partialTx.unsafeBitcoinSerialize()) + "\", \""
-            + Script.VerifyFlag.P2SH.name() + "\"],");
+            + ScriptVerifyFlag.P2SH.name() + "\"],");
 
         // Lastly a conventional high-S transaction with the LOW_S flag, for the tx_invalid.json set
         System.out.println("[\"A transaction with a high-S signature.\"],");
@@ -131,7 +133,7 @@ public class GenerateLowSTests {
             + output.getIndex() + ", \""
             + scriptToString(output.getScriptPubKey()) + "\"]],\n"
             + "\"" + Utils.HEX.encode(proposedTransaction.partialTx.unsafeBitcoinSerialize()) + "\", \""
-            + Script.VerifyFlag.P2SH.name() + "," + Script.VerifyFlag.LOW_S.name() + "\"],");
+            + ScriptVerifyFlag.P2SH.name() + "," + ScriptVerifyFlag.LOW_S.name() + "\"],");
     }
 
     private static void addOutputs(final Transaction outputTransaction, final KeyBag bag) throws ScriptException {

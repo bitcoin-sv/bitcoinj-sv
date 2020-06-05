@@ -18,6 +18,7 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.BlockStoreException;
 
 import java.sql.*;
 import java.util.ArrayList;

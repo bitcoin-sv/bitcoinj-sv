@@ -29,6 +29,9 @@ import java.io.*;
 import java.nio.ByteBuffer;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.AddressFormatException;
+import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.script.Script;
 import org.iq80.leveldb.*;

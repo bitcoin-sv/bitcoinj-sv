@@ -17,7 +17,7 @@
 package org.bitcoinj.uri;
 
 import org.bitcoinj.core.Address;
-import org.bitcoinj.core.AddressFormatException;
+import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.AbstractBitcoinNetParams;

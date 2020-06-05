@@ -22,6 +22,7 @@ import java.util.List;
 import org.bitcoinj.core.listeners.NewBestBlockListener;
 import org.bitcoinj.core.listeners.ReorganizeListener;
 import org.bitcoinj.core.listeners.TransactionReceivedInBlockListener;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 
 /**

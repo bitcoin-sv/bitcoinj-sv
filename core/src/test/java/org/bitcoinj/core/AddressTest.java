@@ -17,6 +17,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.exception.AddressFormatException;
+import org.bitcoinj.exception.WrongNetworkException;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Networks;
 import org.bitcoinj.params.TestNet3Params;

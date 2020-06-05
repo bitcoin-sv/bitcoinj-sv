@@ -21,6 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Bytes;
 import com.lambdaworks.crypto.SCrypt;
+import org.bitcoinj.exception.AddressFormatException;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;

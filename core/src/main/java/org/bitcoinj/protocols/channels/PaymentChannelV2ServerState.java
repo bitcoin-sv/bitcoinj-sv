@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;

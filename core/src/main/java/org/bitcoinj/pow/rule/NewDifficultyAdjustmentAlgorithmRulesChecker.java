@@ -2,11 +2,12 @@ package org.bitcoinj.pow.rule;
 
 import com.google.common.base.Preconditions;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.AbstractBitcoinNetParams;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.exception.BlockStoreException;
 
 import java.math.BigInteger;
 

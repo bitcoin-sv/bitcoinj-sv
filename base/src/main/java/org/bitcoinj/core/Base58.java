@@ -16,6 +16,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.exception.AddressFormatException;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 

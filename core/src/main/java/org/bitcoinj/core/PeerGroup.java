@@ -28,6 +28,8 @@ import com.subgraph.orchid.*;
 import net.jcip.annotations.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.crypto.*;
+import org.bitcoinj.exception.PeerDiscoveryException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.*;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;

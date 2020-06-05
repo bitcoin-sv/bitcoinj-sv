@@ -15,6 +15,8 @@
 package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;

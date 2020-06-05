@@ -17,6 +17,7 @@ package org.bitcoinj.msg.protocol;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction.SigHash;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.msg.p2p.InventoryItem;
@@ -24,6 +25,7 @@ import org.bitcoinj.msg.p2p.UTXOsMessage;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import com.google.common.base.Preconditions;
+import org.bitcoinj.script.ScriptUtil;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -684,7 +686,7 @@ public class FullBlockTestGenerator {
         {
             ByteArrayOutputStream p2shScriptPubKey = new UnsafeByteArrayOutputStream();
             try {
-                Script.writeBytes(p2shScriptPubKey, coinbaseOutKeyPubKey);
+                ScriptUtil.writeBytes(p2shScriptPubKey, coinbaseOutKeyPubKey);
                 p2shScriptPubKey.write(OP_2DUP);
                 p2shScriptPubKey.write(OP_CHECKSIGVERIFY);
                 p2shScriptPubKey.write(OP_2DUP);
@@ -705,7 +707,7 @@ public class FullBlockTestGenerator {
             UnsafeByteArrayOutputStream scriptPubKey = new UnsafeByteArrayOutputStream(scriptHash.length + 3);
             scriptPubKey.write(OP_HASH160);
             try {
-                Script.writeBytes(scriptPubKey, scriptHash);
+                ScriptUtil.writeBytes(scriptPubKey, scriptHash);
             } catch (IOException e) {
                 throw new RuntimeException(e);  // Cannot happen.
             }
@@ -780,9 +782,9 @@ public class FullBlockTestGenerator {
                         byte[] signature = bos.toByteArray();
 
                         ByteArrayOutputStream scriptSigBos = new UnsafeByteArrayOutputStream(signature.length + b39p2shScriptPubKey.length + 3);
-                        Script.writeBytes(scriptSigBos, new byte[] {(byte) OP_CHECKSIG});
+                        ScriptUtil.writeBytes(scriptSigBos, new byte[] {(byte) OP_CHECKSIG});
                         scriptSigBos.write(Script.createInputScript(signature));
-                        Script.writeBytes(scriptSigBos, b39p2shScriptPubKey);
+                        ScriptUtil.writeBytes(scriptSigBos, b39p2shScriptPubKey);
 
                         scriptSig = scriptSigBos.toByteArray();
                     } catch (IOException e) {
@@ -853,11 +855,11 @@ public class FullBlockTestGenerator {
                             ByteArrayOutputStream scriptSigBos = new UnsafeByteArrayOutputStream(
                                     signature.length
                                             + b39p2shScriptPubKey.length + 3);
-                            Script.writeBytes(scriptSigBos,
+                            ScriptUtil.writeBytes(scriptSigBos,
                                     new byte[] { (byte) OP_CHECKSIG});
                             scriptSigBos.write(Script
                                     .createInputScript(signature));
-                            Script.writeBytes(scriptSigBos, b39p2shScriptPubKey);
+                            ScriptUtil.writeBytes(scriptSigBos, b39p2shScriptPubKey);
 
                             scriptSig = scriptSigBos.toByteArray();
                         } catch (IOException e) {

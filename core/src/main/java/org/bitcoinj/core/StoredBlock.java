@@ -16,10 +16,11 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.exception.BlockStoreException;
 import com.google.common.base.Objects;
 import org.bitcoinj.utils.ObjectGetter;
 

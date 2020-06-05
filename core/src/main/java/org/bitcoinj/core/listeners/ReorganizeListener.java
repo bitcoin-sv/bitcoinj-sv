@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.StoredBlock;
-import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.exception.VerificationException;
 
 /**
  * Listener interface for when the best chain has changed.

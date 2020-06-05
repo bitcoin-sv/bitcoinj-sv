@@ -24,7 +24,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.script.Script;
-import org.bitcoinj.script.Script.VerifyFlag;
+import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.wallet.KeyBag;
 import org.bitcoinj.wallet.RedeemData;
 import org.slf4j.Logger;
@@ -49,8 +49,8 @@ public class LocalTransactionSigner extends StatelessTransactionSigner {
      * Verify flags that are safe to use when testing if an input is already
      * signed.
      */
-    private static final EnumSet<VerifyFlag> MINIMUM_VERIFY_FLAGS = EnumSet.of(VerifyFlag.P2SH,
-        VerifyFlag.NULLDUMMY);
+    private static final EnumSet<ScriptVerifyFlag> MINIMUM_VERIFY_FLAGS = EnumSet.of(ScriptVerifyFlag.P2SH,
+        ScriptVerifyFlag.NULLDUMMY);
 
     @Override
     public boolean isReady() {

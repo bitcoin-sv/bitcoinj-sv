@@ -22,6 +22,7 @@ import com.google.protobuf.*;
 import com.squareup.okhttp.*;
 import org.bitcoin.crawler.*;
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.PeerDiscoveryException;
 import org.bitcoinj.msg.p2p.VersionMessage;
 import org.slf4j.*;
 

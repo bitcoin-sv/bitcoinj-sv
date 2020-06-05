@@ -18,6 +18,7 @@
 package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet2Params;
 import org.bitcoinj.params.UnitTestParams;

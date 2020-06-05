@@ -55,7 +55,7 @@ import org.bitcoinj.core.UTXOProvider;
 import org.bitcoinj.core.UTXOProviderException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
-import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.script.*;

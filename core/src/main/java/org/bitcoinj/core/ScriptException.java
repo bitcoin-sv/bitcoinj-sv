@@ -16,9 +16,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptChunk;
-import org.bitcoinj.script.ScriptStack;
 
 @SuppressWarnings("serial")
 public class ScriptException extends VerificationException {

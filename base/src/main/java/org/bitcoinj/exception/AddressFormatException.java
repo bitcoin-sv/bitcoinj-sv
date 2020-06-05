@@ -1,5 +1,6 @@
 /*
  * Copyright 2011 Google Inc.
+ * Copyright 2015 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +15,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.net.discovery;
+package org.bitcoinj.exception;
 
-public class PeerDiscoveryException extends Exception {
-    private static final long serialVersionUID = -2863411151549391392L;
-
-    public PeerDiscoveryException() {
+@SuppressWarnings("serial")
+public class AddressFormatException extends IllegalArgumentException {
+    public AddressFormatException() {
         super();
     }
 
-    public PeerDiscoveryException(String message) {
+    public AddressFormatException(String message) {
         super(message);
-    }
-
-    public PeerDiscoveryException(Throwable arg0) {
-        super(arg0);
-    }
-
-    public PeerDiscoveryException(String message, Throwable arg0) {
-        super(message, arg0);
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
