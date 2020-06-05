@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.params.AbstractBitcoinNetParams;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;
@@ -51,8 +50,8 @@ public class NewDifficultyAdjustmentAlgorithmRulesChecker extends AbstractPowRul
             StoredBlock last = GetMostSuitableBlock(storedPrev, blockStore);
             StoredBlock first = getFirst(storedPrev, blockStore);
 
-            BigInteger nextTarget = AbstractBitcoinNetParams.ComputeTarget(first, last);
-            networkParameters.verifyDifficulty(nextTarget, nextBlock);
+            BigInteger nextTarget = Verification.ComputeTarget(first, last);
+            Verification.verifyDifficulty(networkParameters, nextTarget, nextBlock);
         } catch (BlockStoreException x) {
             // We don't have enough blocks, yet
         }

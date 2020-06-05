@@ -30,7 +30,7 @@ public class UnknownMessage extends Message {
     private String name;
 
     public UnknownMessage(NetworkParameters params, String name, byte[] payloadBytes, int length) throws ProtocolException {
-        super(params, payloadBytes, 0, params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT), params.getDefaultSerializer(), length);
+        super(params, payloadBytes, 0, params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT), null, length);
         this.name = name;
     }
 

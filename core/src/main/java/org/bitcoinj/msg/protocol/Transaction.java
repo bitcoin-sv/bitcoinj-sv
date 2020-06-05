@@ -23,7 +23,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptOpCodes;
@@ -120,13 +120,6 @@ public class Transaction extends ChildMessage {
      * This should be adjusted from time to time. Last adjustment: March 2016.
      */
     public static final Coin DEFAULT_TX_FEE = Coin.valueOf(5000); // 0.5 mBTC
-
-    /**
-     * Any standard (ie pay-to-address) output smaller than this value (in satoshis) will most likely be rejected by the network.
-     * This is calculated by assuming a standard output will be 34 bytes, and then using the formula used in
-     * {@link TransactionOutput#getMinNonDustValue(Coin)}.
-     */
-    public static final Coin MIN_NONDUST_OUTPUT = Coin.valueOf(546); // satoshis
 
     public static final int CURRENT_VERSION = 2;
     public static final int MAX_STANDARD_VERSION = 2;
@@ -239,17 +232,17 @@ public class Transaction extends ChildMessage {
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Transaction(NetworkParameters params, byte[] payload, int offset, @Nullable Message parent, MessageSerializer setSerializer, int length)
+    public Transaction(NetworkParameters params, byte[] payload, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, offset, parent, setSerializer, length);
+        super(params, payload, offset, parent, serializeMode, length);
     }
 
     /**
      * Creates a transaction by reading payload. Length of a transaction is fixed.
      */
-    public Transaction(NetworkParameters params, byte[] payload, @Nullable Message parent, MessageSerializer setSerializer, int length)
+    public Transaction(NetworkParameters params, byte[] payload, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, 0, parent, setSerializer, length);
+        super(params, payload, 0, parent, serializeMode, length);
     }
 
     /**
@@ -264,8 +257,8 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * Used by BitcoinSerializer.  The serializer has to calculate a hash for checksumming so to
-     * avoid wasting the considerable effort a set method is provided so the serializer can set it.
+     * Used by BitcoinSerializer.  The serializeMode has to calculate a hash for checksumming so to
+     * avoid wasting the considerable effort a set method is provided so the serializeMode can set it.
      *
      * No verification is performed on this hash.
      */
@@ -540,7 +533,7 @@ public class Transaction extends ChildMessage {
     protected void parseLite() throws ProtocolException {
 
         //skip this if the length has been provided i.e. the tx is not part of a block
-        if (serializer.isParseLazyMode() && length() == UNKNOWN_LENGTH) {
+        if (serializeMode.isParseLazyMode() && length() == UNKNOWN_LENGTH) {
             //If length hasn't been provided this tx is probably contained within a block.
             //In parseRetain mode the block needs to know how long the transaction is
             //unfortunately this requires a fairly deep (though not total) parse.
@@ -610,7 +603,7 @@ public class Transaction extends ChildMessage {
         optimalEncodingMessageSize += VarInt.sizeOf(numInputs);
         inputs = new ArrayList<TransactionInput>((int) numInputs);
         for (long i = 0; i < numInputs; i++) {
-            TransactionInput input = new TransactionInput(params, this, payload, cursor, serializer);
+            TransactionInput input = new TransactionInput(params, this, payload, cursor, serializeMode);
             inputs.add(input);
             long scriptLen = readVarInt(TransactionOutPoint.MESSAGE_LENGTH);
             optimalEncodingMessageSize += TransactionOutPoint.MESSAGE_LENGTH + VarInt.sizeOf(scriptLen) + scriptLen + 4;
@@ -619,9 +612,9 @@ public class Transaction extends ChildMessage {
         // Now the outputs
         long numOutputs = readVarInt();
         optimalEncodingMessageSize += VarInt.sizeOf(numOutputs);
-        outputs = new ArrayList<TransactionOutput>((int) numOutputs);
+        outputs = new ArrayList<>((int) numOutputs);
         for (long i = 0; i < numOutputs; i++) {
-            TransactionOutput output = new TransactionOutput(params, this, payload, cursor, serializer);
+            TransactionOutput output = new TransactionOutput(params, this, payload, cursor, serializeMode);
             outputs.add(output);
             long scriptLen = readVarInt(8);
             optimalEncodingMessageSize += 8 + VarInt.sizeOf(scriptLen) + scriptLen;
@@ -1332,30 +1325,30 @@ public class Transaction extends ChildMessage {
 
             if (!anyoneCanPay) {
                 ByteArrayOutputStream bosHashPrevouts = new UnsafeByteArrayOutputStream(256);
-                for (int i = 0; i < this.inputs.size(); ++i) {
-                    bosHashPrevouts.write(this.inputs.get(i).getOutpoint().getHash().getReversedBytes());
-                    uint32ToByteStreamLE(this.inputs.get(i).getOutpoint().getIndex(), bosHashPrevouts);
+                for (int i = 0; i < inputs.size(); ++i) {
+                    bosHashPrevouts.write(inputs.get(i).getOutpoint().getHash().getReversedBytes());
+                    uint32ToByteStreamLE(inputs.get(i).getOutpoint().getIndex(), bosHashPrevouts);
                 }
                 hashPrevouts = Sha256Hash.hashTwice(bosHashPrevouts.toByteArray());
             }
 
             if (!anyoneCanPay && type != SigHash.SINGLE && type != SigHash.NONE) {
                 ByteArrayOutputStream bosSequence = new UnsafeByteArrayOutputStream(256);
-                for (int i = 0; i < this.inputs.size(); ++i) {
-                    uint32ToByteStreamLE(this.inputs.get(i).getSequenceNumber(), bosSequence);
+                for (int i = 0; i < inputs.size(); ++i) {
+                    uint32ToByteStreamLE(inputs.get(i).getSequenceNumber(), bosSequence);
                 }
                 hashSequence = Sha256Hash.hashTwice(bosSequence.toByteArray());
             }
 
             if (type != SigHash.SINGLE && type != SigHash.NONE) {
                 ByteArrayOutputStream bosHashOutputs = new UnsafeByteArrayOutputStream(256);
-                for (int i = 0; i < this.outputs.size(); ++i) {
+                for (int i = 0; i < outputs.size(); ++i) {
                     uint64ToByteStreamLE(
-                            BigInteger.valueOf(this.outputs.get(i).getValue().getValue()),
+                            BigInteger.valueOf(outputs.get(i).getValue().getValue()),
                             bosHashOutputs
                     );
-                    bosHashOutputs.write(new VarInt(this.outputs.get(i).getScriptBytes().length).encode());
-                    bosHashOutputs.write(this.outputs.get(i).getScriptBytes());
+                    bosHashOutputs.write(new VarInt(outputs.get(i).getScriptBytes().length).encode());
+                    bosHashOutputs.write(outputs.get(i).getScriptBytes());
                 }
                 hashOutputs = Sha256Hash.hashTwice(bosHashOutputs.toByteArray());
             } else if (type == SigHash.SINGLE && inputIndex < outputs.size()) {
@@ -1364,8 +1357,8 @@ public class Transaction extends ChildMessage {
                         BigInteger.valueOf(this.outputs.get(inputIndex).getValue().getValue()),
                         bosHashOutputs
                 );
-                bosHashOutputs.write(new VarInt(this.outputs.get(inputIndex).getScriptBytes().length).encode());
-                bosHashOutputs.write(this.outputs.get(inputIndex).getScriptBytes());
+                bosHashOutputs.write(new VarInt(outputs.get(inputIndex).getScriptBytes().length).encode());
+                bosHashOutputs.write(outputs.get(inputIndex).getScriptBytes());
                 hashOutputs = Sha256Hash.hashTwice(bosHashOutputs.toByteArray());
             }
             uint32ToByteStreamLE(version, bos);
@@ -1378,7 +1371,7 @@ public class Transaction extends ChildMessage {
             uint64ToByteStreamLE(BigInteger.valueOf(prevValue.getValue()), bos);
             uint32ToByteStreamLE(inputs.get(inputIndex).getSequenceNumber(), bos);
             bos.write(hashOutputs);
-            uint32ToByteStreamLE(this.lockTime, bos);
+            uint32ToByteStreamLE(lockTime, bos);
             uint32ToByteStreamLE(0x000000ff & sigHashType, bos);
         } catch (IOException e) {
             throw new RuntimeException(e);  // Cannot happen.

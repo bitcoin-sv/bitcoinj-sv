@@ -17,7 +17,6 @@ package org.bitcoinj.msg;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
-import org.bitcoinj.msg.Message;
 
 import java.io.IOException;
 import java.io.OutputStream;

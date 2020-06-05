@@ -52,9 +52,7 @@ public class BitcoinSerializer extends MessageSerializer {
     private static final int COMMAND_LEN = 12;
 
     private final NetworkParameters params;
-    private final boolean parseLazy;
-    private final boolean parseRetain;
-    private boolean compactTransactionsInBlock = false;
+    private final SerializeMode serializeMode;
 
     private static final Map<Class<? extends Message>, String> names = new HashMap<Class<? extends Message>, String>();
 
@@ -104,9 +102,12 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     public BitcoinSerializer(NetworkParameters params, boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock) {
         this.params = params;
-        this.parseLazy = parseLazy;
-        this.parseRetain = parseRetain;
-        this.compactTransactionsInBlock = compactTransactionsInBlock;
+        serializeMode = new SerializeMode(parseLazy, parseRetain, compactTransactionsInBlock);
+    }
+
+    public BitcoinSerializer(NetworkParameters params) {
+        this.params = params;
+        this.serializeMode = params.getDefaultSerializeMode();
     }
 
     /**
@@ -223,7 +224,7 @@ public class BitcoinSerializer extends MessageSerializer {
         } else if (command.equals("merkleblock")) {
             message = makeFilteredBlock(payloadBytes);
         } else if (command.equals("getdata")) {
-            message = new GetDataMessage(params, payloadBytes, this, length);
+            message = new GetDataMessage(params, payloadBytes, serializeMode, length);
         } else if (command.equals("getblocks")) {
             message = new GetBlocksMessage(params, payloadBytes);
         } else if (command.equals("getheaders")) {
@@ -268,7 +269,7 @@ public class BitcoinSerializer extends MessageSerializer {
     }
 
     /**
-     * Get the network parameters for this serializer.
+     * Get the network parameters for this serializeMode.
      */
     public NetworkParameters getParameters() {
         return params;
@@ -280,7 +281,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public AddressMessage makeAddressMessage(byte[] payloadBytes, int length) throws ProtocolException {
-        return new AddressMessage(params, payloadBytes, this, length);
+        return new AddressMessage(params, payloadBytes, serializeMode, length);
     }
 
     /**
@@ -298,7 +299,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public Block makeBlock(final byte[] payloadBytes, final int offset, final int length) throws ProtocolException {
-        return new Block(params, payloadBytes, offset, this, length);
+        return new Block(params, payloadBytes, offset, serializeMode, length);
     }
 
     /**
@@ -325,7 +326,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public InventoryMessage makeInventoryMessage(byte[] payloadBytes, int length) throws ProtocolException {
-        return new InventoryMessage(params, payloadBytes, this, length);
+        return new InventoryMessage(params, payloadBytes, serializeMode, length);
     }
 
     /**
@@ -335,7 +336,7 @@ public class BitcoinSerializer extends MessageSerializer {
     @Override
     public Transaction makeTransaction(byte[] payloadBytes, int offset,
         int length, byte[] hash) throws ProtocolException {
-        Transaction tx = new Transaction(params, payloadBytes, offset, null, this, length);
+        Transaction tx = new Transaction(params, payloadBytes, offset, null, serializeMode, length);
         if (hash != null)
             tx.setHash(Sha256Hash.wrapReversed(hash));
         return tx;
@@ -364,27 +365,27 @@ public class BitcoinSerializer extends MessageSerializer {
     }
 
     /**
-     * Whether the serializer will produce lazy parse mode Messages
+     * Whether the serializeMode will produce lazy parse mode Messages
      */
     @Override
     public boolean isParseLazyMode() {
-        return parseLazy;
+        return serializeMode.isParseLazyMode();
     }
 
     /**
-     * Whether the serializer will produce cached mode Messages
+     * Whether the serializeMode will produce cached mode Messages
      */
     @Override
     public boolean isParseRetainMode() {
-        return parseRetain;
+        return serializeMode.isParseRetainMode();
     }
 
     public boolean isCompactTransactionsInBlock() {
-        return compactTransactionsInBlock;
+        return serializeMode.isCompactTransactionsInBlock();
     }
 
     public void setCompactTransactionsInBlock(boolean compactTransactionsInBlock) {
-        this.compactTransactionsInBlock = compactTransactionsInBlock;
+        serializeMode.setCompactTransactionsInBlock(compactTransactionsInBlock);
     }
 
     public static class BitcoinPacketHeader {

@@ -474,7 +474,7 @@ public abstract class AbstractBlockChain {
                 } else {
                     height = Block.BLOCK_HEIGHT_UNKNOWN;
                 }
-                flags = params.getBlockVerificationFlags(block, versionTally, height);
+                flags = Verification.getBlockVerificationFlags(params, block, versionTally, height);
                 if (shouldVerifyTransactions())
                     block.verifyTransactions(height, flags);
             } catch (VerificationException e) {

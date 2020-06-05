@@ -20,6 +20,7 @@ package org.bitcoinj.msg.protocol;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Network;
 import org.bitcoinj.params.TestNet2Params;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
@@ -63,7 +64,7 @@ public class SPVBlockChainTest {
 
     private static class TweakableTestNet2Params extends TestNet2Params {
         public TweakableTestNet2Params() {
-            super();
+            super(Network.TESTNET2);
         }
         public void setMaxTarget(BigInteger limit) {
             maxTarget = limit;

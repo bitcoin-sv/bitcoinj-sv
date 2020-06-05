@@ -46,8 +46,8 @@ public abstract class ChildMessage extends Message {
         super(params, payload, offset, protocolVersion);
     }
 
-    public ChildMessage(NetworkParameters params, byte[] payload, int offset, int protocolVersion, Message parent, MessageSerializer setSerializer, int length) throws ProtocolException {
-        super(params, payload, offset, protocolVersion, setSerializer, length);
+    public ChildMessage(NetworkParameters params, byte[] payload, int offset, int protocolVersion, Message parent, SerializeMode serializeMode, int length) throws ProtocolException {
+        super(params, payload, offset, protocolVersion, serializeMode, length);
         this.parent = parent;
     }
 
@@ -55,9 +55,9 @@ public abstract class ChildMessage extends Message {
         super(params, payload, offset);
     }
 
-    public ChildMessage(NetworkParameters params, byte[] payload, int offset, @Nullable Message parent, MessageSerializer setSerializer, int length)
+    public ChildMessage(NetworkParameters params, byte[] payload, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, offset, setSerializer, length);
+        super(params, payload, offset, serializeMode, length);
         this.parent = parent;
     }
 

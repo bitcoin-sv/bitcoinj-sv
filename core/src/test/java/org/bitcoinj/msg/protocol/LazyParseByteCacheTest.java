@@ -186,7 +186,7 @@ public class LazyParseByteCacheTest {
 
 
     public void testBlock(byte[] blockBytes, boolean isChild, boolean lazy, boolean retain) throws Exception {
-        //reference serializer to produce comparison serialization output after changes to
+        //reference serializeMode to produce comparison serialization output after changes to
         //message structure.
         MessageSerializer bsRef = PARAMS.getSerializer(false, false);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -421,7 +421,7 @@ public class LazyParseByteCacheTest {
     
     public void testTransaction(NetworkParameters params, byte[] txBytes, boolean isChild, boolean lazy, boolean retain) throws Exception {
 
-        //reference serializer to produce comparison serialization output after changes to
+        //reference serializeMode to produce comparison serialization output after changes to
         //message structure.
         MessageSerializer bsRef = params.getSerializer(false, false);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

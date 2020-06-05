@@ -1,10 +1,9 @@
 package org.bitcoinj.pow.factory;
 
+import org.bitcoinj.core.Verification;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.StoredBlock;
-import org.bitcoinj.params.AbstractBitcoinNetParams;
-import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.pow.RulesPoolChecker;
@@ -21,7 +20,7 @@ public class EDARuleCheckerFactory extends AbstractRuleCheckerFactory {
 
     @Override
     public RulesPoolChecker getRuleChecker(StoredBlock storedPrev, Block nextBlock) {
-        if (AbstractBitcoinNetParams.isDifficultyTransitionPoint(storedPrev, networkParameters)) {
+        if (Verification.isDifficultyTransitionPoint(storedPrev, networkParameters)) {
             return getTransitionPointRulesChecker();
         } else {
             return getNoTransitionPointRulesChecker(storedPrev, nextBlock);
@@ -36,7 +35,7 @@ public class EDARuleCheckerFactory extends AbstractRuleCheckerFactory {
 
     private RulesPoolChecker getNoTransitionPointRulesChecker(StoredBlock storedPrev, Block nextBlock) {
         RulesPoolChecker rulesChecker = new RulesPoolChecker(networkParameters);
-        if (isTestNet() && TestNet3Params.isValidTestnetDateBlock(nextBlock)) {
+        if (isTestNet() && Verification.isValidTestnetDateBlock(nextBlock)) {
             rulesChecker.addRule(new LastNonMinimalDifficultyRuleChecker(networkParameters));
         } else {
             if (AbstractPowRulesChecker.hasEqualDifficulty(

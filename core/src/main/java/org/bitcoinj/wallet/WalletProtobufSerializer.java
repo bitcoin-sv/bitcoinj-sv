@@ -416,7 +416,7 @@ public class WalletProtobufSerializer {
         try {
             Protos.Wallet walletProto = parseToProto(input);
             final String paramsID = walletProto.getNetworkIdentifier();
-            NetworkParameters params = NetworkParameters.fromID(paramsID);
+            NetworkParameters params = Verification.fromID(paramsID);
             if (params == null)
                 throw new UnreadableWalletException("Unknown network parameters ID " + paramsID);
             return readWallet(params, extensions, walletProto, forceReset);
@@ -811,7 +811,7 @@ public class WalletProtobufSerializer {
             if (field != 1) // network_identifier
                 return false;
             final String network = cis.readString();
-            return NetworkParameters.fromID(network) != null;
+            return Verification.fromID(network) != null;
         } catch (IOException x) {
             return false;
         }

@@ -27,13 +27,13 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 /**
- * Dummy serializer used ONLY for objects which do not have network parameters
+ * Dummy serializeMode used ONLY for objects which do not have network parameters
  * set.
  */
 class DummySerializer extends MessageSerializer {
     public static final DummySerializer DEFAULT = new DummySerializer();
 
-    private static final String DEFAULT_EXCEPTION_MESSAGE = "Dummy serializer cannot serialize/deserialize objects as it does not know which network they belong to.";
+    private static final String DEFAULT_EXCEPTION_MESSAGE = "Dummy serializeMode cannot serialize/deserialize objects as it does not know which network they belong to.";
 
     public DummySerializer() {
     }

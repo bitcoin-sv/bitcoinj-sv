@@ -18,7 +18,6 @@
 package org.bitcoinj.params;
 
 import org.bitcoinj.core.*;
-import org.bitcoinj.net.discovery.*;
 
 import java.net.*;
 
@@ -32,8 +31,8 @@ public class MainNetParams extends AbstractBitcoinNetParams {
     public static final int MAINNET_MAJORITY_REJECT_BLOCK_OUTDATED = 950;
     public static final int MAINNET_MAJORITY_ENFORCE_BLOCK_UPGRADE = 750;
 
-    public MainNetParams() {
-        super();
+    public MainNetParams(Network network) {
+        super(network);
         interval = INTERVAL;
         targetTimespan = TARGET_TIMESPAN;
         maxTarget = Utils.decodeCompactBits(0x1d00ffffL);
@@ -80,13 +79,6 @@ public class MainNetParams extends AbstractBitcoinNetParams {
                 "seed.deadalnix.me",
                 "seeder.criptolayer.net"
         };
-        httpSeeds = null; /*new HttpDiscovery.Details[] {
-                // Andreas Schildbach
-                new HttpDiscovery.Details(
-                        ECKey.fromPublicOnly(Utils.HEX.decode("0238746c59d46d5408bf8b1d0af5740fe1a6e1703fcb56b2953f0b965c740d256f")),
-                        URI.create("http://httpseed.bitcoin.schildbach.de/peers")
-                )
-        };*/
 
         addrSeeds = null; /*new int[] {
                 0x1ddb1032, 0x6242ce40, 0x52d6a445, 0x2dd7a445, 0x8a53cd47, 0x73263750, 0xda23c257, 0xecd4ed57,
@@ -137,11 +129,9 @@ public class MainNetParams extends AbstractBitcoinNetParams {
         daaUpdateHeight = 504031;
     }
 
-    private static MainNetParams instance;
+    private static MainNetParams instance = new MainNetParams(Network.MAINNET);
+    static {Network.register(instance.network, instance);}
     public static synchronized MainNetParams get() {
-        if (instance == null) {
-            instance = new MainNetParams();
-        }
         return instance;
     }
 

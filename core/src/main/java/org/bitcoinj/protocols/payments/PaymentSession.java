@@ -396,7 +396,7 @@ public class PaymentSession {
             if (!paymentDetails.hasNetwork())
                 params = MainNetParams.get();
             else
-                params = NetworkParameters.fromPmtProtocolID(paymentDetails.getNetwork());
+                params = Verification.fromPmtProtocolID(paymentDetails.getNetwork());
             if (params == null)
                 throw new PaymentProtocolException.InvalidNetwork("Invalid network " + paymentDetails.getNetwork());
             if (paymentDetails.getOutputsCount() < 1)

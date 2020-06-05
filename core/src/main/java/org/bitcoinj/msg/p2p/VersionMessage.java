@@ -122,6 +122,10 @@ public class VersionMessage extends Message {
     }
 
     @Override
+    protected void selfCheck(byte[] payload, int offset) {
+    }
+
+    @Override
     protected void parseLite() throws ProtocolException {
         // NOP.  VersionMessage is never lazy parsed.
     }

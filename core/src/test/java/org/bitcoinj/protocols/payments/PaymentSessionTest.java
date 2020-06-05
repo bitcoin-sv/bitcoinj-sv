@@ -58,7 +58,7 @@ public class PaymentSessionTest {
         tx = new Transaction(PARAMS);
         outputToMe = new TransactionOutput(PARAMS, tx, coin, serverKey);
         tx.addOutput(outputToMe);
-        context = new Context(NetworkParameters.fromID(NetworkParameters.ID_TESTNET));
+        context = new Context(Verification.fromID(NetworkParameters.ID_TESTNET));
     }
 
     @Test

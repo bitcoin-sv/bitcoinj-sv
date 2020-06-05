@@ -91,7 +91,8 @@ public class HeadersMessage extends Message {
         blockHeaders = new ArrayList<>((int) numHeaders);
 
         for (int i = 0; i < numHeaders; ++i) {
-            final Block newBlockHeader = serializer.makeBlock(payload, cursor, 81);
+            //final Block newBlockHeader = serializeMode.makeBlock(payload, cursor, 81);
+            final Block newBlockHeader = new Block(params, payload, cursor, null, 81);
             if (newBlockHeader.hasTransactions()) {
                 throw new ProtocolException("Block header does not end with a null byte");
             }

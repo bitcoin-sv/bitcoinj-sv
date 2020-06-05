@@ -17,17 +17,8 @@
 
 package org.bitcoinj.wallet;
 
+import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
-import org.bitcoinj.core.AbstractBlockChain;
-import org.bitcoinj.core.Address;
-import org.bitcoinj.core.SPVBlockChain;
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.InsufficientMoneyException;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.StoredBlock;
-import org.bitcoinj.core.TransactionConfidence;
-import org.bitcoinj.core.Utils;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.*;
@@ -2217,7 +2208,7 @@ public class WalletTest extends TestWithWallet {
     public void sendDustTest() throws InsufficientMoneyException {
         // Tests sending dust, should throw DustySendRequested.
         Transaction tx = new Transaction(PARAMS);
-        tx.addOutput(Transaction.MIN_NONDUST_OUTPUT.subtract(SATOSHI), OTHER_ADDRESS);
+        tx.addOutput(MIN_NONDUST_OUTPUT.subtract(SATOSHI), OTHER_ADDRESS);
         SendRequest request = SendRequest.forTx(tx);
         request.ensureMinRequiredFee = true;
         wallet.completeTx(request);
@@ -2254,7 +2245,7 @@ public class WalletTest extends TestWithWallet {
         receiveATransaction(wallet, myAddress);
         Transaction tx = new Transaction(PARAMS);
         tx.addOutput(Coin.CENT, ScriptBuilder.createOpReturnScript("hello world!".getBytes()));
-        tx.addOutput(Transaction.MIN_NONDUST_OUTPUT.subtract(SATOSHI), OTHER_ADDRESS);
+        tx.addOutput(MIN_NONDUST_OUTPUT.subtract(SATOSHI), OTHER_ADDRESS);
         SendRequest request = SendRequest.forTx(tx);
         request.ensureMinRequiredFee = true;
         wallet.completeTx(request);
@@ -2349,15 +2340,15 @@ public class WalletTest extends TestWithWallet {
 
         // ...in fact, also add fee if we would get back less than MIN_NONDUST_OUTPUT
         SendRequest request9 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Transaction.MIN_NONDUST_OUTPUT).subtract(SATOSHI)));
+                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI)));
         request9.ensureMinRequiredFee = true;
         wallet.completeTx(request9);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Transaction.MIN_NONDUST_OUTPUT).subtract(SATOSHI), request9.tx.getFee());
+        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI), request9.tx.getFee());
         assertEquals(1, request9.tx.getOutputs().size());
 
         // ...but if we get back any more than that, we should get a refund (but still pay fee)
         SendRequest request10 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Transaction.MIN_NONDUST_OUTPUT)));
+                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT)));
         request10.ensureMinRequiredFee = true;
         wallet.completeTx(request10);
         assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request10.tx.getFee());
@@ -2365,7 +2356,7 @@ public class WalletTest extends TestWithWallet {
 
         // ...of course fee should be min(request.fee, MIN_TX_FEE) so we should get MIN_TX_FEE.add(SATOSHI) here
         SendRequest request11 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Transaction.MIN_NONDUST_OUTPUT).add(SATOSHI.multiply(2))));
+                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).add(SATOSHI.multiply(2))));
         request11.feePerKb = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(SATOSHI);
         request11.ensureMinRequiredFee = true;
         wallet.completeTx(request11);
@@ -2608,13 +2599,13 @@ public class WalletTest extends TestWithWallet {
         for (int i = 0; i < 98; i++)
             request26.tx.addOutput(CENT, OTHER_ADDRESS);
         request26.tx.addOutput(CENT.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Transaction.MIN_NONDUST_OUTPUT).subtract(SATOSHI)),
+                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI)),
                 OTHER_ADDRESS);
         assertTrue(request26.tx.unsafeBitcoinSerialize().length > 1000);
         request26.feePerKb = SATOSHI;
         request26.ensureMinRequiredFee = true;
         wallet.completeTx(request26);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Transaction.MIN_NONDUST_OUTPUT).subtract(SATOSHI),
+        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI),
                 request26.tx.getFee());
         Transaction spend26 = request26.tx;
         // If a transaction is over 1kb, the set fee should be added
@@ -2915,7 +2906,7 @@ public class WalletTest extends TestWithWallet {
 
         // Add an unsendable value
         block = new StoredBlock(block.getHeader().createNextBlock(OTHER_ADDRESS), BigInteger.ONE, 3);
-        Coin outputValue = Transaction.MIN_NONDUST_OUTPUT.subtract(SATOSHI);
+        Coin outputValue = MIN_NONDUST_OUTPUT.subtract(SATOSHI);
         tx = createFakeTx(PARAMS, outputValue, myAddress);
         wallet.receiveFromBlock(tx, block, AbstractBlockChain.NewBlockType.BEST_CHAIN, 0);
         try {

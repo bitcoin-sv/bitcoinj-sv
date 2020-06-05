@@ -24,7 +24,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.script.*;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.*;
@@ -150,21 +150,21 @@ public class Block extends Message {
      */
     @Deprecated
     public Block(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes, 0, params.getDefaultSerializer(), payloadBytes.length);
+        super(params, payloadBytes, 0, null, payloadBytes.length);
     }
 
     /**
      * Construct a block object from the Bitcoin wire format.
      * @param params NetworkParameters object.
      * @param payloadBytes the payload to extract the block from.
-     * @param serializer the serializer to use for this message.
+     * @param serializeMode the serializeMode to use for this message.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Block(NetworkParameters params, byte[] payloadBytes, MessageSerializer serializer, int length)
+    public Block(NetworkParameters params, byte[] payloadBytes, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payloadBytes, 0, serializer, length);
+        super(params, payloadBytes, 0, serializeMode, length);
     }
 
     /**
@@ -172,14 +172,14 @@ public class Block extends Message {
      * @param params NetworkParameters object.
      * @param payloadBytes the payload to extract the block from.
      * @param offset The location of the first payload byte within the array.
-     * @param serializer the serializer to use for this message.
+     * @param serializeMode the serializeMode to use for this message.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Block(NetworkParameters params, byte[] payloadBytes, int offset, MessageSerializer serializer, int length)
+    public Block(NetworkParameters params, byte[] payloadBytes, int offset, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payloadBytes, offset, serializer, length);
+        super(params, payloadBytes, offset, serializeMode, length);
     }
 
     /**
@@ -190,15 +190,15 @@ public class Block extends Message {
      * @param payloadBytes Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
      * @param parent The message element which contains this block, maybe null for no parent.
-     * @param serializer the serializer to use for this block.
+     * @param serializeMode the serializeMode to use for this block.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Block(NetworkParameters params, byte[] payloadBytes, int offset, @Nullable Message parent, MessageSerializer serializer, int length)
+    public Block(NetworkParameters params, byte[] payloadBytes, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
         // TODO: Keep the parent
-        super(params, payloadBytes, offset, serializer, length);
+        super(params, payloadBytes, offset, serializeMode, length);
     }
 
     /**
@@ -254,7 +254,7 @@ public class Block extends Message {
         hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(payload, offset, cursor - offset));
 
         headerParsed = true;
-        headerBytesValid = serializer.isParseRetainMode();
+        headerBytesValid = serializeMode.isParseRetainMode();
     }
 
     protected void parseTransactions() throws ProtocolException {
@@ -287,7 +287,7 @@ public class Block extends Message {
         CountDownLatch hashLatch = new CountDownLatch(numTransactions);
 
         for (int i = 0; i < numTransactions; i++) {
-            Transaction tx = new Transaction(params, payload, cursor, this, serializer, UNKNOWN_LENGTH);
+            Transaction tx = new Transaction(params, payload, cursor, this, serializeMode, UNKNOWN_LENGTH);
 
             transactions.add(tx);
             cursor += tx.getMessageSize();
@@ -318,7 +318,7 @@ public class Block extends Message {
         // No need to set length here. If length was not provided then it should be set at the end of parseLight().
         // If this is a genuine lazy parse then length must have been provided to the constructor.
         transactionsParsed = true;
-        transactionBytesValid = serializer.isParseRetainMode();
+        transactionBytesValid = serializeMode.isParseRetainMode();
     }
 
     @Override
@@ -343,15 +343,15 @@ public class Block extends Message {
         // Ignore the header since it has fixed length. If length is not provided we will have to
         // invoke a light parse of transactions to calculate the length.
         if (length() == UNKNOWN_LENGTH) {
-            Preconditions.checkState(serializer.isParseLazyMode(),
+            Preconditions.checkState(serializeMode.isParseLazyMode(),
                     "Performing lite parse of block transaction as block was initialised from byte array " +
                     "without providing length.  This should never need to happen.");
             parseTransactions();
             setLength(cursor - offset);
         } else {
-            transactionBytesValid = !transactionsParsed || serializer.isParseRetainMode() && length() > HEADER_SIZE;
+            transactionBytesValid = !transactionsParsed || serializeMode.isParseRetainMode() && length() > HEADER_SIZE;
         }
-        headerBytesValid = !headerParsed || serializer.isParseRetainMode() && length() >= HEADER_SIZE;
+        headerBytesValid = !headerParsed || serializeMode.isParseRetainMode() && length() >= HEADER_SIZE;
     }
 
     /*
@@ -385,7 +385,7 @@ public class Block extends Message {
             return;
         try {
             parseTransactions();
-            if (!serializer.isParseRetainMode()) {
+            if (!serializeMode.isParseRetainMode()) {
                 transactionBytesValid = false;
                 if (headerParsed)
                     payload = null;
@@ -672,8 +672,10 @@ public class Block extends Message {
         copyBitcoinHeaderTo(block);
         if (transactions != null && !transactions.isEmpty()) {
             Transaction ourCoinbase = transactions.get(0);
-            block.coinbase = serializer.makeTransaction(ourCoinbase.unsafeBitcoinSerialize());
+
+            block.coinbase = new Transaction(params, ourCoinbase.unsafeBitcoinSerialize());
             block.coinbase.setHash(ourCoinbase.getHash());
+
             if (transactions.size() == 1) {
                 //check if this is really a block with 1 tx
                 if (getMerkleRoot().equals(block.coinbase.getHash())) {

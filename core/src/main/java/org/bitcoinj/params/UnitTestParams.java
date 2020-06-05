@@ -29,8 +29,8 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
     public static final int TESTNET_MAJORITY_REJECT_BLOCK_OUTDATED = 6;
     public static final int TESTNET_MAJORITY_ENFORCE_BLOCK_UPGRADE = 4;
 
-    public UnitTestParams() {
-        super();
+    public UnitTestParams(Network network) {
+        super(network);
         id = ID_UNITTESTNET;
         packetMagic = 0xf4e5f3f4L;      // must be same as testnet3
         addressHeader = 111;
@@ -59,11 +59,9 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
         daaUpdateHeight = 1000000;
     }
 
-    private static UnitTestParams instance;
+    private static UnitTestParams instance = new UnitTestParams(Network.UNITTEST);
+    static {Network.register(instance.network, instance);}
     public static synchronized UnitTestParams get() {
-        if (instance == null) {
-            instance = new UnitTestParams();
-        }
         return instance;
     }
 

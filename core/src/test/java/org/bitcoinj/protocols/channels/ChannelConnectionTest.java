@@ -616,7 +616,7 @@ public class ChannelConnectionTest extends TestWithWallet {
                 .setInitiate(Protos.Initiate.newBuilder().setExpireTimeSecs(Utils.currentTimeSeconds() + 60 * 60 * 48)
                         .setMinAcceptedChannelSize(100)
                         .setMultisigKey(ByteString.copyFrom(new ECKey().getPubKey()))
-                        .setMinPayment(Transaction.MIN_NONDUST_OUTPUT.value))
+                        .setMinPayment(MIN_NONDUST_OUTPUT.value))
                 .setType(MessageType.INITIATE).build());
 
         pair.clientRecorder.checkNextMsg(MessageType.ERROR);
@@ -641,7 +641,7 @@ public class ChannelConnectionTest extends TestWithWallet {
                 .setInitiate(Protos.Initiate.newBuilder().setExpireTimeSecs(Utils.currentTimeSeconds())
                         .setMinAcceptedChannelSize(COIN.add(SATOSHI).value)
                         .setMultisigKey(ByteString.copyFrom(new ECKey().getPubKey()))
-                        .setMinPayment(Transaction.MIN_NONDUST_OUTPUT.value))
+                        .setMinPayment(MIN_NONDUST_OUTPUT.value))
                 .setType(MessageType.INITIATE).build());
         pair.clientRecorder.checkNextMsg(MessageType.ERROR);
         assertEquals(CloseReason.SERVER_REQUESTED_TOO_MUCH_VALUE, pair.clientRecorder.q.take());

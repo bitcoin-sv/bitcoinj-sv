@@ -56,7 +56,7 @@ public class MultiplexingDiscovery implements PeerDiscovery {
      */
     public static MultiplexingDiscovery forServices(NetworkParameters params, long services) {
         List<PeerDiscovery> discoveries = Lists.newArrayList();
-        HttpDiscovery.Details[] httpSeeds = params.getHttpSeeds();
+        HttpDiscovery.Details[] httpSeeds = {};
         if (httpSeeds != null) {
             OkHttpClient httpClient = new OkHttpClient();
             for (HttpDiscovery.Details httpSeed : httpSeeds)

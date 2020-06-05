@@ -20,7 +20,7 @@ package org.bitcoinj.msg.protocol;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
-import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.wallet.DefaultRiskAnalysis;
@@ -126,12 +126,12 @@ public class TransactionInput extends ChildMessage {
      * @param params NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
-     * @param serializer the serializer to use for this message.
+     * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public TransactionInput(NetworkParameters params, Transaction parentTransaction, byte[] payload, int offset, MessageSerializer serializer)
+    public TransactionInput(NetworkParameters params, Transaction parentTransaction, byte[] payload, int offset, SerializeMode serializeMode)
             throws ProtocolException {
-        super(params, payload, offset, parentTransaction, serializer, UNKNOWN_LENGTH);
+        super(params, payload, offset, parentTransaction, serializeMode, UNKNOWN_LENGTH);
         this.value = null;
     }
 
@@ -145,7 +145,7 @@ public class TransactionInput extends ChildMessage {
 
     @Override
     protected void parse() throws ProtocolException {
-        outpoint = new TransactionOutPoint(params, payload, cursor, this, serializer);
+        outpoint = new TransactionOutPoint(params, payload, cursor, this, serializeMode);
         cursor += outpoint.getMessageSize();
         int scriptLen = (int) readVarInt();
         scriptBytes = readBytes(scriptLen);

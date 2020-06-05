@@ -18,6 +18,7 @@ package org.bitcoinj.msg.p2p;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -45,14 +46,14 @@ public class InventoryMessage extends ListMessage {
      * Deserializes an 'inv' message.
      * @param params NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
-     * @param serializer the serializer to use for this message.
+     * @param serializeMode the serializeMode to use for this message.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public InventoryMessage(NetworkParameters params, byte[] payload, MessageSerializer serializer, int length)
+    public InventoryMessage(NetworkParameters params, byte[] payload, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, serializer, length);
+        super(params, payload, serializeMode, length);
     }
 
     public InventoryMessage(NetworkParameters params) {

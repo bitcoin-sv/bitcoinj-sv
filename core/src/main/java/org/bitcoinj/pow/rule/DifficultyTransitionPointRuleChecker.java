@@ -25,7 +25,7 @@ public class DifficultyTransitionPointRuleChecker extends AbstractPowRulesChecke
         int timeSpan = (int) (prevBlock.getTimeSeconds() - lastBlockInterval.getTimeSeconds());
         BigInteger newTarget = calculateNewTarget(prevBlock, timeSpan);
 
-        networkParameters.verifyDifficulty(newTarget, nextBlock);
+        Verification.verifyDifficulty(networkParameters, newTarget, nextBlock);
     }
 
     private Block findLastBlockInterval(Block prevBlock, BlockStore blockStore) throws BlockStoreException {

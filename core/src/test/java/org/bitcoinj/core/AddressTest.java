@@ -20,6 +20,7 @@ package org.bitcoinj.core;
 import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.WrongNetworkException;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Network;
 import org.bitcoinj.params.Networks;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.script.Script;
@@ -126,7 +127,7 @@ public class AddressTest {
         // An alternative network
         class AltNetwork extends MainNetParams {
             AltNetwork() {
-                super();
+                super(Network.MAINNET);
                 id = "alt.network";
                 addressHeader = 48;
                 p2shHeader = 5;

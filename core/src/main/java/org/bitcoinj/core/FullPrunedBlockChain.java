@@ -235,7 +235,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                 // checkpoints list and we therefore only check non-checkpoints for duplicated transactions here. See the
                 // BIP30 document for more details on this: https://github.com/bitcoin/bips/blob/master/bip-0030.mediawiki
                 for (Transaction tx : block.getParsedTransactions()) {
-                    final Set<ScriptVerifyFlag> verifyFlags = params.getTransactionVerificationFlags(block, tx, getVersionTally(), height);
+                    final Set<ScriptVerifyFlag> verifyFlags = Verification.getTransactionVerificationFlags(params, block, tx, getVersionTally(), height);
                     Sha256Hash hash = tx.getHash();
                     // If we already have unspent outputs for this hash, we saw the tx already. Either the block is
                     // being added twice (bug) or the block is a BIP30 violator.
@@ -252,7 +252,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                 Coin valueIn = Coin.ZERO;
                 Coin valueOut = Coin.ZERO;
                 final List<Script> prevOutScripts = new LinkedList<Script>();
-                final Set<ScriptVerifyFlag> verifyFlags = params.getTransactionVerificationFlags(block, tx, getVersionTally(), height);
+                final Set<ScriptVerifyFlag> verifyFlags = Verification.getTransactionVerificationFlags(params, block, tx, getVersionTally(), height);
                 if (!isCoinBase) {
                     // For each input of the transaction remove the corresponding output from the set of unspent
                     // outputs.
@@ -384,7 +384,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                 List<Future<VerificationException>> listScriptVerificationResults = new ArrayList<Future<VerificationException>>(transactions.size());
                 for (final Transaction tx : transactions) {
                     final Set<ScriptVerifyFlag> verifyFlags =
-                        params.getTransactionVerificationFlags(newBlock.getHeader(), tx, getVersionTally(), Integer.SIZE);
+                            Verification.getTransactionVerificationFlags(params, newBlock.getHeader(), tx, getVersionTally(), Integer.SIZE);
                     boolean isCoinBase = tx.isCoinBase();
                     Coin valueIn = Coin.ZERO;
                     Coin valueOut = Coin.ZERO;

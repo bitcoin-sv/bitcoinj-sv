@@ -17,17 +17,7 @@
 
 package org.bitcoinj.params;
 
-import java.math.BigInteger;
-import java.util.Date;
-
-import com.google.common.base.Preconditions;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.exception.BlockStoreException;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -36,8 +26,8 @@ import static com.google.common.base.Preconditions.checkState;
  * and testing of applications and new Bitcoin versions.
  */
 public class TestNet3Params extends AbstractBitcoinNetParams {
-    public TestNet3Params() {
-        super();
+    public TestNet3Params(Network network) {
+        super(network);
         id = ID_TESTNET;
         // Genesis hash is 000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943
         packetMagic = 0xf4e5f3f4L;
@@ -79,11 +69,9 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
         daaUpdateHeight = 1188697;
     }
 
-    private static TestNet3Params instance;
+    private static TestNet3Params instance = new TestNet3Params(Network.TESTNET3);
+    static {Network.register(instance.network, instance);}
     public static synchronized TestNet3Params get() {
-        if (instance == null) {
-            instance = new TestNet3Params();
-        }
         return instance;
     }
 
@@ -92,67 +80,61 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
         return PAYMENT_PROTOCOL_ID_TESTNET;
     }
 
-    // February 16th 2012
-    private static final Date testnetDiffDate = new Date(1329264000000L);
-
-    public static boolean isValidTestnetDateBlock(Block block){
-        return block.getTime().after(testnetDiffDate);
-    }
-    @Override
-    protected void checkNextCashWorkRequired(StoredBlock storedPrev,
-                                             Block newBlock, BlockStore blockStore) {
-        // This cannot handle the genesis block and early blocks in general.
-        //assert(pindexPrev);
-
-
-
-        // Compute the difficulty based on the full adjustement interval.
-        int height = storedPrev.getHeight();
-        Preconditions.checkState(height >= this.interval);
-
-        // Get the last suitable block of the difficulty interval.
-        try {
-
-            // Special difficulty rule for testnet:
-            // If the new block's timestamp is more than 2* 10 minutes then allow
-            // mining of a min-difficulty block.
-
-            Block prev = storedPrev.getHeader();
-
-            final long timeDelta = newBlock.getTimeSeconds() - prev.getTimeSeconds();
-            if (timeDelta >= 0 && timeDelta > NetworkParameters.TARGET_SPACING * 2) {
-                if (!maxTarget.equals(newBlock.getDifficultyTargetAsInteger()))
-                    throw new VerificationException("Testnet block transition that is not allowed: " +
-                            Long.toHexString(Utils.encodeCompactBits(maxTarget)) + " (required min difficulty) vs " +
-                            Long.toHexString(newBlock.getDifficultyTarget()));
-                return;
-            }
-
-            StoredBlock lastBlock = GetSuitableBlock(storedPrev, blockStore);
-
-            // Get the first suitable block of the difficulty interval.
-            StoredBlock firstBlock = storedPrev;
-
-            for (int i = 144; i > 0; --i)
-            {
-                firstBlock = firstBlock.getPrev(blockStore);
-                if(firstBlock == null)
-                    return;
-            }
-
-            firstBlock = GetSuitableBlock(firstBlock, blockStore);
-
-            // Compute the target based on time and work done during the interval.
-            BigInteger nextTarget =
-                    ComputeTarget(firstBlock, lastBlock);
-
-            verifyDifficulty(nextTarget, newBlock);
-        }
-        catch (BlockStoreException x)
-        {
-            //this means we don't have enough blocks, yet.  let it go until we do.
-            return;
-        }
-    }
+    //    @Override
+//    protected void checkNextCashWorkRequired(StoredBlock storedPrev,
+//                                             Block newBlock, BlockStore blockStore) {
+//        // This cannot handle the genesis block and early blocks in general.
+//        //assert(pindexPrev);
+//
+//
+//
+//        // Compute the difficulty based on the full adjustement interval.
+//        int height = storedPrev.getHeight();
+//        Preconditions.checkState(height >= this.interval);
+//
+//        // Get the last suitable block of the difficulty interval.
+//        try {
+//
+//            // Special difficulty rule for testnet:
+//            // If the new block's timestamp is more than 2* 10 minutes then allow
+//            // mining of a min-difficulty block.
+//
+//            Block prev = storedPrev.getHeader();
+//
+//            final long timeDelta = newBlock.getTimeSeconds() - prev.getTimeSeconds();
+//            if (timeDelta >= 0 && timeDelta > NetworkParameters.TARGET_SPACING * 2) {
+//                if (!maxTarget.equals(newBlock.getDifficultyTargetAsInteger()))
+//                    throw new VerificationException("Testnet block transition that is not allowed: " +
+//                            Long.toHexString(Utils.encodeCompactBits(maxTarget)) + " (required min difficulty) vs " +
+//                            Long.toHexString(newBlock.getDifficultyTarget()));
+//                return;
+//            }
+//
+//            StoredBlock lastBlock = GetSuitableBlock(storedPrev, blockStore);
+//
+//            // Get the first suitable block of the difficulty interval.
+//            StoredBlock firstBlock = storedPrev;
+//
+//            for (int i = 144; i > 0; --i)
+//            {
+//                firstBlock = firstBlock.getPrev(blockStore);
+//                if(firstBlock == null)
+//                    return;
+//            }
+//
+//            firstBlock = GetSuitableBlock(firstBlock, blockStore);
+//
+//            // Compute the target based on time and work done during the interval.
+//            BigInteger nextTarget =
+//                    ComputeTarget(firstBlock, lastBlock);
+//
+//            Verification.verifyDifficulty(this, nextTarget, newBlock);
+//        }
+//        catch (BlockStoreException x)
+//        {
+//            //this means we don't have enough blocks, yet.  let it go until we do.
+//            return;
+//        }
+//    }
 
 }

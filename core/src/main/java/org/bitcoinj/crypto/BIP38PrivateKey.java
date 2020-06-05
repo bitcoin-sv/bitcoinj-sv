@@ -204,6 +204,6 @@ public class BIP38PrivateKey extends VersionedChecksummedBytes {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        params = checkNotNull(NetworkParameters.fromID(in.readUTF()));
+        params = checkNotNull(Verification.fromID(in.readUTF()));
     }
 }

@@ -22,6 +22,7 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.params.MainNetParams;
 import com.google.common.base.Objects;
 import com.google.common.net.InetAddresses;
@@ -66,11 +67,11 @@ public class PeerAddress extends ChildMessage {
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
      * @param protocolVersion Bitcoin protocol version.
-     * @param serializer the serializer to use for this message.
+     * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public PeerAddress(NetworkParameters params, byte[] payload, int offset, int protocolVersion, Message parent, MessageSerializer serializer) throws ProtocolException {
-        super(params, payload, offset, protocolVersion, parent, serializer, UNKNOWN_LENGTH);
+    public PeerAddress(NetworkParameters params, byte[] payload, int offset, int protocolVersion, Message parent, SerializeMode serializeMode) throws ProtocolException {
+        super(params, payload, offset, protocolVersion, parent, serializeMode, UNKNOWN_LENGTH);
         // Message length is calculated in parseLite which is guaranteed to be called before it is ever read.
         // Even though message length is static for a PeerAddress it is safer to leave it there 
         // as it will be set regardless of which constructor was used.

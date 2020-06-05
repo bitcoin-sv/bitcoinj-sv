@@ -31,8 +31,8 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
     public static final int TESTNET_MAJORITY_REJECT_BLOCK_OUTDATED = 75;
     public static final int TESTNET_MAJORITY_ENFORCE_BLOCK_UPGRADE = 51;
 
-    public TestNet2Params() {
-        super();
+    public TestNet2Params(Network network) {
+        super(network);
         id = ID_TESTNET;
         packetMagic = 0xdab5bffaL;
         oldPacketMagic = 0xfabfb5daL;
@@ -63,11 +63,9 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
         daaUpdateHeight = 1188697;
     }
 
-    private static TestNet2Params instance;
+    private static TestNet2Params instance = new TestNet2Params(Network.TESTNET2);
+    static {Network.register(instance.network, instance);}
     public static synchronized TestNet2Params get() {
-        if (instance == null) {
-            instance = new TestNet2Params();
-        }
         return instance;
     }
 

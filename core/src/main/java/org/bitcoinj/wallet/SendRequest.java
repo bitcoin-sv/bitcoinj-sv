@@ -150,7 +150,7 @@ public class SendRequest {
     /**
      * <p>Creates a new SendRequest to the given address for the given value.</p>
      *
-     * <p>Be very careful when value is smaller than {@link Transaction#MIN_NONDUST_OUTPUT} as the transaction will
+     * <p>Be very careful when value is smaller than {@link Coin#MIN_NONDUST_OUTPUT} as the transaction will
      * likely be rejected by the network in this case.</p>
      */
     public static SendRequest to(Address destination, Coin value) {

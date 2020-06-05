@@ -17,8 +17,13 @@
 
 package org.bitcoinj.msg;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.p2p.VersionMessage;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.ProtocolException;
+import org.bitcoinj.core.Utils;
+import org.bitcoinj.core.VarInt;
+import org.bitcoinj.core.UnsafeByteArrayOutputStream;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.params.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +37,7 @@ import static com.google.common.base.Preconditions.checkState;
  * <p>A Message is a data structure that can be serialized/deserialized using the Bitcoin serialization format.
  * Specific types of messages that are used both in the block chain, and on the wire, are derived from this
  * class.</p>
- * 
+ *
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
 public abstract class Message {
@@ -59,46 +64,47 @@ public abstract class Message {
 
     protected boolean parsed = false;
     protected boolean recached = false;
-    protected MessageSerializer serializer;
+    protected SerializeMode serializeMode;
 
     protected int protocolVersion;
 
+    protected Network network;
     protected NetworkParameters params;
 
     protected Message() {
         parsed = true;
-        serializer = DummySerializer.DEFAULT;
+        serializeMode = SerializeMode.DEFAULT;
     }
 
     protected Message(NetworkParameters params) {
         this.params = params;
         parsed = true;
-        serializer = params.getDefaultSerializer();
+        serializeMode = SerializeMode.DEFAULT;
     }
 
     Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
-        this(params, payload, offset, protocolVersion, params.getDefaultSerializer(), UNKNOWN_LENGTH);
+        this(params, payload, offset, protocolVersion, SerializeMode.DEFAULT, UNKNOWN_LENGTH);
     }
 
     /**
-     * 
-     * @param params NetworkParameters object.
-     * @param payload Bitcoin protocol formatted byte array containing message content.
-     * @param offset The location of the first payload byte within the array.
+     * @param params          NetworkParameters object.
+     * @param payload         Bitcoin protocol formatted byte array containing message content.
+     * @param offset          The location of the first payload byte within the array.
      * @param protocolVersion Bitcoin protocol version.
-     * @param serializer the serializer to use for this message.
-     * @param length The length of message payload if known.  Usually this is provided when deserializing of the wire
-     * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
+     * @param serializeMode      the serialize to use for this message.
+     * @param length          The length of message payload if known.  Usually this is provided when deserializing of the wire
+     *                        as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    protected Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion, MessageSerializer serializer, int length) throws ProtocolException {
-        this.serializer = serializer;
+    protected Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion, SerializeMode serializeMode, int length) throws ProtocolException {
+        serializeMode = serializeMode == null ? SerializeMode.DEFAULT : serializeMode;
+        this.serializeMode = serializeMode;
         this.protocolVersion = protocolVersion;
         this.params = params;
         this.payload = payload;
         this.cursor = this.offset = offset;
         this.setLength(length);
-        if (serializer.isParseLazyMode()) {
+        if (serializeMode.isParseLazyMode()) {
             parseLite();
         } else {
             parseLite();
@@ -108,14 +114,14 @@ public abstract class Message {
 
         if (this.length() == UNKNOWN_LENGTH)
             checkState(false, "Length field has not been set in constructor for %s after %s parse. " +
-                              "Refer to Message.parseLite() for detail of required Length field contract.",
-                       getClass().getSimpleName(), serializer.isParseLazyMode() ? "lite" : "full");
-        
+                            "Refer to Message.parseLite() for detail of required Length field contract.",
+                    getClass().getSimpleName(), serializeMode.isParseLazyMode() ? "lite" : "full");
+
         if (SELF_CHECK) {
             selfCheck(payload, offset);
         }
-        
-        if (serializer.isParseRetainMode() || !parsed) {
+
+        if (serializeMode.isParseRetainMode() || !parsed) {
             compactPayload();
             return;
         }
@@ -129,27 +135,25 @@ public abstract class Message {
     protected void compactPayload() {
     }
 
-    private void selfCheck(byte[] payload, int offset) {
-        if (!(this instanceof VersionMessage)) {
-            maybeParse();
-            byte[] payloadBytes = new byte[cursor - offset];
-            System.arraycopy(payload, offset, payloadBytes, 0, cursor - offset);
-            byte[] reserialized = bitcoinSerialize();
-            if (!Arrays.equals(reserialized, payloadBytes))
-                throw new RuntimeException("Serialization is wrong: \n" +
-                        Utils.HEX.encode(reserialized) + " vs \n" +
-                        Utils.HEX.encode(payloadBytes));
-        }
+    protected void selfCheck(byte[] payload, int offset) {
+        maybeParse();
+        byte[] payloadBytes = new byte[cursor - offset];
+        System.arraycopy(payload, offset, payloadBytes, 0, cursor - offset);
+        byte[] reserialized = bitcoinSerialize();
+        if (!Arrays.equals(reserialized, payloadBytes))
+            throw new RuntimeException("Serialization is wrong: \n" +
+                    Utils.HEX.encode(reserialized) + " vs \n" +
+                    Utils.HEX.encode(payloadBytes));
     }
 
     protected Message(NetworkParameters params, byte[] payload, int offset) throws ProtocolException {
         this(params, payload, offset, params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT),
-             params.getDefaultSerializer(), UNKNOWN_LENGTH);
+                null, UNKNOWN_LENGTH);
     }
 
-    protected Message(NetworkParameters params, byte[] payload, int offset, MessageSerializer serializer, int length) throws ProtocolException {
+    protected Message(NetworkParameters params, byte[] payload, int offset, SerializeMode serializeMode, int length) throws ProtocolException {
         this(params, payload, offset, params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT),
-             serializer, length);
+                serializeMode, length);
     }
 
     // These methods handle the serialization/deserialization using the custom Bitcoin protocol.
@@ -181,7 +185,7 @@ public abstract class Message {
         try {
             parse();
             parsed = true;
-            if (!serializer.isParseRetainMode())
+            if (!serializeMode.isParseRetainMode())
                 payload = null;
         } catch (ProtocolException e) {
             throw new LazyParseException("ProtocolException caught during lazy parse.  For safe access to fields call ensureParsed before attempting read or write access", e);
@@ -277,7 +281,7 @@ public abstract class Message {
      * <li>2) The message has not been modified</li>
      * <li>3) The array had an offset of 0 and no surplus bytes</li>
      * </ol>
-     *
+     * <p>
      * If condition 3 is not met then an copy of the relevant portion of the array will be returned.
      * Otherwise a full serialize will occur. For this reason you should only use this API if you can guarantee you
      * will treat the resulting array as read only.
@@ -306,7 +310,7 @@ public abstract class Message {
             // Cannot happen, we are serializing to a memory stream.
         }
 
-        if (serializer.isParseRetainMode()) {
+        if (serializeMode.isParseRetainMode()) {
             // A free set of steak knives!
             // If there happens to be a call to this method we gain an opportunity to recache
             // the byte array and in this case it contains no bytes from parent messages.
@@ -332,6 +336,7 @@ public abstract class Message {
 
     /**
      * Attempts to get the length of the serialized block without serializing it if possible.
+     *
      * @return
      */
     public long getSerializedLength() {
@@ -375,7 +380,7 @@ public abstract class Message {
     /**
      * This should be overridden to extract correct message size in the case of lazy parsing.  Until this method is
      * implemented in a subclass of ChildMessage lazy parsing may have no effect.
-     *
+     * <p>
      * This default implementation is a safe fall back that will ensure it returns a correct value by parsing the message.
      */
     public int getMessageSize() {
@@ -439,10 +444,10 @@ public abstract class Message {
             throw new ProtocolException(e);
         }
     }
-    
+
     protected byte[] readByteArray() throws ProtocolException {
         long len = readVarInt();
-        return readBytes((int)len);
+        return readBytes((int) len);
     }
 
     protected String readStr() throws ProtocolException {
@@ -460,19 +465,29 @@ public abstract class Message {
         return cursor < payload.length;
     }
 
-    /** Network parameters this message was created with. */
+    /**
+     * Network parameters this message was created with.
+     */
     public NetworkParameters getParams() {
         return params;
     }
 
     /**
-     * Set the serializer for this message when deserialized by Java.
+     * The bitcoin network this message was created with.
+     * @return
+     */
+    public Network getNetwork() {
+        return network;
+    }
+
+    /**
+     * Set the serializeMode for this message when deserialized by Java.
      */
     private void readObject(java.io.ObjectInputStream in)
-        throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         if (null != params) {
-            this.serializer = params.getDefaultSerializer();
+            this.serializeMode = SerializeMode.DEFAULT;
         }
     }
 

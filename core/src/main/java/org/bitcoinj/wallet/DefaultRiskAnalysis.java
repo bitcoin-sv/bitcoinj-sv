@@ -46,10 +46,10 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
 
     /**
      * Any standard output smaller than this value (in satoshis) will be considered risky, as it's most likely be
-     * rejected by the network. This is usually the same as {@link Transaction#MIN_NONDUST_OUTPUT} but can be
+     * rejected by the network. This is usually the same as {@link Coin#MIN_NONDUST_OUTPUT} but can be
      * different when the fee is about to change in Bitcoin Core.
      */
-    public static final Coin MIN_ANALYSIS_NONDUST_OUTPUT = Transaction.MIN_NONDUST_OUTPUT;
+    public static final Coin MIN_ANALYSIS_NONDUST_OUTPUT = Coin.MIN_NONDUST_OUTPUT;
 
     protected final Transaction tx;
     protected final List<Transaction> dependencies;

@@ -35,6 +35,12 @@ public final class Coin implements Monetary, Comparable<Coin>, Serializable {
      * constants derive from it.
      */
     public static final int SMALLEST_UNIT_EXPONENT = 8;
+    /**
+     * Any standard (ie pay-to-address) output smaller than this value (in satoshis) will most likely be rejected by the network.
+     * This is calculated by assuming a standard output will be 34 bytes, and then using the formula used in
+     * { TransactionOutput#getMinNonDustValue(Coin)}.
+     */
+    public static final Coin MIN_NONDUST_OUTPUT = valueOf(546); // satoshis
 
     /**
      * The number of satoshis equal to one bitcoin.

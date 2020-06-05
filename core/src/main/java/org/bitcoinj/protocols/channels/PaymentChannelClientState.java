@@ -301,7 +301,7 @@ public abstract class PaymentChannelClientState {
         if (size.signum() < 0)
             throw new ValueOutOfRangeException("Tried to decrement payment");
         Coin newValueToMe = getValueToMe().subtract(size);
-        if (newValueToMe.compareTo(Transaction.MIN_NONDUST_OUTPUT) < 0 && newValueToMe.signum() > 0) {
+        if (newValueToMe.compareTo(Coin.MIN_NONDUST_OUTPUT) < 0 && newValueToMe.signum() > 0) {
             log.info("New value being sent back as change was smaller than minimum nondust output, sending all");
             size = getValueToMe();
             newValueToMe = Coin.ZERO;

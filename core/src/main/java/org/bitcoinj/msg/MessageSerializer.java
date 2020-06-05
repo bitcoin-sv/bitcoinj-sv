@@ -53,12 +53,12 @@ public abstract class MessageSerializer {
     public abstract Message deserializePayload(BitcoinSerializer.BitcoinPacketHeader header, ByteBuffer in) throws ProtocolException, BufferUnderflowException, UnsupportedOperationException;
 
     /**
-     * Whether the serializer will produce lazy parse mode Messages
+     * Whether the serializeMode will produce lazy parse mode Messages
      */
     public abstract boolean isParseLazyMode();
 
     /**
-     * Whether the serializer will produce cached mode Messages
+     * Whether the serializeMode will produce cached mode Messages
      */
     public abstract boolean isParseRetainMode();
 
@@ -122,9 +122,9 @@ public abstract class MessageSerializer {
      * Make a transaction from the payload. Extension point for alternative
      * serialization format support.
      * 
-     * @throws UnsupportedOperationException if this serializer/deserializer
+     * @throws UnsupportedOperationException if this serializeMode/deserializer
      * does not support deserialization. This can occur either because it's a dummy
-     * serializer (i.e. for messages with no network parameters), or because
+     * serializeMode (i.e. for messages with no network parameters), or because
      * it does not support deserializing transactions.
      */
     public abstract Transaction makeTransaction(byte[] payloadBytes, int offset, int length, byte[] hash) throws ProtocolException, UnsupportedOperationException;
@@ -133,9 +133,9 @@ public abstract class MessageSerializer {
      * Make a transaction from the payload. Extension point for alternative
      * serialization format support.
      * 
-     * @throws UnsupportedOperationException if this serializer/deserializer
+     * @throws UnsupportedOperationException if this serializeMode/deserializer
      * does not support deserialization. This can occur either because it's a dummy
-     * serializer (i.e. for messages with no network parameters), or because
+     * serializeMode (i.e. for messages with no network parameters), or because
      * it does not support deserializing transactions.
      */
     public final Transaction makeTransaction(byte[] payloadBytes) throws ProtocolException, UnsupportedOperationException {
@@ -146,9 +146,9 @@ public abstract class MessageSerializer {
      * Make a transaction from the payload. Extension point for alternative
      * serialization format support.
      * 
-     * @throws UnsupportedOperationException if this serializer/deserializer
+     * @throws UnsupportedOperationException if this serializeMode/deserializer
      * does not support deserialization. This can occur either because it's a dummy
-     * serializer (i.e. for messages with no network parameters), or because
+     * serializeMode (i.e. for messages with no network parameters), or because
      * it does not support deserializing transactions.
      */
     public final Transaction makeTransaction(byte[] payloadBytes, int offset) throws ProtocolException {
@@ -160,9 +160,9 @@ public abstract class MessageSerializer {
     /**
      * Writes message to to the output stream.
      * 
-     * @throws UnsupportedOperationException if this serializer/deserializer
+     * @throws UnsupportedOperationException if this serializeMode/deserializer
      * does not support serialization. This can occur either because it's a dummy
-     * serializer (i.e. for messages with no network parameters), or because
+     * serializeMode (i.e. for messages with no network parameters), or because
      * it does not support serializing the given message.
      */
     public abstract void serialize(String name, byte[] message, OutputStream out) throws IOException, UnsupportedOperationException;
@@ -170,9 +170,9 @@ public abstract class MessageSerializer {
     /**
      * Writes message to to the output stream.
      * 
-     * @throws UnsupportedOperationException if this serializer/deserializer
+     * @throws UnsupportedOperationException if this serializeMode/deserializer
      * does not support serialization. This can occur either because it's a dummy
-     * serializer (i.e. for messages with no network parameters), or because
+     * serializeMode (i.e. for messages with no network parameters), or because
      * it does not support serializing the given message.
      */
     public abstract void serialize(Message message, OutputStream out) throws IOException, UnsupportedOperationException;

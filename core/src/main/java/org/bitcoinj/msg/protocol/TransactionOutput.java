@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.script.*;
 import org.bitcoinj.wallet.Wallet;
 import org.slf4j.*;
@@ -75,11 +76,11 @@ public class TransactionOutput extends ChildMessage {
      * @param params NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
-     * @param serializer the serializer to use for this message.
+     * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public TransactionOutput(NetworkParameters params, @Nullable Transaction parent, byte[] payload, int offset, MessageSerializer serializer) throws ProtocolException {
-        super(params, payload, offset, parent, serializer, UNKNOWN_LENGTH);
+    public TransactionOutput(NetworkParameters params, @Nullable Transaction parent, byte[] payload, int offset, SerializeMode serializeMode) throws ProtocolException {
+        super(params, payload, offset, parent, serializeMode, UNKNOWN_LENGTH);
         availableForSpending = true;
     }
 
@@ -251,7 +252,7 @@ public class TransactionOutput extends ChildMessage {
     /**
      * Returns the minimum value for this output to be considered "not dust", i.e. the transaction will be relayable
      * and mined by default miners. For normal pay to address outputs, this is 2730 satoshis, the same as
-     * {@link Transaction#MIN_NONDUST_OUTPUT}.
+     * {@link Coin#MIN_NONDUST_OUTPUT}.
      */
     public Coin getMinNonDustValue() {
         return getMinNonDustValue(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3));

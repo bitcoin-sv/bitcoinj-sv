@@ -21,6 +21,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.script.*;
 import org.bitcoinj.wallet.*;
 
@@ -86,11 +87,11 @@ public class TransactionOutPoint extends ChildMessage {
      * Deserializes the message. This is usually part of a transaction message.
      * @param params NetworkParameters object.
      * @param offset The location of the first payload byte within the array.
-     * @param serializer the serializer to use for this message.
+     * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public TransactionOutPoint(NetworkParameters params, byte[] payload, int offset, Message parent, MessageSerializer serializer) throws ProtocolException {
-        super(params, payload, offset, parent, serializer, MESSAGE_LENGTH);
+    public TransactionOutPoint(NetworkParameters params, byte[] payload, int offset, Message parent, SerializeMode serializeMode) throws ProtocolException {
+        super(params, payload, offset, parent, serializeMode, MESSAGE_LENGTH);
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,9 +47,9 @@ public abstract class ListMessage extends Message {
         super(params, bytes, 0);
     }
 
-    public ListMessage(NetworkParameters params, byte[] payload, MessageSerializer serializer, int length)
+    public ListMessage(NetworkParameters params, byte[] payload, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, 0, serializer, length);
+        super(params, payload, 0, serializeMode, length);
     }
 
     public ListMessage(NetworkParameters params) {

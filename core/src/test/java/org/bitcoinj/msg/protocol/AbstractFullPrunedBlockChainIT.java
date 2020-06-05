@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Network;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.exception.BlockStoreException;
@@ -54,7 +55,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractFullPrunedBlockChainIT.class);
 
-    protected static final NetworkParameters PARAMS = new UnitTestParams() {
+    protected static final NetworkParameters PARAMS = new UnitTestParams(Network.UNITTEST) {
         @Override public int getInterval() {
             return 10000;
         }

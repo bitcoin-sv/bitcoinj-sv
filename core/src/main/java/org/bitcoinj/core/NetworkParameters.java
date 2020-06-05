@@ -18,21 +18,18 @@
 package org.bitcoinj.core;
 
 import com.google.common.base.Objects;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.*;
+import org.bitcoinj.msg.BitcoinSerializer;
+import org.bitcoinj.msg.MessageSerializer;
+import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.msg.protocol.*;
-import org.bitcoinj.net.discovery.HttpDiscovery;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.ScriptOpCodes;
 import org.bitcoinj.script.ScriptUtil;
-import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.utils.MonetaryFormat;
-import org.bitcoinj.utils.VersionTally;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
-import java.util.EnumSet;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,7 +40,7 @@ import static org.bitcoinj.core.Coin.FIFTY_COINS;
  * <p>NetworkParameters contains the data needed for working with an instantiation of a Bitcoin chain.</p>
  *
  * <p>This is an abstract class, concrete instantiations can be found in the params package. There are four:
- * one for the main network ({@link MainNetParams}), one for the public test network, and two others that are
+ * one for the main network ({MainNetParams}), one for the public test network, and two others that are
  * intended for unit testing and local app development purposes. Although this class contains some aliases for
  * them, you are encouraged to call the static get() methods on each specific params class directly.</p>
  */
@@ -72,6 +69,7 @@ public abstract class NetworkParameters {
 
     // TODO: Seed nodes should be here as well.
 
+    protected Network network;
     protected Block genesisBlock;
     protected BigInteger maxTarget;
     protected int port;
@@ -113,16 +111,15 @@ public abstract class NetworkParameters {
     protected int[] acceptableAddressCodes;
     protected String[] dnsSeeds;
     protected int[] addrSeeds;
-    protected HttpDiscovery.Details[] httpSeeds = {};
     protected Map<Integer, Sha256Hash> checkpoints = new HashMap<Integer, Sha256Hash>();
-    protected boolean defaultSerializerParseRetain = false;
-    protected boolean defaultSerializerCompactTransactionsInBlock = true;
+    protected SerializeMode defaultSerializeMode = new SerializeMode(false, false, true);
     protected transient MessageSerializer defaultSerializer = null;
     protected String cashAddrPrefix;
 
-    protected NetworkParameters() {
+    protected NetworkParameters(Network network) {
         alertSigningKey = SATOSHI_KEY;
         genesisBlock = createGenesis(this);
+        this.network = network;
     }
 
     private static Block createGenesis(NetworkParameters n) {
@@ -169,41 +166,6 @@ public abstract class NetworkParameters {
      */
     public static final Coin MAX_MONEY = COIN.multiply(MAX_COINS);
 
-    /** Alias for TestNet3Params.get(), use that instead. */
-    @Deprecated
-    public static NetworkParameters testNet() {
-        return TestNet3Params.get();
-    }
-
-    /** Alias for TestNet2Params.get(), use that instead. */
-    @Deprecated
-    public static NetworkParameters testNet2() {
-        return TestNet2Params.get();
-    }
-
-    /** Alias for TestNet3Params.get(), use that instead. */
-    @Deprecated
-    public static NetworkParameters testNet3() {
-        return TestNet3Params.get();
-    }
-
-    /** Alias for MainNetParams.get(), use that instead */
-    @Deprecated
-    public static NetworkParameters prodNet() {
-        return MainNetParams.get();
-    }
-
-    /** Returns a testnet params modified to allow any difficulty target. */
-    @Deprecated
-    public static NetworkParameters unitTests() {
-        return UnitTestParams.get();
-    }
-
-    /** Returns a standard regression test params (similar to unitTests) */
-    @Deprecated
-    public static NetworkParameters regTests() {
-        return RegTestParams.get();
-    }
 
     /**
      * A Java package style string acting as unique ID for these parameters
@@ -224,38 +186,6 @@ public abstract class NetworkParameters {
     @Override
     public int hashCode() {
         return Objects.hashCode(getId());
-    }
-
-    /** Returns the network parameters for the given string ID or NULL if not recognized. */
-    @Nullable
-    public static NetworkParameters fromID(String id) {
-        if (id.equals(ID_MAINNET)) {
-            return MainNetParams.get();
-        } else if (id.equals(ID_TESTNET)) {
-            return TestNet3Params.get();
-        } else if (id.equals(ID_UNITTESTNET)) {
-            return UnitTestParams.get();
-        } else if (id.equals(ID_REGTEST)) {
-            return RegTestParams.get();
-        } else {
-            return null;
-        }
-    }
-
-    /** Returns the network parameters for the given string paymentProtocolID or NULL if not recognized. */
-    @Nullable
-    public static NetworkParameters fromPmtProtocolID(String pmtProtocolId) {
-        if (pmtProtocolId.equals(PAYMENT_PROTOCOL_ID_MAINNET)) {
-            return MainNetParams.get();
-        } else if (pmtProtocolId.equals(PAYMENT_PROTOCOL_ID_TESTNET)) {
-            return TestNet3Params.get();
-        } else if (pmtProtocolId.equals(PAYMENT_PROTOCOL_ID_UNIT_TESTS)) {
-            return UnitTestParams.get();
-        } else if (pmtProtocolId.equals(PAYMENT_PROTOCOL_ID_REGTEST)) {
-            return RegTestParams.get();
-        } else {
-            return null;
-        }
     }
 
     public int getSpendableCoinbaseDepth() {
@@ -290,11 +220,6 @@ public abstract class NetworkParameters {
     /** Returns IP address of active peers. */
     public int[] getAddrSeeds() {
         return addrSeeds;
-    }
-
-    /** Returns discovery objects for seeds implementing the Cartographer protocol. See {@link org.bitcoinj.net.discovery.HttpDiscovery} for more info. */
-    public HttpDiscovery.Details[] getHttpSeeds() {
-        return httpSeeds;
     }
 
     /**
@@ -441,21 +366,24 @@ public abstract class NetworkParameters {
     public abstract boolean hasMaxMoney();
 
     /**
-     * Return the default serializer for this network. This is a shared serializer.
+     * Return the default serializeMode for this network. This is a shared serializeMode.
      * @return 
      */
     public final MessageSerializer getDefaultSerializer() {
-        // Construct a default serializer if we don't have one
+        // Construct a default serializeMode if we don't have one
         if (null == this.defaultSerializer) {
             // Don't grab a lock unless we absolutely need it
             synchronized(this) {
-                // Now we have a lock, double check there's still no serializer
+                // Now we have a lock, double check there's still no serializeMode
                 // and create one if so.
                 if (null == this.defaultSerializer) {
                     // As the serializers are intended to be immutable, creating
                     // two due to a race condition should not be a problem, however
                     // to be safe we ensure only one exists for each network.
-                    this.defaultSerializer = getSerializer(false, defaultSerializerParseRetain, defaultSerializerCompactTransactionsInBlock);
+                    this.defaultSerializer = getSerializer(
+                            defaultSerializeMode.isParseLazyMode(),
+                            defaultSerializeMode.isParseRetainMode(),
+                            defaultSerializeMode.isCompactTransactionsInBlock());
                 }
             }
         }
@@ -465,7 +393,7 @@ public abstract class NetworkParameters {
     public abstract BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock);
 
     /**
-     * Construct and return a custom serializer.
+     * Construct and return a custom serializeMode.
      */
     public abstract BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain);
 
@@ -495,91 +423,25 @@ public abstract class NetworkParameters {
         return majorityWindow;
     }
 
-    /**
-     * The flags indicating which block validation tests should be applied to
-     * the given block. Enables support for alternative blockchains which enable
-     * tests based on different criteria.
-     *
-     * @param block block to determine flags for.
-     * @param height height of the block, if known, null otherwise. Returned
-     * tests should be a safe subset if block height is unknown.
-     */
-    public EnumSet<Block.VerifyFlag> getBlockVerificationFlags(final Block block,
-            final VersionTally tally, final Integer height) {
-        final EnumSet<Block.VerifyFlag> flags = EnumSet.noneOf(Block.VerifyFlag.class);
-
-        if (block.isBIP34()) {
-            final Integer count = tally.getCountAtOrAbove(Block.BLOCK_VERSION_BIP34);
-            if (null != count && count >= getMajorityEnforceBlockUpgrade()) {
-                flags.add(Block.VerifyFlag.HEIGHT_IN_COINBASE);
-            }
-        }
-        return flags;
-    }
-
-    /**
-     * The flags indicating which script validation tests should be applied to
-     * the given transaction. Enables support for alternative blockchains which enable
-     * tests based on different criteria.
-     *
-     * @param block block the transaction belongs to.
-     * @param transaction to determine flags for.
-     * @param height height of the block, if known, null otherwise. Returned
-     * tests should be a safe subset if block height is unknown.
-     */
-    public EnumSet<ScriptVerifyFlag> getTransactionVerificationFlags(final Block block,
-                                                                     final Transaction transaction, final VersionTally tally, final Integer height) {
-        final EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
-        if (block.getTimeSeconds() >= NetworkParameters.BIP16_ENFORCE_TIME)
-            verifyFlags.add(ScriptVerifyFlag.P2SH);
-
-        // Start enforcing CHECKLOCKTIMEVERIFY, (BIP65) for block.nVersion=4
-        // blocks, when 75% of the network has upgraded:
-        if (block.getVersion() >= Block.BLOCK_VERSION_BIP65 &&
-            tally.getCountAtOrAbove(Block.BLOCK_VERSION_BIP65) > this.getMajorityEnforceBlockUpgrade()) {
-            verifyFlags.add(ScriptVerifyFlag.CHECKLOCKTIMEVERIFY);
-        }
-
-        return verifyFlags;
-    }
-
-    public void verifyDifficulty(BigInteger newTarget, Block nextBlock)
-    {
-        if (newTarget.compareTo(this.getMaxTarget()) > 0) {
-            newTarget = this.getMaxTarget();
-        }
-
-        int accuracyBytes = (int) (nextBlock.getDifficultyTarget() >>> 24) - 3;
-        long receivedTargetCompact = nextBlock.getDifficultyTarget();
-
-        // The calculated difficulty is to a higher precision than received, so reduce here.
-        BigInteger mask = BigInteger.valueOf(0xFFFFFFL).shiftLeft(accuracyBytes * 8);
-        newTarget = newTarget.and(mask);
-        long newTargetCompact = Utils.encodeCompactBits(newTarget);
-
-        if (newTargetCompact != receivedTargetCompact) {
-
-            //FIXME work out what's wrong here
-            if ("GBTNParams".equals(getClass().getSimpleName()))
-                return;
-
-            throw new VerificationException("Network provided difficulty bits do not match what was calculated: " +
-                    Long.toHexString(newTargetCompact) + " vs " + Long.toHexString(receivedTargetCompact));
-        }
-    }
-
     public abstract int getProtocolVersionNum(final ProtocolVersion version);
 
     public String getCashAddrPrefix() {
         return cashAddrPrefix;
     }
 
+    public SerializeMode getDefaultSerializeMode() {
+        return defaultSerializeMode;
+    }
+
     public boolean isDefaultSerializerParseRetain() {
-        return defaultSerializerParseRetain;
+        return defaultSerializeMode.isParseRetainMode();
     }
 
     public void setDefaultSerializerParseRetain(boolean defaultSerializerParseRetain) {
-        this.defaultSerializerParseRetain = defaultSerializerParseRetain;
+        defaultSerializeMode = new SerializeMode(
+                defaultSerializeMode.isParseLazyMode(),
+                defaultSerializerParseRetain,
+                defaultSerializeMode.isCompactTransactionsInBlock());
         synchronized (this) {
             defaultSerializer = null;
         }
