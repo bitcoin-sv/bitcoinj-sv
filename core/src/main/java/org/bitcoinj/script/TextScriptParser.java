@@ -1,9 +1,6 @@
 package org.bitcoinj.script;
 
-import org.bitcoinj.core.ECKey;
-
 import java.util.HashMap;
-import java.util.IllegalFormatException;
 import java.util.Map;
 
 import static org.bitcoinj.core.Utils.HEX;
@@ -17,9 +14,6 @@ public class TextScriptParser {
     private final Map<String, String> variables = new HashMap<String, String>();
 
     public static void main(String[] args) {
-
-        ECKey keyPair = new ECKey();
-
         TextScriptParser parser = new TextScriptParser(false, null);
         parser.addVariable("barry", "0x00112233");
         Script script = parser.parse("<barry> 2 add 4 sub");

@@ -63,7 +63,6 @@ public class RegTestParams extends TestNet2Params {
     static {
         Net.register(instance.net, instance);}
     public static synchronized RegTestParams get() {
-
         return instance;
     }
 

@@ -1,9 +1,7 @@
 package org.bitcoinj.script;
 
-import org.bitcoinj.core.ScriptException;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 import static org.bitcoinj.script.ScriptOpCodes.*;
 

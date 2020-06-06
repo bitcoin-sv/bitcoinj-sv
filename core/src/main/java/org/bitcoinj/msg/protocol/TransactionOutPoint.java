@@ -35,7 +35,7 @@ import static com.google.common.base.Preconditions.*;
  * 
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class TransactionOutPoint extends ChildMessage {
+public class TransactionOutPoint extends ChildMessage implements ITransactionOutPoint {
 
     static final int MESSAGE_LENGTH = 36;
 
@@ -208,10 +208,11 @@ public class TransactionOutPoint extends ChildMessage {
         return hash;
     }
 
-    void setHash(Sha256Hash hash) {
+    public void setHash(Sha256Hash hash) {
         this.hash = hash;
     }
 
+    @Override
     public long getIndex() {
         maybeParse();
         return index;

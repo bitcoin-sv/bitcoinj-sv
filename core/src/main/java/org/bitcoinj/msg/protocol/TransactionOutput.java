@@ -39,7 +39,7 @@ import static com.google.common.base.Preconditions.*;
  * 
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class TransactionOutput extends ChildMessage {
+public class TransactionOutput extends ChildMessage implements ITransactionOutput {
     private static final Logger log = LoggerFactory.getLogger(TransactionOutput.class);
 
     // The output's value is kept as a native type in order to save class instances.
@@ -116,6 +116,7 @@ public class TransactionOutput extends ChildMessage {
         setLength(8 + VarInt.sizeOf(scriptBytes.length) + scriptBytes.length);
     }
 
+    @Override
     public Script getScriptPubKey() throws ScriptException {
         if (scriptPubKey == null) {
             maybeParse();
@@ -187,6 +188,7 @@ public class TransactionOutput extends ChildMessage {
      * Returns the value of this output. This is the amount of currency that the destination address
      * receives.
      */
+    @Override
     public Coin getValue() {
         maybeParse();
         try {
@@ -209,6 +211,7 @@ public class TransactionOutput extends ChildMessage {
      * Gets the index of this output in the parent transaction, or throws if this output is free standing. Iterates
      * over the parents list to discover this.
      */
+    @Override
     public int getIndex() {
         List<TransactionOutput> outputs = getParentTransaction().getOutputs();
         for (int i = 0; i < outputs.size(); i++) {
@@ -221,6 +224,7 @@ public class TransactionOutput extends ChildMessage {
     /**
      * Will this transaction be relayable and mined by default miners?
      */
+    @Override
     public boolean isDust() {
         // Transactions that are OP_RETURN can't be dust regardless of their value.
         if (getScriptPubKey().isOpReturn())
@@ -301,6 +305,7 @@ public class TransactionOutput extends ChildMessage {
      * The backing script bytes which can be turned into a Script object.
      * @return the scriptBytes
     */
+    @Override
     public byte[] getScriptBytes() {
         maybeParse();
         return scriptBytes;
@@ -384,6 +389,7 @@ public class TransactionOutput extends ChildMessage {
     /**
      * Returns the transaction that owns this output.
      */
+    @Override
     @Nullable
     public Transaction getParentTransaction() {
         return (Transaction)parent;
@@ -392,6 +398,7 @@ public class TransactionOutput extends ChildMessage {
     /**
      * Returns the transaction hash that owns this output.
      */
+    @Override
     @Nullable
     public Sha256Hash getParentTransactionHash() {
         return parent == null ? null : parent.getHash();
@@ -418,6 +425,7 @@ public class TransactionOutput extends ChildMessage {
      * Returns a new {@link TransactionOutPoint}, which is essentially a structure pointing to this output.
      * Requires that this output is not detached.
      */
+    @Override
     public TransactionOutPoint getOutPointFor() {
         return new TransactionOutPoint(net, getIndex(), getParentTransaction());
     }

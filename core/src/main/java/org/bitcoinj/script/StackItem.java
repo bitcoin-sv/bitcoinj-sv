@@ -7,8 +7,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.bitcoinj.script.ScriptOpCodes.*;
-import static org.bitcoinj.script.ScriptOpCodes.OP_16;
 
 public class StackItem<C> {
 

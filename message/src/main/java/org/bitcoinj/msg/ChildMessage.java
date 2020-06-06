@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  * 
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public abstract class ChildMessage extends Message {
+public abstract class ChildMessage extends Message implements IChildMessage {
 
     @Nullable protected Message parent;
 
@@ -72,6 +72,7 @@ public abstract class ChildMessage extends Message {
         this.parent = parent;
     }
 
+    @Override
     @Nullable
     public Message getParent() {
         return parent;

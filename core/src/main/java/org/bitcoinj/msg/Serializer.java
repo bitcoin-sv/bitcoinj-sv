@@ -27,9 +27,9 @@ public class Serializer {
         return get(params, parzeLazy, parseRetain, params.getDefaultSerializeMode().isCompactTransactionsInBlock());
     }
 
-    public static MessageSerializer forMessage(Message message) {
-        if (message.serializeMode != null) {
-            return new BitcoinSerializer(message.net, message.serializeMode);
+    public static  <M extends IMessage> MessageSerializer forMessage(M message) {
+        if (message.getSerializeMode() != null) {
+            return new BitcoinSerializer(message.getNet(), message.getSerializeMode());
         }
         return defaultFor(message.getNet());
     }

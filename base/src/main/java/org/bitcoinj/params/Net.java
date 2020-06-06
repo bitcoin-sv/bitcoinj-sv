@@ -47,6 +47,18 @@ public enum Net {
 
     private static final EnumMap<Net, NetworkParameters> PARAMS = new EnumMap(Net.class);
 
+    static {
+        for (Net net: Net.values()) {
+            try {
+                Method get = net.paramsClass.getMethod("get");
+                NetworkParameters params = (NetworkParameters) get.invoke(null);
+                register(net, params);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public static NetworkParameters of(Net net) {
         return PARAMS.get(net);
     }

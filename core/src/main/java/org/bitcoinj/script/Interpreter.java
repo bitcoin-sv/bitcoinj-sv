@@ -3,6 +3,7 @@ package org.bitcoinj.script;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.ecc.ECDSA;
+import org.bitcoinj.msg.protocol.ITransaction;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -20,6 +21,13 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.bitcoinj.script.ScriptOpCodes.*;
 
+/**
+ * This is the actual script interpreter than runs Bitcoin Scripts.  It is completely stateless and contians
+ * only static methods.  The script itself is now encapsulated in the Script class which uses only instance methods.
+ *
+ * Some other utility methods are in ScriptUtils, this is main there to assist in untangling the web of dependencies
+ * so we can break BitcoinJ up into logically grouped libs.
+ */
 public class Interpreter {
 
     static final Logger log = LoggerFactory.getLogger(Interpreter.class);
@@ -248,7 +256,7 @@ public class Interpreter {
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
      * {@link TransactionInput#verify(TransactionOutput)} or
-     * {@link Script#correctlySpends(Transaction, long, Script)}. This method
+     * {@link Script#correctlySpends(ITransaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      *
@@ -313,11 +321,11 @@ public class Interpreter {
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
      * {@link TransactionInput#verify(TransactionOutput)} or
-     * {@link Script#correctlySpends(Transaction, long, Script)}. This method
+     * {@link Script#correctlySpends(ITransaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      */
-    public static void executeScript(@Nullable Transaction txContainingThis, long index,
+    public static void executeScript(@Nullable ITransaction txContainingThis, long index,
                                      Script script, ScriptStack stack, Coin value, Set<ScriptVerifyFlag> verifyFlags) throws ScriptException {
         executeScript(txContainingThis, index, new SimpleScriptStream(script), stack, value, verifyFlags, null);
     }
@@ -326,7 +334,7 @@ public class Interpreter {
      * Executes a script in debug mode with the provided ScriptStateListener.  Exceptions (which are thrown when a script fails) are caught
      * and passed to the listener before being rethrown.
      */
-    public static void executeDebugScript(@Nullable Transaction txContainingThis, long index,
+    public static void executeDebugScript(@Nullable ITransaction txContainingThis, long index,
                                           ScriptStream script, ScriptStack stack, Coin value, Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
         try {
             executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener);
@@ -342,7 +350,7 @@ public class Interpreter {
         }
     }
 
-    public static void executeScript(@Nullable Transaction txContainingThis, long index,
+    public static void executeScript(@Nullable ITransaction txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
                                      Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptException {
         executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener, false, 0L);
@@ -351,11 +359,11 @@ public class Interpreter {
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
      * {@link TransactionInput#verify(TransactionOutput)} or
-     * {@link Script#correctlySpends(Transaction, long, Script)}. This method
+     * {@link Script#correctlySpends(ITransaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      */
-    public static void executeScript(@Nullable Transaction txContainingThis, long index,
+    public static void executeScript(@Nullable ITransaction txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
                                      Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
                                      boolean allowFakeChecksig, long fakeChecksigDelay) throws ScriptException {
@@ -1191,7 +1199,7 @@ public class Interpreter {
     }
 
     // This is more or less a direct translation of the code in Bitcoin Core
-    private static void executeCheckLockTimeVerify(ScriptExecutionState state, Transaction txContainingThis, int index, ScriptStack stack,
+    private static void executeCheckLockTimeVerify(ScriptExecutionState state, ITransaction txContainingThis, int index, ScriptStack stack,
                                                    int lastCodeSepLocation, int opcode,
                                                    Set<ScriptVerifyFlag> verifyFlags) throws ScriptException {
         if (stack.size() < 1)
@@ -1232,7 +1240,7 @@ public class Interpreter {
             throw new ScriptException(state, "Transaction contains a final transaction input for a CHECKLOCKTIMEVERIFY script.");
     }
 
-    private static void executeCheckSig(ScriptExecutionState state, Transaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
+    private static void executeCheckSig(ScriptExecutionState state, ITransaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
                                         int lastCodeSepLocation, int opcode, Coin value,
                                         Set<ScriptVerifyFlag> verifyFlags, boolean allowFakeChecksig) throws ScriptException {
 
@@ -1265,8 +1273,8 @@ public class Interpreter {
 
             // TODO: Should check hash type is known
             Sha256Hash hash = sig.useForkId() ?
-                    txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
-                    txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
+                    Transaction.hashForSignatureWitness(txContainingThis, index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                    Transaction.hashForSignature(txContainingThis, index, connectedScript, (byte) sig.sighashFlags);
             sigValid = allowFakeChecksig ? true : ECDSA.verify(hash.getBytes(), sig, pubKey.bytes());
         } catch (Exception e1) {
             // There is (at least) one exception that could be hit here (EOFException, if the sig is too short)
@@ -1286,7 +1294,7 @@ public class Interpreter {
                 throw new ScriptException(state, "Script failed OP_CHECKSIGVERIFY");
     }
 
-    private static int executeMultiSig(ScriptExecutionState state, Transaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
+    private static int executeMultiSig(ScriptExecutionState state, ITransaction txContainingThis, int index, ScriptStream script, ScriptStack stack,
                                        int opCount, int maxOpCount, int maxKeys, int lastCodeSepLocation, int opcode, Coin value,
                                        Set<ScriptVerifyFlag> verifyFlags, boolean allowFakeChecksig) throws ScriptException {
         final boolean requireCanonical = !allowFakeChecksig &&
@@ -1357,8 +1365,8 @@ public class Interpreter {
             try {
                 TransactionSignature sig = TransactionSignature.decodeFromBitcoin(sigs.getFirst().bytes(), requireCanonical);
                 Sha256Hash hash = sig.useForkId() ?
-                        txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
-                        txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
+                        Transaction.hashForSignatureWitness(txContainingThis, index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                        Transaction.hashForSignature(txContainingThis, index, connectedScript, (byte) sig.sighashFlags);
                 if (allowFakeChecksig || ECDSA.verify(hash.getBytes(), sig, pubKey.bytes()))
                     sigs.pollFirst();
             } catch (Exception e) {

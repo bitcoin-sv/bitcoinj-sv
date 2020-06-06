@@ -2,6 +2,7 @@ package org.bitcoinj.script;
 
 import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
+import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.params.NetworkParameters;
@@ -215,9 +216,11 @@ public class ScriptUtils {
         int numKeys = Interpreter.decodeFromOpN(chunks.get(chunks.size() - 2).opcode);
         TransactionSignature signature = TransactionSignature.decodeFromBitcoin(signatureBytes, true);
         for (int i = 0; i < numKeys; i++) {
-            if (ECKey.fromPublicOnly(chunks.get(i + 1).data()).verify(hash, signature)) {
+            byte[] maybePubkey = chunks.get(i + 1).data();
+            //this shouldn't really be here but we are trying to remove dependencies on ECKey.  Looks like this may
+            //be decoding then reencoding but it's for a wallet class we plan to delete so it can stay for now.
+            if (ECDSA.verify(hash.getBytes(), signatureBytes, ECDSA.CURVE.getCurve().decodePoint(maybePubkey).getEncoded()))
                 return i;
-            }
         }
 
         throw new IllegalStateException("Could not find matching key for signature on " + hash.toString() + " sig " + Utils.HEX.encode(signatureBytes));

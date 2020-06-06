@@ -43,8 +43,6 @@ public class STNParams extends TestNet3Params {
     }
 
     private static STNParams instance = new STNParams(Net.STN);
-    static {
-        Net.register(instance.net, instance);}
     public static synchronized STNParams get() {
         return instance;
     }

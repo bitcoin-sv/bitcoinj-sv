@@ -41,7 +41,7 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public abstract class Message {
+public abstract class Message implements IMessage {
     private static final Logger log = LoggerFactory.getLogger(Message.class);
 
     // todo: is this right? add support for protoconf message?
@@ -264,6 +264,7 @@ public abstract class Message {
      *
      * @return a freshly allocated serialized byte array
      */
+    @Override
     public byte[] bitcoinSerialize() {
         byte[] bytes = unsafeBitcoinSerialize();
         byte[] copy = new byte[bytes.length];
@@ -288,6 +289,7 @@ public abstract class Message {
      *
      * @return a byte array owned by this object, do NOT mutate it.
      */
+    @Override
     public byte[] unsafeBitcoinSerialize() {
         // 1st attempt to use a cached array.
         if (payload != null) {
@@ -339,11 +341,17 @@ public abstract class Message {
      *
      * @return
      */
+    @Override
     public long getSerializedLength() {
         if (length() != UNKNOWN_LENGTH) {
             return length();
         }
         return unsafeBitcoinSerialize().length;
+    }
+
+    @Override
+    public SerializeMode getSerializeMode() {
+        return serializeMode;
     }
 
     /**
@@ -352,6 +360,7 @@ public abstract class Message {
      * @param stream
      * @throws IOException
      */
+    @Override
     public final void bitcoinSerialize(OutputStream stream) throws IOException {
         // 1st check for cached bytes.
         if (payload != null && length() != UNKNOWN_LENGTH) {
@@ -373,6 +382,7 @@ public abstract class Message {
      * This method is a NOP for all classes except Block and Transaction.  It is only declared in Message
      * so BitcoinSerializer can avoid 2 instanceof checks + a casting.
      */
+    @Override
     public Sha256Hash getHash() {
         throw new UnsupportedOperationException();
     }
@@ -383,6 +393,7 @@ public abstract class Message {
      * <p>
      * This default implementation is a safe fall back that will ensure it returns a correct value by parsing the message.
      */
+    @Override
     public int getMessageSize() {
         if (length() != UNKNOWN_LENGTH)
             return length();
@@ -468,6 +479,7 @@ public abstract class Message {
     /**
      * Network parameters this message was created with.
      */
+    @Override
     public NetworkParameters getParams() {
         return net.params();
     }
@@ -476,6 +488,7 @@ public abstract class Message {
      * The bitcoin network this message was created with.
      * @return
      */
+    @Override
     public Net getNet() {
         return net;
     }
@@ -491,6 +504,7 @@ public abstract class Message {
         }
     }
 
+    @Override
     public int length() {
         return length;
     }

@@ -51,7 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * 
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class TransactionInput extends ChildMessage {
+public class TransactionInput extends ChildMessage implements ITransactionInput {
     /** Magic sequence number that indicates there is no sequence number. */
     public static final long NO_SEQUENCE = 0xFFFFFFFFL;
     private static final byte[] EMPTY_ARRAY = new byte[0];
@@ -165,6 +165,7 @@ public class TransactionInput extends ChildMessage {
     /**
      * Coinbase transactions have special inputs with hashes of zero. If this is such an input, returns true.
      */
+    @Override
     public boolean isCoinBase() {
         maybeParse();
         return outpoint.getHash().equals(Sha256Hash.ZERO_HASH) &&
@@ -175,6 +176,7 @@ public class TransactionInput extends ChildMessage {
      * Returns the script that is fed to the referenced output (scriptPubKey) script in order to satisfy it: usually
      * contains signatures and maybe keys, but can contain arbitrary data if the output script accepts it.
      */
+    @Override
     public Script getScriptSig() throws ScriptException {
         // Transactions that generate new coins don't actually have a script. Instead this
         // parameter is overloaded to be something totally different.
@@ -200,6 +202,7 @@ public class TransactionInput extends ChildMessage {
      * in nodes memory pools if the existing version is time locked. See the Contracts page on the Bitcoin wiki for
      * examples of how you can use this feature to build contract protocols.
      */
+    @Override
     public long getSequenceNumber() {
         maybeParse();
         return sequence;
@@ -220,6 +223,7 @@ public class TransactionInput extends ChildMessage {
      * @return The previous output transaction reference, as an OutPoint structure.  This contains the 
      * data needed to connect to the output of the transaction we're gathering coins from.
      */
+    @Override
     public TransactionOutPoint getOutpoint() {
         maybeParse();
         return outpoint;
@@ -231,6 +235,7 @@ public class TransactionInput extends ChildMessage {
      * don't care about much. The bytes are turned into a Script object (cached below) on demand via a getter.
      * @return the scriptBytes
      */
+    @Override
     public byte[] getScriptBytes() {
         maybeParse();
         return scriptBytes;
@@ -244,7 +249,7 @@ public class TransactionInput extends ChildMessage {
     /**
      * @param scriptBytes the scriptBytes to set
      */
-    void setScriptBytes(byte[] scriptBytes) {
+    public void setScriptBytes(byte[] scriptBytes) {
         unCache();
         this.scriptSig = null;
         int oldLength = length();
@@ -257,6 +262,7 @@ public class TransactionInput extends ChildMessage {
     /**
      * @return The Transaction that owns this input.
      */
+    @Override
     public Transaction getParentTransaction() {
         return (Transaction) parent;
     }
@@ -264,6 +270,7 @@ public class TransactionInput extends ChildMessage {
     /**
      * @return Value of the output connected to this input, if known. Null if unknown.
      */
+    @Override
     @Nullable
     public Coin getValue() {
         return value;
@@ -383,6 +390,7 @@ public class TransactionInput extends ChildMessage {
     /**
      * @return true if this transaction's sequence number is set (ie it may be a part of a time-locked transaction)
      */
+    @Override
     public boolean hasSequence() {
         return sequence != NO_SEQUENCE;
     }
