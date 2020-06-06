@@ -17,7 +17,7 @@
 package org.bitcoinj.utils;
 
 import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 

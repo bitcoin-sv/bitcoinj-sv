@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.FilteredBlock;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.wallet.Wallet;

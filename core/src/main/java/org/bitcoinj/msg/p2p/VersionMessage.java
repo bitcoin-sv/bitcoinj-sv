@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

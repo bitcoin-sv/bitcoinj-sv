@@ -26,6 +26,7 @@ import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.*;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.*;
@@ -233,7 +234,7 @@ public class Block extends Message {
      * the system it was 50 coins per block, in late 2012 it went to 25 coins per block, and so on. The size of
      * a coinbase transaction is inflation plus fees.</p>
      *
-     * <p>The half-life is controlled by {@link org.bitcoinj.core.NetworkParameters#getSubsidyDecreaseBlockCount()}.
+     * <p>The half-life is controlled by {@link NetworkParameters#getSubsidyDecreaseBlockCount()}.
      * </p>
      */
     public Coin getBlockInflation(int height) {

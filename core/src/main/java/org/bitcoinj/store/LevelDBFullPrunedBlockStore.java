@@ -34,6 +34,7 @@ import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
 import org.iq80.leveldb.*;
 import org.slf4j.Logger;

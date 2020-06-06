@@ -26,6 +26,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.signers.LocalTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;

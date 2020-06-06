@@ -2,7 +2,6 @@ package org.bitcoinj.params;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import org.bitcoinj.core.NetworkParameters;
 
 import java.lang.reflect.Method;
 import java.util.EnumMap;
@@ -61,9 +60,12 @@ public enum Net {
     }
 
     /** Registered networks */
-    private static Set<? extends NetworkParameters> networks = ImmutableSet.of(TestNet3Params.get(), MainNetParams.get());
+    private static Set<? extends NetworkParameters> networks = null;
 
     public static Set<? extends NetworkParameters> getRegistered() {
+        if (networks == null) {
+            networks = ImmutableSet.of(TestNet3Params.get(), MainNetParams.get());
+        }
         return networks;
     }
 }

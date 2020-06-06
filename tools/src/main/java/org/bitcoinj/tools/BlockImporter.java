@@ -19,6 +19,7 @@ import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.store.*;
 import org.bitcoinj.utils.BlockFileLoader;

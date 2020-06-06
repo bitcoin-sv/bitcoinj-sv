@@ -30,6 +30,7 @@ import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;

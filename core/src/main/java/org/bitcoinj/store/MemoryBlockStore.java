@@ -21,6 +21,7 @@ import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.params.NetworkParameters;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -23,6 +23,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.exception.BlockStoreException;

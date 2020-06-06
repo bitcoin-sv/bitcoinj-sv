@@ -22,7 +22,7 @@ import com.google.protobuf.ByteString;
 
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.KeyCrypter;

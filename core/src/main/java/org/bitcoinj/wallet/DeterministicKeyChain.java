@@ -19,7 +19,7 @@ package org.bitcoinj.wallet;
 
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.script.Script;
@@ -62,9 +62,9 @@ import static com.google.common.collect.Lists.newLinkedList;
  * A watching wallet is not instantiated using the public part of the master key as you may imagine. Instead, you
  * need to take the account key (first child of the master key) and provide the public part of that to the watching
  * wallet instead. You can do this by calling {@link #getWatchingKey()} and then serializing it with
- * {@link org.bitcoinj.crypto.DeterministicKey#serializePubB58(org.bitcoinj.core.NetworkParameters)}. The resulting "xpub..." string encodes
+ * {@link org.bitcoinj.crypto.DeterministicKey#serializePubB58(NetworkParameters)}. The resulting "xpub..." string encodes
  * sufficient information about the account key to create a watching chain via
- * {@link org.bitcoinj.crypto.DeterministicKey#deserializeB58(org.bitcoinj.crypto.DeterministicKey, String, org.bitcoinj.core.NetworkParameters)}
+ * {@link org.bitcoinj.crypto.DeterministicKey#deserializeB58(org.bitcoinj.crypto.DeterministicKey, String, NetworkParameters)}
  * (with null as the first parameter) and then
  * {@link DeterministicKeyChain#DeterministicKeyChain(org.bitcoinj.crypto.DeterministicKey)}.</p>
  *

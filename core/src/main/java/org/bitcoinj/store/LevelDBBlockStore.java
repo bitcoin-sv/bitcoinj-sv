@@ -18,6 +18,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.params.NetworkParameters;
 import org.fusesource.leveldbjni.*;
 import org.iq80.leveldb.*;
 

@@ -22,6 +22,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.net.AbstractTimeoutHandler;
 import org.bitcoinj.net.MessageWriteTarget;
 import org.bitcoinj.net.StreamConnection;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.Threading;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;

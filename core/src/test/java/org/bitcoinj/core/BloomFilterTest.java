@@ -21,6 +21,7 @@ import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.wallet.KeyChainGroup;
 import org.bitcoinj.wallet.Wallet;
 import org.junit.Test;

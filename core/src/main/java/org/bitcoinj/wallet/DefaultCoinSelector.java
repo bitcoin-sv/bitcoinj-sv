@@ -15,7 +15,7 @@
 package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.msg.protocol.TransactionOutput;

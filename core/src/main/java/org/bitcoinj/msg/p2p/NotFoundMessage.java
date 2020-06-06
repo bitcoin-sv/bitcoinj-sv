@@ -16,7 +16,6 @@
 
 package org.bitcoinj.msg.p2p;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.params.Net;
 

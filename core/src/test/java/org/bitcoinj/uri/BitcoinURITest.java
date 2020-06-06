@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 import static org.bitcoinj.core.Coin.*;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import static org.junit.Assert.*;
 
 public class BitcoinURITest {

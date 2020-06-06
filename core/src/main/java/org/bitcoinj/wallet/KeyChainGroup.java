@@ -22,6 +22,7 @@ import com.google.protobuf.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.msg.p2p.BloomFilter;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;

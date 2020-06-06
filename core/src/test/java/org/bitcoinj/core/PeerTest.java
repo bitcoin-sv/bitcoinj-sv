@@ -21,6 +21,7 @@ import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.msg.*;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.*;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.testing.FakeTxBuilder;
 import org.bitcoinj.testing.InboundMessageQueuer;

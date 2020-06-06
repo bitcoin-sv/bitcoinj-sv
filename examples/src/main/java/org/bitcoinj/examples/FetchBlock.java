@@ -20,6 +20,7 @@ package org.bitcoinj.examples;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.MemoryBlockStore;

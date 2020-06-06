@@ -19,10 +19,7 @@ package org.bitcoinj.core;
 
 import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.WrongNetworkException;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.params.Networks;
-import org.bitcoinj.params.TestNet3Params;
+import org.bitcoinj.params.*;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.junit.Test;
@@ -155,10 +152,10 @@ public class AddressTest {
     public void p2shAddress() throws Exception {
         // Test that we can construct P2SH addresses
         Address mainNetP2SHAddress = Address.fromBase58(MainNetParams.get(), "35b9vsyH1KoFT5a5KtrKusaCcPLkiSo1tU");
-        assertEquals(mainNetP2SHAddress.version, MainNetParams.get().p2shHeader);
+        assertEquals(mainNetP2SHAddress.version, MainNetParams.get().getP2SHHeader());
         assertTrue(mainNetP2SHAddress.isP2SHAddress());
         Address testNetP2SHAddress = Address.fromBase58(TestNet3Params.get(), "2MuVSxtfivPKJe93EC1Tb9UhJtGhsoWEHCe");
-        assertEquals(testNetP2SHAddress.version, TestNet3Params.get().p2shHeader);
+        assertEquals(testNetP2SHAddress.version, TestNet3Params.get().getP2SHHeader());
         assertTrue(testNetP2SHAddress.isP2SHAddress());
 
         // Test that we can determine what network a P2SH address belongs to

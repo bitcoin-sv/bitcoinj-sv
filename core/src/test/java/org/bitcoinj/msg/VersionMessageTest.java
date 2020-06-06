@@ -17,10 +17,8 @@
 
 package org.bitcoinj.msg;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.msg.p2p.VersionMessage;
 import org.bitcoinj.params.Net;
-import org.bitcoinj.params.UnitTestParams;
 import org.junit.Test;
 
 import static org.bitcoinj.core.Utils.HEX;

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Peer;
 import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.msg.protocol.Transaction;

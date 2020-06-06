@@ -17,7 +17,7 @@
 
 package org.bitcoinj.msg.protocol;
 
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.BitcoinSerializer;
@@ -26,8 +26,6 @@ import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.p2p.AddressMessage;
 import org.bitcoinj.msg.p2p.HeadersMessage;
 import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.MainNetParams;
 import org.junit.Assert;
 import org.junit.Test;

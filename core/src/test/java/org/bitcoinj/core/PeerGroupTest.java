@@ -29,6 +29,7 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.net.discovery.*;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.testing.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.wallet.Wallet;

@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.WrongNetworkException;
+import org.bitcoinj.params.NetworkParameters;
 
 import java.util.Arrays;
 
@@ -45,7 +46,7 @@ public class DumpedPrivateKey extends VersionedChecksummedBytes {
      * @throws WrongNetworkException
      *             if the given private key is valid but for a different chain (eg testnet vs mainnet)
      */
-    public static DumpedPrivateKey fromBase58(@Nullable NetworkParameters params,String base58) throws AddressFormatException {
+    public static DumpedPrivateKey fromBase58(@Nullable NetworkParameters params, String base58) throws AddressFormatException {
         return new DumpedPrivateKey(params, base58);
     }
 

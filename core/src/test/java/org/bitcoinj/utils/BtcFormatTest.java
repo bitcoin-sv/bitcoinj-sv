@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import static org.bitcoinj.core.Coin.*;
-import static org.bitcoinj.core.NetworkParameters.MAX_MONEY;
+import static org.bitcoinj.params.NetworkParameters.MAX_MONEY;
 import static org.bitcoinj.utils.BtcAutoFormat.Style.CODE;
 import static org.bitcoinj.utils.BtcAutoFormat.Style.SYMBOL;
 import static org.bitcoinj.utils.BtcFixedFormat.REPEATING_DOUBLETS;

@@ -19,7 +19,7 @@
 package org.bitcoinj.script;
 
 import org.bitcoinj.core.Address;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
@@ -42,7 +42,6 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

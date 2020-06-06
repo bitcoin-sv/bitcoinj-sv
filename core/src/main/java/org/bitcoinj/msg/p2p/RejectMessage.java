@@ -17,7 +17,6 @@
 package org.bitcoinj.msg.p2p;
 
 import com.google.common.base.Objects;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.VarInt;

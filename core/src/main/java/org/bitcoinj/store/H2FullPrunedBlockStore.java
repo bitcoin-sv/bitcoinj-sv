@@ -17,8 +17,8 @@
 
 package org.bitcoinj.store;
 
-import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.params.NetworkParameters;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class H2FullPrunedBlockStore extends DatabaseFullPrunedBlockStore {
      * @throws BlockStoreException if the database fails to open for any reason
      */
     public H2FullPrunedBlockStore(NetworkParameters params, String dbName, String username, String password,
-            int fullStoreDepth) throws BlockStoreException {
+                                  int fullStoreDepth) throws BlockStoreException {
         super(params, DATABASE_CONNECTION_URL_PREFIX + dbName + ";create=true;LOCK_TIMEOUT=60000;DB_CLOSE_ON_EXIT=FALSE", fullStoreDepth, username, password, null);
     }
 

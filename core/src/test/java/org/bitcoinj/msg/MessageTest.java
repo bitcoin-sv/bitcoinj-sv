@@ -16,12 +16,9 @@
 
 package org.bitcoinj.msg;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.VarInt;
-import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.Net;
-import org.bitcoinj.params.UnitTestParams;
 import org.junit.Test;
 
 public class MessageTest {

@@ -3,6 +3,7 @@ package org.bitcoinj.pow.rule;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;

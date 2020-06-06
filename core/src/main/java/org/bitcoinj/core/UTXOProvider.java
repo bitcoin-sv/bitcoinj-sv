@@ -16,6 +16,8 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.params.NetworkParameters;
+
 import java.util.List;
 
 /**

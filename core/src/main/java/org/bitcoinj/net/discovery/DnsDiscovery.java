@@ -17,8 +17,8 @@
 
 package org.bitcoinj.net.discovery;
 
-import org.bitcoinj.core.*;
 import org.bitcoinj.exception.PeerDiscoveryException;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.*;
 
 import java.net.*;

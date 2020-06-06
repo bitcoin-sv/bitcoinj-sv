@@ -22,6 +22,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.*;
 import org.bitcoinj.wallet.Wallet;
 import org.slf4j.*;

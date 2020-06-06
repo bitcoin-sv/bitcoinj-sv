@@ -16,6 +16,7 @@ package org.bitcoinj.core;
 
 import org.bitcoinj.msg.protocol.AbstractFullPrunedBlockChainIT;
 import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.store.FullPrunedBlockStore;
 import org.bitcoinj.store.MemoryFullPrunedBlockStore;
 

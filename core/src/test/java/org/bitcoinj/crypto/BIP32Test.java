@@ -21,7 +21,7 @@ import org.bitcoinj.core.Base58;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.junit.Test;
 import org.slf4j.Logger;

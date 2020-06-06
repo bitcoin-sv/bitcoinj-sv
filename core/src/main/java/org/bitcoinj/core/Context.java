@@ -16,6 +16,7 @@ package org.bitcoinj.core;
 
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.p2p.VersionMessage;
+import org.bitcoinj.params.NetworkParameters;
 import org.slf4j.*;
 
 import static com.google.common.base.Preconditions.*;
@@ -161,7 +162,7 @@ public class Context {
     }
 
     /**
-     * Returns the {@link org.bitcoinj.core.NetworkParameters} specified when this context was (auto) created. The
+     * Returns the {@link NetworkParameters} specified when this context was (auto) created. The
      * network parameters defines various hard coded constants for a specific instance of a Bitcoin network, such as
      * main net, testnet, etc.
      */

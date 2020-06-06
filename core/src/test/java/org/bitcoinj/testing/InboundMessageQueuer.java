@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.p2p.Ping;
+import org.bitcoinj.params.NetworkParameters;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;

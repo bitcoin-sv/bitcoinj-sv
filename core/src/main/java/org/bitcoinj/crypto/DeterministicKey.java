@@ -22,6 +22,7 @@ import org.bitcoinj.core.*;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import org.bitcoinj.params.NetworkParameters;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.math.ec.ECPoint;
 

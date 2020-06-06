@@ -22,6 +22,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.WalletExtension;

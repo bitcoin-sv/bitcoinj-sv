@@ -19,6 +19,7 @@ package org.bitcoinj.msg.p2p;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 
 import java.io.IOException;
 import java.io.OutputStream;

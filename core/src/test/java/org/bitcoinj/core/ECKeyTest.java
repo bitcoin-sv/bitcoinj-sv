@@ -24,6 +24,7 @@ import org.bitcoinj.crypto.KeyCrypterScrypt;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.utils.BriefLogFormatter;

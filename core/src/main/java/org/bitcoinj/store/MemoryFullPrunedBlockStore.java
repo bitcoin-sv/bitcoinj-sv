@@ -25,6 +25,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
+import org.bitcoinj.params.NetworkParameters;
 
 import javax.annotation.Nullable;
 import java.util.*;

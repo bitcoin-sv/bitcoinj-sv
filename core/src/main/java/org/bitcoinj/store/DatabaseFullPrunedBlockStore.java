@@ -25,6 +25,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -559,7 +560,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
     }
 
     /**
-     * Create a new store for the given {@link org.bitcoinj.core.NetworkParameters}.
+     * Create a new store for the given {@link NetworkParameters}.
      * @param params The network.
      * @throws BlockStoreException If the store couldn't be created.
      */

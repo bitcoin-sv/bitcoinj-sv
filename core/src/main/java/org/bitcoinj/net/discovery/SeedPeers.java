@@ -16,7 +16,7 @@
 
 package org.bitcoinj.net.discovery;
 
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.exception.PeerDiscoveryException;
 
 import javax.annotation.Nullable;

@@ -23,8 +23,8 @@ import com.subgraph.orchid.*;
 import com.subgraph.orchid.circuits.path.*;
 import com.subgraph.orchid.data.*;
 import com.subgraph.orchid.data.exitpolicy.*;
-import org.bitcoinj.core.*;
 import org.bitcoinj.exception.PeerDiscoveryException;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.*;
 import org.slf4j.*;
 

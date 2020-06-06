@@ -27,6 +27,7 @@ import org.bitcoinj.msg.p2p.VersionAck;
 import org.bitcoinj.msg.p2p.VersionMessage;
 import org.bitcoinj.net.*;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.MemoryBlockStore;

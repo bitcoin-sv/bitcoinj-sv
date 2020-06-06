@@ -16,7 +16,7 @@
 
 package org.bitcoinj.store;
 
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.StoredBlock;
@@ -63,7 +63,7 @@ public interface BlockStore {
     void close() throws BlockStoreException;
 
     /**
-     * Get the {@link org.bitcoinj.core.NetworkParameters} of this store.
+     * Get the {@link NetworkParameters} of this store.
      * @return The network params.
      */
     NetworkParameters getParams();

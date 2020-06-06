@@ -16,7 +16,6 @@
 
 package org.bitcoinj.params;
 
-import org.bitcoinj.core.NetworkParameters;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 

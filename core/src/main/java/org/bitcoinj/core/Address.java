@@ -23,6 +23,8 @@ import org.bitcoinj.exception.WrongNetworkException;
 import org.bitcoinj.msg.p2p.AddressMessage;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
+import org.bitcoinj.params.Networks;
 import org.bitcoinj.script.Script;
 
 import javax.annotation.Nullable;
@@ -118,7 +120,7 @@ public class Address extends VersionedChecksummedBytes {
             this.params = params;
         } else {
             NetworkParameters paramsFound = null;
-            for (NetworkParameters p : Net.getRegistered()) {
+            for (NetworkParameters p : Networks.get()) {
                 if (isAcceptableVersion(p, version)) {
                     paramsFound = p;
                     break;
@@ -142,7 +144,7 @@ public class Address extends VersionedChecksummedBytes {
      */
     public boolean isP2SHAddress() {
         final NetworkParameters parameters = getParameters();
-        return parameters != null && this.version == parameters.p2shHeader;
+        return parameters != null && this.version == parameters.getP2SHHeader();
     }
 
     /**
@@ -196,7 +198,7 @@ public class Address extends VersionedChecksummedBytes {
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        out.writeUTF(params.id);
+        out.writeUTF(params.getId());
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

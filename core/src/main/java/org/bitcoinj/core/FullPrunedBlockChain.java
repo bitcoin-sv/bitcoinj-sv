@@ -22,6 +22,7 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.exception.BlockStoreException;

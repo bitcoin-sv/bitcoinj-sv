@@ -19,15 +19,11 @@ package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.Context;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.MessageSerializer;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;

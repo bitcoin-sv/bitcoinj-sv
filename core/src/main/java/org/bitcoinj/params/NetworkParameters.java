@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.params;
 
 import com.google.common.base.Objects;
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.SerializeMode;
-import org.bitcoinj.params.*;
 import org.bitcoinj.utils.MonetaryFormat;
 
 import java.math.BigInteger;

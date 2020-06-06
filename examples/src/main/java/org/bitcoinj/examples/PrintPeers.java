@@ -18,7 +18,7 @@ package org.bitcoinj.examples;
 
 import org.bitcoinj.core.listeners.PeerConnectedEventListener;
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Peer;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.p2p.VersionMessage;

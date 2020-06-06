@@ -19,7 +19,6 @@ package org.bitcoinj.msg.p2p;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.bitcoinj.core.FullPrunedBlockChain;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;

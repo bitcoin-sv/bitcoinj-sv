@@ -1,7 +1,7 @@
 package org.bitcoinj.pow.factory;
 
 import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.pow.RulesPoolChecker;

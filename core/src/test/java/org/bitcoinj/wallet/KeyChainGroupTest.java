@@ -20,6 +20,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;

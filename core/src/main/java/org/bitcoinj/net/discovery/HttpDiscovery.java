@@ -24,6 +24,7 @@ import org.bitcoin.crawler.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.PeerDiscoveryException;
 import org.bitcoinj.msg.p2p.VersionMessage;
+import org.bitcoinj.params.NetworkParameters;
 import org.slf4j.*;
 
 import javax.annotation.*;

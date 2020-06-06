@@ -24,6 +24,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.msg.p2p.InventoryItem;
 import org.bitcoinj.msg.p2p.UTXOsMessage;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import com.google.common.base.Preconditions;

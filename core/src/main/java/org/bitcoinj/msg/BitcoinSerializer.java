@@ -24,6 +24,7 @@ import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

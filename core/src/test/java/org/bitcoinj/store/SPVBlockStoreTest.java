@@ -18,7 +18,7 @@ package org.bitcoinj.store;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.params.UnitTestParams;

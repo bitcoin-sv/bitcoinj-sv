@@ -27,6 +27,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.pow.factory.RuleCheckerFactory;
