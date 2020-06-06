@@ -21,7 +21,7 @@ import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.MainNetParams;
 import com.google.common.base.Objects;
 import com.google.common.net.InetAddresses;

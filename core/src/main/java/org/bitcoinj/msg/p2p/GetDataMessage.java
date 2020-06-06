@@ -18,7 +18,7 @@ package org.bitcoinj.msg.p2p;
 
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 
 /**

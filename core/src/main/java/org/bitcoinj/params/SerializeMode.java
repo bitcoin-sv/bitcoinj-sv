@@ -1,4 +1,4 @@
-package org.bitcoinj.msg;
+package org.bitcoinj.params;
 
 public class SerializeMode {
 

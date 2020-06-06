@@ -19,6 +19,7 @@ package org.bitcoinj.msg.p2p;
 import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -67,7 +68,7 @@ public class FilteredBlock extends Message {
     protected void parse() throws ProtocolException {
         byte[] headerBytes = new byte[Block.HEADER_SIZE];
         System.arraycopy(payload, 0, headerBytes, 0, Block.HEADER_SIZE);
-        header = net.params().getDefaultSerializer().makeBlock(headerBytes);
+        header = Serializer.defaultFor(net).makeBlock(headerBytes);
         
         merkleTree = new PartialMerkleTree(net, payload, Block.HEADER_SIZE);
         

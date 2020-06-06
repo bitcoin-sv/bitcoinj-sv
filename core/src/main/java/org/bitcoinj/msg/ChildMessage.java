@@ -18,6 +18,7 @@ package org.bitcoinj.msg;
 
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.SerializeMode;
 
 import javax.annotation.Nullable;
 

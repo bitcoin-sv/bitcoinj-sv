@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Transaction.SigHash;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.msg.p2p.InventoryItem;
@@ -1082,7 +1083,7 @@ public class FullBlockTestGenerator {
 
         Block b56;
         try {
-            b56 = net.params().getDefaultSerializer().makeBlock(b57.block.bitcoinSerialize());
+            b56 = Serializer.defaultFor(net).makeBlock(b57.block.bitcoinSerialize());
         } catch (ProtocolException e) {
             throw new RuntimeException(e); // Cannot happen.
         }
@@ -1123,7 +1124,7 @@ public class FullBlockTestGenerator {
 
         Block b56p2;
         try {
-            b56p2 = net.params().getDefaultSerializer().makeBlock(b57p2.block.bitcoinSerialize());
+            b56p2 = Serializer.defaultFor(net).makeBlock(b57p2.block.bitcoinSerialize());
         } catch (ProtocolException e) {
             throw new RuntimeException(e); // Cannot happen.
         }
@@ -1242,7 +1243,7 @@ public class FullBlockTestGenerator {
 
             for (Transaction transaction : b64Original.block.getTransactions())
                 transaction.bitcoinSerialize(stream);
-            b64 = net.params().getSerializer(false, true).makeBlock(stream.toByteArray(), stream.size());
+            b64 = Serializer.get(net, false, true).makeBlock(stream.toByteArray(), stream.size());
 
             // The following checks are checking to ensure block serialization functions in the way needed for this test
             // If they fail, it is likely not an indication of error, but an indication that this test needs rewritten
@@ -1370,7 +1371,7 @@ public class FullBlockTestGenerator {
         }
         b72.solve();
 
-        Block b71 = net.params().getDefaultSerializer().makeBlock(b72.block.bitcoinSerialize());
+        Block b71 = Serializer.defaultFor(net).makeBlock(b72.block.bitcoinSerialize());
         b71.addTransaction(b72.block.getTransactions().get(2));
         checkState(b71.getHash().equals(b72.getHash()));
         blocks.add(new BlockAndValidity(b71, false, true, b69.getHash(), chainHeadHeight + 21, "b71"));

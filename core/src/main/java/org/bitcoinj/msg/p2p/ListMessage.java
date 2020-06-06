@@ -20,7 +20,7 @@ import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 
 import java.io.IOException;

@@ -23,6 +23,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
@@ -756,7 +757,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
 
             BigInteger chainWork = new BigInteger(results.getBytes(1));
             int height = results.getInt(2);
-            Block b = params.getDefaultSerializer().makeBlock(results.getBytes(3));
+            Block b = Serializer.defaultFor(params).makeBlock(results.getBytes(3));
             b.verifyHeader();
             StoredBlock stored = new StoredBlock(b, chainWork, height);
             return stored;
@@ -818,7 +819,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
                         ((transactions[offset++] & 0xFF) << 24);
                 List<Transaction> transactionList = new LinkedList<Transaction>();
                 for (int i = 0; i < numTxn; i++) {
-                    Transaction tx = params.getDefaultSerializer().makeTransaction(transactions, offset);
+                    Transaction tx = Serializer.defaultFor(params).makeTransaction(transactions, offset);
                     transactionList.add(tx);
                     offset += tx.getMessageSize();
                 }

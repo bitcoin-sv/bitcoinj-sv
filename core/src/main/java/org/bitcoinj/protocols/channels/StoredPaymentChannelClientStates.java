@@ -19,6 +19,7 @@ package org.bitcoinj.protocols.channels;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.Threading;
@@ -334,7 +335,7 @@ public class StoredPaymentChannelClientStates implements WalletExtension {
             NetworkParameters params = containingWallet.getParams();
             ClientState.StoredClientPaymentChannels states = ClientState.StoredClientPaymentChannels.parseFrom(data);
             for (ClientState.StoredClientPaymentChannel storedState : states.getChannelsList()) {
-                Transaction refundTransaction = params.getDefaultSerializer().makeTransaction(storedState.getRefundTransaction().toByteArray());
+                Transaction refundTransaction = Serializer.defaultFor(params).makeTransaction(storedState.getRefundTransaction().toByteArray());
                 refundTransaction.getConfidence().setSource(TransactionConfidence.Source.SELF);
                 ECKey myKey = (storedState.getMyKey().isEmpty()) ?
                         containingWallet.findKeyFromPubKey(storedState.getMyPublicKey().toByteArray()) :
@@ -342,7 +343,7 @@ public class StoredPaymentChannelClientStates implements WalletExtension {
                 ECKey serverKey = storedState.hasServerKey() ? ECKey.fromPublicOnly(storedState.getServerKey().toByteArray()) : null;
                 StoredClientChannel channel = new StoredClientChannel(storedState.getMajorVersion(),
                         Sha256Hash.wrap(storedState.getId().toByteArray()),
-                        params.getDefaultSerializer().makeTransaction(storedState.getContractTransaction().toByteArray()),
+                        Serializer.defaultFor(params).makeTransaction(storedState.getContractTransaction().toByteArray()),
                         refundTransaction,
                         myKey,
                         serverKey,

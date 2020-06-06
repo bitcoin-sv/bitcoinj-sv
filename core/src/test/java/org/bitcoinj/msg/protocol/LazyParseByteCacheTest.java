@@ -19,6 +19,7 @@ package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.Context;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.BitcoinSerializer;
@@ -114,7 +115,7 @@ public class LazyParseByteCacheTest {
 
         Block b1 = createFakeBlock(blockStore, BLOCK_HEIGHT_GENESIS, tx1, tx2).block;
 
-        MessageSerializer bs = PARAMS.getDefaultSerializer();
+        MessageSerializer bs = Serializer.defaultFor(NET);
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         bs.serialize(tx1, bos);
@@ -186,10 +187,10 @@ public class LazyParseByteCacheTest {
     public void testBlock(byte[] blockBytes, boolean isChild, boolean lazy, boolean retain) throws Exception {
         //reference serializeMode to produce comparison serialization output after changes to
         //message structure.
-        MessageSerializer bsRef = PARAMS.getSerializer(false, false);
+        MessageSerializer bsRef = Serializer.get(NET, false, false);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        
-        BitcoinSerializer bs = PARAMS.getSerializer(lazy, retain);
+
+        MessageSerializer bs = Serializer.get(NET, lazy, retain);
         Block b1;
         Block bRef;
         b1 = (Block) bs.deserialize(ByteBuffer.wrap(blockBytes));
@@ -421,10 +422,10 @@ public class LazyParseByteCacheTest {
 
         //reference serializeMode to produce comparison serialization output after changes to
         //message structure.
-        MessageSerializer bsRef = params.getSerializer(false, false);
+        MessageSerializer bsRef = Serializer.get(params, false, false);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-        BitcoinSerializer bs = params.getSerializer(lazy, retain);
+        MessageSerializer bs = Serializer.get(params,lazy, retain);
         Transaction t1;
         Transaction tRef;
         t1 = (Transaction) bs.deserialize(ByteBuffer.wrap(txBytes));

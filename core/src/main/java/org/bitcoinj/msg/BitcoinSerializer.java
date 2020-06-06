@@ -25,6 +25,7 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
+import org.bitcoinj.params.SerializeMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,6 +114,12 @@ public class BitcoinSerializer extends MessageSerializer {
         this.params = params;
         this.net = params == null ? null : params.getNet();
         this.serializeMode = params.getDefaultSerializeMode();
+    }
+
+    public BitcoinSerializer(Net net, SerializeMode serializeMode) {
+        this.params = Net.of(net);
+        this.net = net;
+        this.serializeMode = serializeMode;
     }
 
     /**

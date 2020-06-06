@@ -21,9 +21,6 @@ import com.google.common.base.Objects;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.msg.BitcoinSerializer;
-import org.bitcoinj.msg.MessageSerializer;
-import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.utils.MonetaryFormat;
 
 import java.math.BigInteger;
@@ -111,7 +108,7 @@ public abstract class NetworkParameters {
     protected int[] addrSeeds;
     protected Map<Integer, Sha256Hash> checkpoints = new HashMap<Integer, Sha256Hash>();
     protected SerializeMode defaultSerializeMode = new SerializeMode(false, false, true);
-    protected transient MessageSerializer defaultSerializer = null;
+    //protected transient MessageSerializer defaultSerializer = null;
     protected String cashAddrPrefix;
 
     protected long genesisDifficulty;
@@ -337,38 +334,6 @@ public abstract class NetworkParameters {
     public abstract boolean hasMaxMoney();
 
     /**
-     * Return the default serializeMode for this network. This is a shared serializeMode.
-     * @return 
-     */
-    public final MessageSerializer getDefaultSerializer() {
-        // Construct a default serializeMode if we don't have one
-        if (null == this.defaultSerializer) {
-            // Don't grab a lock unless we absolutely need it
-            synchronized(this) {
-                // Now we have a lock, double check there's still no serializeMode
-                // and create one if so.
-                if (null == this.defaultSerializer) {
-                    // As the serializers are intended to be immutable, creating
-                    // two due to a race condition should not be a problem, however
-                    // to be safe we ensure only one exists for each network.
-                    this.defaultSerializer = getSerializer(
-                            defaultSerializeMode.isParseLazyMode(),
-                            defaultSerializeMode.isParseRetainMode(),
-                            defaultSerializeMode.isCompactTransactionsInBlock());
-                }
-            }
-        }
-        return defaultSerializer;
-    }
-
-    public abstract BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock);
-
-    /**
-     * Construct and return a custom serializeMode.
-     */
-    public abstract BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain);
-
-    /**
      * The number of blocks in the last {@link #getMajorityWindow()} blocks
      * at which to trigger a notice to the user to upgrade their client, where
      * the client does not understand those blocks.
@@ -413,11 +378,8 @@ public abstract class NetworkParameters {
                 defaultSerializeMode.isParseLazyMode(),
                 defaultSerializerParseRetain,
                 defaultSerializeMode.isCompactTransactionsInBlock());
-        synchronized (this) {
-            defaultSerializer = null;
-        }
-    }
 
+    }
     public long genesisDifficulty() {
         return genesisDifficulty;
     }

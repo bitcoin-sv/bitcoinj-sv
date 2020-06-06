@@ -19,6 +19,7 @@
 package org.bitcoinj.script;
 
 import org.bitcoinj.core.Address;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.Utils;
@@ -2119,7 +2120,7 @@ public class Script {
         // Clone the transaction because executing the script involves editing it, and if we die, we'll leave
         // the tx half broken (also it's not so thread safe to work on it directly.
         try {
-            txContainingThis = txContainingThis.getParams().getDefaultSerializer().makeTransaction(txContainingThis.bitcoinSerialize());
+            txContainingThis = Serializer.forMessage(txContainingThis).makeTransaction(txContainingThis.bitcoinSerialize());
         } catch (ProtocolException e) {
             throw new RuntimeException(e);   // Should not happen unless we were given a totally broken transaction.
         }

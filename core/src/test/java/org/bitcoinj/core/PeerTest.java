@@ -940,7 +940,7 @@ public class PeerTest extends TestWithNetworkConnections {
             }
         });
         final NetworkParameters params = TestNet3Params.get();
-        MessageSerializer serializer = params.getDefaultSerializer();
+        MessageSerializer serializer = Serializer.defaultFor(params);
         // Now write some bogus truncated message.
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         serializer.serialize("inv", new InventoryMessage(NET) {

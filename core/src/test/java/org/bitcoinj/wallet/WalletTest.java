@@ -22,6 +22,7 @@ import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.*;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.script.Script;
@@ -625,7 +626,7 @@ public class WalletTest extends TestWithWallet {
         // Send 0.10 to somebody else.
         Transaction send1 = wallet.createSend(OTHER_ADDRESS, valueOf(0, 10));
         // Reserialize.
-        Transaction send2 = PARAMS.getDefaultSerializer().makeTransaction(send1.bitcoinSerialize());
+        Transaction send2 = Serializer.defaultFor(NET).makeTransaction(send1.bitcoinSerialize());
         assertEquals(nanos, send2.getValueSentFromMe(wallet));
         assertEquals(ZERO.subtract(valueOf(0, 10)), send2.getValue(wallet));
     }
@@ -641,7 +642,7 @@ public class WalletTest extends TestWithWallet {
 
         assertTrue(wallet.isConsistent());
 
-        Transaction txClone = PARAMS.getDefaultSerializer().makeTransaction(tx.bitcoinSerialize());
+        Transaction txClone = Serializer.defaultFor(NET).makeTransaction(tx.bitcoinSerialize());
         try {
             wallet.receiveFromBlock(txClone, null, SPVBlockChain.NewBlockType.BEST_CHAIN, 0);
             fail("Illegal argument not thrown when it should have been.");
@@ -767,7 +768,7 @@ public class WalletTest extends TestWithWallet {
         // Create a double spend of just the first one.
         Address BAD_GUY = new ECKey().toAddress(PARAMS);
         Transaction send2 = wallet.createSend(BAD_GUY, COIN);
-        send2 = PARAMS.getDefaultSerializer().makeTransaction(send2.bitcoinSerialize());
+        send2 = Serializer.defaultFor(NET).makeTransaction(send2.bitcoinSerialize());
         // Broadcast send1, it's now pending.
         wallet.commitTx(send1);
         assertEquals(ZERO, wallet.getBalance()); // change of 10 cents is not yet mined so not included in the balance.
@@ -794,7 +795,7 @@ public class WalletTest extends TestWithWallet {
         Transaction send2 = checkNotNull(wallet.createSend(OTHER_ADDRESS, value2));
         byte[] buf = send1.bitcoinSerialize();
         buf[43] = 0;  // Break the signature: bitcoinj won't check in SPV mode and this is easier than other mutations.
-        send1 = PARAMS.getDefaultSerializer().makeTransaction(buf);
+        send1 = Serializer.defaultFor(NET).makeTransaction(buf);
         wallet.commitTx(send2);
         wallet.allowSpendingUnconfirmedTransactions();
         assertEquals(value, wallet.getBalance(Wallet.BalanceType.ESTIMATED));
@@ -861,7 +862,7 @@ public class WalletTest extends TestWithWallet {
         // Create a double spend.
         Address BAD_GUY = new ECKey().toAddress(PARAMS);
         Transaction send2 = wallet.createSend(BAD_GUY, valueOf(0, 50));
-        send2 = PARAMS.getDefaultSerializer().makeTransaction(send2.bitcoinSerialize());
+        send2 = Serializer.defaultFor(NET).makeTransaction(send2.bitcoinSerialize());
         // Broadcast send1.
         wallet.commitTx(send1);
         assertEquals(send1, received.getOutput(0).getSpentBy().getParentTransaction());
@@ -1337,7 +1338,7 @@ public class WalletTest extends TestWithWallet {
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN);
         Threading.waitForUserCode();
         assertNull(reasons[0]);
-        final Transaction t1Copy = PARAMS.getDefaultSerializer().makeTransaction(t1.bitcoinSerialize());
+        final Transaction t1Copy = Serializer.defaultFor(NET).makeTransaction(t1.bitcoinSerialize());
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, t1Copy);
         Threading.waitForUserCode();
         assertFalse(flags[0]);

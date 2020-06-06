@@ -24,6 +24,7 @@ import org.bitcoinj.core.VarInt;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.SerializeMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

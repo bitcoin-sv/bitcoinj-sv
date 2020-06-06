@@ -19,6 +19,7 @@ package org.bitcoinj.protocols.payments;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.X509Utils;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.ScriptBuilder;
@@ -344,7 +345,7 @@ public class PaymentProtocol {
             Protos.Payment paymentMessage) {
         final List<Transaction> transactions = new ArrayList<Transaction>(paymentMessage.getTransactionsCount());
         for (final ByteString transaction : paymentMessage.getTransactionsList())
-            transactions.add(params.getDefaultSerializer().makeTransaction(transaction.toByteArray()));
+            transactions.add(Serializer.defaultFor(params).makeTransaction(transaction.toByteArray()));
         return transactions;
     }
 

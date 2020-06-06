@@ -2,10 +2,9 @@ package org.bitcoinj.msg.p2p;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;

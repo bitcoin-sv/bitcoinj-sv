@@ -19,6 +19,7 @@ package org.bitcoinj.protocols.channels;
 import com.google.common.collect.ImmutableMap;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.utils.Threading;
@@ -322,7 +323,7 @@ public class PaymentChannelServer {
         state = new PaymentChannelV1ServerState(broadcaster, wallet, myKey, expireTime);
         // We can cast to V1 state since this state is only used in the V1 protocol
         byte[] signature = ((PaymentChannelV1ServerState) state)
-                .provideRefundTransaction(wallet.getParams().getDefaultSerializer().makeTransaction(providedRefund.getTx().toByteArray()),
+                .provideRefundTransaction(Serializer.defaultFor(wallet.getNet()).makeTransaction(providedRefund.getTx().toByteArray()),
                         providedRefund.getMultisigKey().toByteArray());
 
         step = InitStep.WAITING_ON_CONTRACT;
@@ -383,7 +384,7 @@ public class PaymentChannelServer {
         }
 
         //TODO notify connection handler that timeout should be significantly extended as we wait for network propagation?
-        final Transaction contract = wallet.getParams().getDefaultSerializer().makeTransaction(providedContract.getTx().toByteArray());
+        final Transaction contract = Serializer.defaultFor(wallet.getNet()).makeTransaction(providedContract.getTx().toByteArray());
         step = InitStep.WAITING_ON_MULTISIG_ACCEPTANCE;
         state.provideContract(contract)
                 .addListener(new Runnable() {

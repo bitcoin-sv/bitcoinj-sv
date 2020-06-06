@@ -22,8 +22,6 @@ import org.bitcoinj.utils.MonetaryFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.bitcoinj.msg.BitcoinSerializer;
-
 /**
  * Parameters for Bitcoin-like networks.
  */
@@ -60,15 +58,6 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     @Override
     public int getProtocolVersionNum(final ProtocolVersion version) {
         return version.getBitcoinProtocolVersion();
-    }
-
-    @Override
-    public BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock) {
-        return new BitcoinSerializer(this, parseLazy, parseRetain, compactTransactionsInBlock);
-    }
-
-    public BitcoinSerializer getSerializer(boolean parseLazy, boolean parseRetain) {
-        return getSerializer(parseLazy, parseRetain, defaultSerializeMode.isCompactTransactionsInBlock());
     }
 
     @Override

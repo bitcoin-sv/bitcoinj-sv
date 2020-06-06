@@ -23,6 +23,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.*;
 import org.bitcoinj.testing.*;
@@ -354,7 +355,7 @@ public class TransactionTest {
         // Coinbase transaction from block 300,000
         final byte[] transactionBytes = HEX.decode("01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac00000000");
         final int height = 300000;
-        final Transaction transaction = PARAMS.getDefaultSerializer().makeTransaction(transactionBytes);
+        final Transaction transaction = Serializer.defaultFor(NET).makeTransaction(transactionBytes);
         transaction.checkCoinBaseHeight(height);
     }
 
@@ -372,7 +373,7 @@ public class TransactionTest {
             + "1eeeed88ffffffff01e0587597000000001976a91421c0d001728b3feaf11551"
             + "5b7c135e779e9f442f88ac00000000");
         final int height = 224430;
-        final Transaction transaction = PARAMS.getDefaultSerializer().makeTransaction(transactionBytes);
+        final Transaction transaction = Serializer.defaultFor(NET).makeTransaction(transactionBytes);
         transaction.checkCoinBaseHeight(height);
     }
 

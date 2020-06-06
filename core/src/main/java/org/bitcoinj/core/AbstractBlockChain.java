@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -890,7 +891,7 @@ public abstract class AbstractBlockChain {
             try {
                 falsePositives.remove(tx.getHash());
                 if (clone)
-                    tx = tx.getParams().getDefaultSerializer().makeTransaction(tx.bitcoinSerialize());
+                    tx = Serializer.forMessage(tx).makeTransaction(tx.bitcoinSerialize());
                 listener.receiveFromBlock(tx, block, blockType, relativityOffset++);
             } catch (ScriptException e) {
                 // We don't want scripts we don't understand to break the block chain so just note that this tx was

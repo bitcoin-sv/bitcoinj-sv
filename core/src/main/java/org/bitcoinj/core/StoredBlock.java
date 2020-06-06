@@ -17,6 +17,7 @@
 package org.bitcoinj.core;
 
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
@@ -239,7 +240,7 @@ public class StoredBlock {
         long blockSize = buffer.getLong(); // + 8 bytes
         byte[] header = new byte[Block.HEADER_SIZE + 1];    // Extra byte for the 00 transactions length.
         buffer.get(header, 0, Block.HEADER_SIZE);
-        StoredBlock block = new StoredBlock(params.getDefaultSerializer().makeBlock(header), chainWork, height);
+        StoredBlock block = new StoredBlock(Serializer.defaultFor(params).makeBlock(header), chainWork, height);
         block.setTxCount(txCount);
         block.setBlockSize(blockSize);
         return block;

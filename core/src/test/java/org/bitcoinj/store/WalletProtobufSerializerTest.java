@@ -19,6 +19,7 @@ package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.BlockTest;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -204,7 +205,7 @@ public class WalletProtobufSerializerTest {
         assertTrue(lastSeenBlockHash.isEmpty());
 
         // Create a block.
-        Block block = PARAMS.getDefaultSerializer().makeBlock(BlockTest.blockBytes);
+        Block block = Serializer.defaultFor(NET).makeBlock(BlockTest.blockBytes);
         Sha256Hash blockHash = block.getHash();
         wallet.setLastBlockSeenHash(blockHash);
         wallet.setLastBlockSeenHeight(1);

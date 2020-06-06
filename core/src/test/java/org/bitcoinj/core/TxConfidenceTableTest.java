@@ -16,6 +16,7 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.*;
@@ -55,7 +56,7 @@ public class TxConfidenceTableTest {
 
     @Test
     public void pinHandlers() throws Exception {
-        Transaction tx = PARAMS.getDefaultSerializer().makeTransaction(tx1.bitcoinSerialize());
+        Transaction tx = Serializer.defaultFor(NET).makeTransaction(tx1.bitcoinSerialize());
         Sha256Hash hash = tx.getHash();
         table.seen(hash, address1);
         assertEquals(1, tx.getConfidence().numBroadcastPeers());

@@ -21,6 +21,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
@@ -277,7 +278,7 @@ public class ChainSplitTest {
     }
 
     private Block roundtrip(Block b2) throws ProtocolException {
-        return PARAMS.getDefaultSerializer().makeBlock(b2.bitcoinSerialize());
+        return Serializer.defaultFor(NET).makeBlock(b2.bitcoinSerialize());
     }
 
     @Test

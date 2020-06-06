@@ -23,7 +23,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;

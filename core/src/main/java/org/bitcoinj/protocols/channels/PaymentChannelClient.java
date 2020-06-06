@@ -19,6 +19,7 @@ package org.bitcoinj.protocols.channels;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.utils.Threading;
@@ -541,7 +542,7 @@ public class PaymentChannelClient implements IPaymentChannelClient {
     private void receiveClose(Protos.TwoWayChannelMessage msg) throws VerificationException {
         checkState(lock.isHeldByCurrentThread());
         if (msg.hasSettlement()) {
-            Transaction settleTx = wallet.getParams().getDefaultSerializer().makeTransaction(msg.getSettlement().getTx().toByteArray());
+            Transaction settleTx = Serializer.defaultFor(wallet.getNet()).makeTransaction(msg.getSettlement().getTx().toByteArray());
             log.info("CLOSE message received with settlement tx {}", settleTx.getHash());
             // TODO: set source
             if (state != null && state().isSettlementTransaction(settleTx)) {

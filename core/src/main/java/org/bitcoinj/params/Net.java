@@ -10,8 +10,9 @@ import java.util.Set;
 /**
  * Simple enum key to replace NetworkParameters in many cases. It was intended
  * to hold no references to other class types but as NetworkParameters has been
- * regfactors to eliminate those dependencies it's less important. It is now
- * a placeholder and easy lookup mechanism for NetworkParameters.
+ * refactored to eliminate those dependencies it's less important. It is now
+ * a a resource key for easy lookup of NetworkParameters and other
+ * network specific resources.
  */
 public enum Net {
     MAINNET(MainNetParams.class), REGTEST(RegTestParams.class),
