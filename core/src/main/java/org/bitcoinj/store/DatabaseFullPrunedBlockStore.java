@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.script.Script;
@@ -566,11 +567,11 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
         try {
             // Set up the genesis block. When we start out fresh, it is by
             // definition the top of the chain.
-            StoredBlock storedGenesisHeader = new StoredBlock(params.getGenesisBlock().cloneAsHeader(), params.getGenesisBlock().getWork(), 0);
+            StoredBlock storedGenesisHeader = new StoredBlock(Genesis.getFor(params).cloneAsHeader(), Genesis.getFor(params).getWork(), 0);
             // The coinbase in the genesis block is not spendable. This is because of how Bitcoin Core inits
             // its database - the genesis transaction isn't actually in the db so its spent flags can never be updated.
             List<Transaction> genesisTransactions = Lists.newLinkedList();
-            StoredUndoableBlock storedGenesis = new StoredUndoableBlock(params.getGenesisBlock().getHash(), genesisTransactions);
+            StoredUndoableBlock storedGenesis = new StoredUndoableBlock(Genesis.getFor(params).getHash(), genesisTransactions);
             put(storedGenesisHeader, storedGenesis);
             setChainHead(storedGenesisHeader);
             setVerifiedChainHead(storedGenesisHeader);

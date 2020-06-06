@@ -17,7 +17,6 @@
 
 package org.bitcoinj.params;
 
-import org.bitcoinj.msg.protocol.Block;
 
 import java.util.Date;
 
@@ -58,8 +57,8 @@ public class STNParams extends TestNet3Params {
     // February 16th 2012
     private static final Date testnetDiffDate = new Date(1329264000000L);
 
-    public static boolean isValidTestnetDateBlock(Block block){
-        return block.getTime().after(testnetDiffDate);
+    public static boolean isValidTestnetDateBlock(Date blockTime){
+        return blockTime.after(testnetDiffDate);
     }
 
 }

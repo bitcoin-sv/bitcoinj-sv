@@ -21,19 +21,14 @@ import com.google.common.base.Objects;
 import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.SerializeMode;
-import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.*;
-import org.bitcoinj.script.ScriptOpCodes;
-import org.bitcoinj.script.ScriptUtil;
 import org.bitcoinj.utils.MonetaryFormat;
 
-import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.bitcoinj.core.Coin.COIN;
-import static org.bitcoinj.core.Coin.FIFTY_COINS;
 
 /**
  * <p>NetworkParameters contains the data needed for working with an instantiation of a Bitcoin chain.</p>
@@ -44,6 +39,9 @@ import static org.bitcoinj.core.Coin.FIFTY_COINS;
  * them, you are encouraged to call the static get() methods on each specific params class directly.</p>
  */
 public abstract class NetworkParameters {
+
+    public static final long EASIEST_DIFFICULTY_TARGET = 0x207fFFFFL;
+
     /**
      * The alert signing key originally owned by Satoshi, and now passed on to Gavin along with a few others.
      */
@@ -69,7 +67,6 @@ public abstract class NetworkParameters {
     // TODO: Seed nodes should be here as well.
 
     protected Net net;
-    private Block genesisBlock;
     protected BigInteger maxTarget;
     protected int port;
     protected long oldPacketMagic; //original BTC packet magic. Still used in native bitcoin block files
@@ -115,58 +112,18 @@ public abstract class NetworkParameters {
     protected transient MessageSerializer defaultSerializer = null;
     protected String cashAddrPrefix;
 
+    protected long genesisDifficulty;
+    protected long genesisTime;
+    protected long genesisNonce;
+    protected String genesisHash;
+
     protected NetworkParameters(Net net) {
         alertSigningKey = SATOSHI_KEY;
         this.net = net;
+        configureGenesis();
     }
 
-    /**
-     * <p>Genesis block for this chain.</p>
-     *
-     * <p>The first block in every chain is a well known constant shared between all Bitcoin implemenetations. For a
-     * block to be valid, it must be eventually possible to work backwards to the genesis block by following the
-     * prevBlockHash pointers in the block headers.</p>
-     *
-     * <p>The genesis blocks for both test and main networks contain the timestamp of when they were created,
-     * and a message in the coinbase transaction. It says, <i>"The Times 03/Jan/2009 Chancellor on brink of second
-     * bailout for banks"</i>.</p>
-     */
-    public Block getGenesisBlock() {
-        if (genesisBlock == null) {
-            synchronized (NetworkParameters.this) {
-                if (genesisBlock == null) {
-                    genesisBlock = createGenesis(net);
-                    configureGenesis(genesisBlock);
-                }
-            }
-        }
-        return genesisBlock;
-    }
-
-    protected abstract void configureGenesis(Block genesisBlock);
-
-    private static Block createGenesis(Net n) {
-        Block genesisBlock = DefaultMsgAccessors.newBlock(n, Block.BLOCK_VERSION_GENESIS);
-        Transaction t = new Transaction(n);
-        try {
-            // A script containing the difficulty bits and the following message:
-            //
-            //   "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
-            byte[] bytes = Utils.HEX.decode
-                    ("04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73");
-            t.addInput(new TransactionInput(n, t, bytes));
-            ByteArrayOutputStream scriptPubKeyBytes = new ByteArrayOutputStream();
-            ScriptUtil.writeBytes(scriptPubKeyBytes, Utils.HEX.decode
-                    ("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f"));
-            scriptPubKeyBytes.write(ScriptOpCodes.OP_CHECKSIG);
-            t.addOutput(new TransactionOutput(n, t, FIFTY_COINS, scriptPubKeyBytes.toByteArray()));
-        } catch (Exception e) {
-            // Cannot happen.
-            throw new RuntimeException(e);
-        }
-        genesisBlock.addTransaction(t);
-        return genesisBlock;
-    }
+    protected abstract void configureGenesis();
 
     public static final int TARGET_TIMESPAN = 14 * 24 * 60 * 60;  // 2 weeks per difficulty cycle, on average.
     public static final int TARGET_SPACING = 10 * 60;  // 10 minutes per block.
@@ -457,6 +414,22 @@ public abstract class NetworkParameters {
         synchronized (this) {
             defaultSerializer = null;
         }
+    }
+
+    public long genesisDifficulty() {
+        return genesisDifficulty;
+    }
+
+    public long genesisTime() {
+        return genesisTime;
+    }
+
+    public long genesisNonce() {
+        return genesisNonce;
+    }
+
+    public String genesisHash() {
+        return genesisHash;
     }
 
     public static enum ProtocolVersion {

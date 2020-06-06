@@ -28,6 +28,8 @@ import java.util.Set;
  * By default only MainNetParams and TestNet3Params are used. If you want to use TestNet2, RegTestParams or
  * UnitTestParams use the register and unregister the TestNet3Params as they don't have their own address
  * version/type code.
+ *
+ * @deprecated still used in some tests but needs to be gotten rid of, Use Net class instead
  */
 public class Networks {
     /** Registered networks */

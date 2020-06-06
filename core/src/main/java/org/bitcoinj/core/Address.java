@@ -22,7 +22,7 @@ import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.WrongNetworkException;
 import org.bitcoinj.msg.p2p.AddressMessage;
 import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.params.Networks;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 
 import javax.annotation.Nullable;
@@ -118,7 +118,7 @@ public class Address extends VersionedChecksummedBytes {
             this.params = params;
         } else {
             NetworkParameters paramsFound = null;
-            for (NetworkParameters p : Networks.get()) {
+            for (NetworkParameters p : Net.getRegistered()) {
                 if (isAcceptableVersion(p, version)) {
                     paramsFound = p;
                     break;

@@ -19,6 +19,7 @@ package org.bitcoinj.store;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
 
 import java.util.LinkedHashMap;
@@ -40,7 +41,7 @@ public class MemoryBlockStore implements BlockStore {
     public MemoryBlockStore(NetworkParameters params) {
         // Insert the genesis block.
         try {
-            Block genesisHeader = params.getGenesisBlock().cloneAsHeader();
+            Block genesisHeader = Genesis.getFor(params).cloneAsHeader();
             StoredBlock storedGenesis = new StoredBlock(genesisHeader, genesisHeader.getWork(), 0);
             put(storedGenesis);
             setChainHead(storedGenesis);

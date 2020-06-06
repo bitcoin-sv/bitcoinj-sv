@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 
@@ -263,10 +264,10 @@ public class MemoryFullPrunedBlockStore implements FullPrunedBlockStore {
         this.fullStoreDepth = fullStoreDepth > 0 ? fullStoreDepth : 1;
         // Insert the genesis block.
         try {
-            StoredBlock storedGenesisHeader = new StoredBlock(params.getGenesisBlock().cloneAsHeader(), params.getGenesisBlock().getWork(), 0);
+            StoredBlock storedGenesisHeader = new StoredBlock(Genesis.getFor(params).cloneAsHeader(), Genesis.getFor(params).getWork(), 0);
             // The coinbase in the genesis block is not spendable
             List<Transaction> genesisTransactions = Lists.newLinkedList();
-            StoredUndoableBlock storedGenesis = new StoredUndoableBlock(params.getGenesisBlock().getHash(), genesisTransactions);
+            StoredUndoableBlock storedGenesis = new StoredUndoableBlock(Genesis.getFor(params).getHash(), genesisTransactions);
             put(storedGenesisHeader, storedGenesis);
             setChainHead(storedGenesisHeader);
             setVerifiedChainHead(storedGenesisHeader);

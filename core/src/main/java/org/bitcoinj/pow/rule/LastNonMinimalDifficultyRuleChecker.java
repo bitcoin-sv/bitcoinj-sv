@@ -2,6 +2,7 @@ package org.bitcoinj.pow.rule;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.store.BlockStore;
@@ -49,7 +50,7 @@ public class LastNonMinimalDifficultyRuleChecker extends AbstractPowRulesChecker
     private Block findLastNotEasiestPowBlock(StoredBlock storedPrev, BlockStore blockStore) throws BlockStoreException {
         StoredBlock cursor = storedPrev;
         BigInteger easiestDifficulty = networkParameters.getMaxTarget();
-        while (!cursor.getHeader().equals(networkParameters.getGenesisBlock()) &&
+        while (!cursor.getHeader().equals(Genesis.getFor(networkParameters)) &&
                 cursor.getHeight() % networkParameters.getInterval() != 0 &&
                 hasEqualDifficulty(cursor.getHeader().getDifficultyTarget(), easiestDifficulty)) {
             cursor = cursor.getPrev(blockStore);

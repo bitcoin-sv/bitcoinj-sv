@@ -18,9 +18,6 @@
 package org.bitcoinj.params;
 
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.msg.protocol.Block;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Parameters for the testnet, a separate public instance of Bitcoin that has relaxed rules suitable for development
@@ -66,12 +63,11 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
     }
 
     @Override
-    protected void configureGenesis(Block genesisBlock) {
-        genesisBlock.setTime(1296688602L);
-        genesisBlock.setDifficultyTarget(0x1d00ffffL);
-        genesisBlock.setNonce(414098458);
-        String genesisHash = genesisBlock.getHashAsString();
-        checkState(genesisHash.equals("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
+    protected void configureGenesis() {
+        genesisDifficulty = 0x1d00ffffL;
+        genesisTime = 1296688602L;
+        genesisNonce = 414098458;
+        genesisHash = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
     }
 
     private static TestNet3Params instance = new TestNet3Params(Net.TESTNET3);

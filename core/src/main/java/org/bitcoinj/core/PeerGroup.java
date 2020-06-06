@@ -346,7 +346,7 @@ public class PeerGroup implements TransactionBroadcaster {
         this.params = context.getParams();
         this.net = params.getNet();
         this.chain = chain;
-        fastCatchupTimeSecs = params.getGenesisBlock().getTimeSeconds();
+        fastCatchupTimeSecs = Genesis.getFor(params).getTimeSeconds();
         wallets = new CopyOnWriteArrayList<Wallet>();
         peerFilterProviders = new CopyOnWriteArrayList<PeerFilterProvider>();
         this.torClient = torClient;

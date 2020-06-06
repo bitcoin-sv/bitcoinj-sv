@@ -18,6 +18,7 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.BlockTest;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -214,7 +215,7 @@ public class WalletProtobufSerializerTest {
         assertEquals(1, wallet1.getLastBlockSeenHeight());
 
         // Test the Satoshi genesis block (hash of all zeroes) is roundtripped ok.
-        Block genesisBlock = MainNetParams.get().getGenesisBlock();
+        Block genesisBlock = Genesis.getFor(Net.MAINNET);
         wallet.setLastBlockSeenHash(genesisBlock.getHash());
         Wallet wallet2 = roundTrip(wallet);
         assertEquals(genesisBlock.getHash(), wallet2.getLastBlockSeenHash());
@@ -251,7 +252,7 @@ public class WalletProtobufSerializerTest {
         });
 
         // Start by building two blocks on top of the genesis block.
-        Block b1 = PARAMS.getGenesisBlock().createNextBlock(myAddress);
+        Block b1 = Genesis.getFor(NET).createNextBlock(myAddress);
         BigInteger work1 = b1.getWork();
         assertTrue(work1.signum() > 0);
 
@@ -382,7 +383,7 @@ public class WalletProtobufSerializerTest {
     @Test
     public void coinbaseTxns() throws Exception {
         // Covers issue 420 where the outpoint index of a coinbase tx input was being mis-serialized.
-        Block b = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, myKey.getPubKey(), FIFTY_COINS, Block.BLOCK_HEIGHT_GENESIS);
+        Block b = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, myKey.getPubKey(), FIFTY_COINS, Block.BLOCK_HEIGHT_GENESIS);
         Transaction coinbase = b.getTransactions().get(0);
         assertTrue(coinbase.isCoinBase());
         SPVBlockChain chain = new SPVBlockChain(PARAMS, myWallet, new MemoryBlockStore(PARAMS));

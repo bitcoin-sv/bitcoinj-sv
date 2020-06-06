@@ -18,6 +18,7 @@ package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.utils.*;
 import org.slf4j.*;
@@ -145,7 +146,7 @@ public class SPVBlockStore implements BlockStore {
         } finally {
             lock.unlock();
         }
-        Block genesis = params.getGenesisBlock().cloneAsHeader();
+        Block genesis = Genesis.getFor(params).cloneAsHeader();
         StoredBlock storedGenesis = new StoredBlock(genesis, genesis.getWork(), 0);
         put(storedGenesis);
         setChainHead(storedGenesis);

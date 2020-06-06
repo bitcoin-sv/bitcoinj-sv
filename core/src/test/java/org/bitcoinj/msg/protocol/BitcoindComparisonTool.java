@@ -24,6 +24,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.net.*;
@@ -207,7 +208,7 @@ public class BitcoindComparisonTool {
             }
         });
         
-        bitcoindChainHead = params.getGenesisBlock().getHash();
+        bitcoindChainHead = Genesis.getFor(params).getHash();
         
         // bitcoind MUST be on localhost or we will get banned as a DoSer
         new NioClient(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), args.length > 2 ? Integer.parseInt(args[2]) : params.getPort()), bitcoind, 1000);
@@ -215,7 +216,7 @@ public class BitcoindComparisonTool {
         connectedFuture.get();
 
         ArrayList<Sha256Hash> locator = new ArrayList<Sha256Hash>(1);
-        locator.add(params.getGenesisBlock().getHash());
+        locator.add(Genesis.getFor(params).getHash());
         Sha256Hash hashTo = Sha256Hash.wrap("0000000000000000000000000000000000000000000000000000000000000000");
                 
         int rulesSinceFirstFail = 0;

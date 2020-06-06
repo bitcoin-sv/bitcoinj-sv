@@ -242,7 +242,7 @@ public class Peer extends PeerSocketHandler {
         this.vDownloadData = chain != null;
         this.getDataFutures = new CopyOnWriteArrayList<GetDataRequest>();
         this.getAddrFutures = new LinkedList<SettableFuture<AddressMessage>>();
-        this.fastCatchupTimeSecs = params.getGenesisBlock().getTimeSeconds();
+        this.fastCatchupTimeSecs = Genesis.getFor(params).getTimeSeconds();
         this.pendingPings = new CopyOnWriteArrayList<PendingPing>();
         this.vMinProtocolVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG);
         this.wallets = new CopyOnWriteArrayList<Wallet>();
@@ -1374,7 +1374,7 @@ public class Peer extends PeerSocketHandler {
         lock.lock();
         try {
             if (secondsSinceEpoch == 0) {
-                fastCatchupTimeSecs = params.getGenesisBlock().getTimeSeconds();
+                fastCatchupTimeSecs = Genesis.getFor(params).getTimeSeconds();
                 downloadBlockBodies = true;
             } else {
                 fastCatchupTimeSecs = secondsSinceEpoch;
@@ -1479,7 +1479,7 @@ public class Peer extends PeerSocketHandler {
         }
         // Only add the locator if we didn't already do so. If the chain is < 50 blocks we already reached it.
         if (cursor != null)
-            blockLocator.add(params.getGenesisBlock().getHash());
+            blockLocator.add(Genesis.getFor(params).getHash());
 
         // Record that we requested this range of blocks so we can filter out duplicate requests in the event of a
         // block being solved during chain download.

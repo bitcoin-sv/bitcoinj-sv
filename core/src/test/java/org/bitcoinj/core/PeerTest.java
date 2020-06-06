@@ -230,7 +230,7 @@ public class PeerTest extends TestWithNetworkConnections {
         GetBlocksMessage getblocks = (GetBlocksMessage)outbound(writeTarget);
         List<Sha256Hash> expectedLocator = new ArrayList<>();
         expectedLocator.add(b1.getHash());
-        expectedLocator.add(PARAMS.getGenesisBlock().getHash());
+        expectedLocator.add(Genesis.getFor(NET).getHash());
         
         assertEquals(getblocks.getLocator(), expectedLocator);
         assertEquals(getblocks.getStopHash(), b3.getHash());
@@ -402,7 +402,7 @@ public class PeerTest extends TestWithNetworkConnections {
         List<Sha256Hash> expectedLocator = new ArrayList<Sha256Hash>();
         expectedLocator.add(b2.getHash());
         expectedLocator.add(b1.getHash());
-        expectedLocator.add(PARAMS.getGenesisBlock().getHash());
+        expectedLocator.add(Genesis.getFor(NET).getHash());
 
         GetBlocksMessage message = (GetBlocksMessage) outbound(writeTarget);
         assertEquals(message.getLocator(), expectedLocator);
@@ -483,7 +483,7 @@ public class PeerTest extends TestWithNetworkConnections {
         GetHeadersMessage getheaders = (GetHeadersMessage) outbound(writeTarget);
         List<Sha256Hash> expectedLocator = new ArrayList<Sha256Hash>();
         expectedLocator.add(b1.getHash());
-        expectedLocator.add(PARAMS.getGenesisBlock().getHash());
+        expectedLocator.add(Genesis.getFor(NET).getHash());
         assertEquals(getheaders.getLocator(), expectedLocator);
         assertEquals(getheaders.getStopHash(), Sha256Hash.ZERO_HASH);
         // Now send all the headers.
@@ -493,7 +493,7 @@ public class PeerTest extends TestWithNetworkConnections {
         expectedLocator.clear();
         expectedLocator.add(b2.getHash());
         expectedLocator.add(b1.getHash());
-        expectedLocator.add(PARAMS.getGenesisBlock().getHash());
+        expectedLocator.add(Genesis.getFor(NET).getHash());
         inbound(writeTarget, headers);
         GetBlocksMessage getblocks = (GetBlocksMessage) outbound(writeTarget);
         assertEquals(expectedLocator, getblocks.getLocator());

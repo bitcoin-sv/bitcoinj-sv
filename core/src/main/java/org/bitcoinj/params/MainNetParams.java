@@ -17,8 +17,9 @@
 
 package org.bitcoinj.params;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.protocol.Block;
+
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Utils;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -123,15 +124,12 @@ public class MainNetParams extends AbstractBitcoinNetParams {
     }
 
     @Override
-    protected void configureGenesis(Block genesisBlock) {
-        genesisBlock.setDifficultyTarget(0x1d00ffffL);
-        genesisBlock.setTime(1231006505L);
-        genesisBlock.setNonce(2083236893);
-        String genesisHash = genesisBlock.getHashAsString();
-        checkState(genesisHash.equals("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
-                genesisHash);
-
-    }
+    protected void configureGenesis() {
+        genesisDifficulty = 0x1d00ffffL;
+        genesisTime = 1231006505L;
+        genesisNonce = 2083236893;
+        genesisHash = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
+   }
 
     private static MainNetParams instance = new MainNetParams(Net.MAINNET);
     static {

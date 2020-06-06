@@ -20,6 +20,7 @@ package org.bitcoinj.core;
 import com.google.common.collect.*;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -97,7 +98,7 @@ public class FilteredBlockAndPartialMerkleTreeTests extends TestWithPeerGroup {
         ECKey key2 = new ECKey();
         Transaction tx1 = FakeTxBuilder.createFakeTx(NET, Coin.COIN,  key1);
         Transaction tx2 = FakeTxBuilder.createFakeTx(NET, Coin.FIFTY_COINS, key2.toAddress(PARAMS));
-        Block block = FakeTxBuilder.makeSolvedTestBlock(PARAMS.getGenesisBlock(), Address.fromBase58(PARAMS, "msg2t2V2sWNd85LccoddtWysBTR8oPnkzW"), tx1, tx2);
+        Block block = FakeTxBuilder.makeSolvedTestBlock(Genesis.getFor(NET), Address.fromBase58(PARAMS, "msg2t2V2sWNd85LccoddtWysBTR8oPnkzW"), tx1, tx2);
         BloomFilter filter = new BloomFilter(4, 0.1, 1);
         filter.insert(key1);
         filter.insert(key2);

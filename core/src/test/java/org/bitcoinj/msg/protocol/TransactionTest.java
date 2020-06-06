@@ -21,6 +21,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.*;
@@ -390,7 +391,7 @@ public class TransactionTest {
      */
     @Test
     public void testHashForSignatureThreadSafety() {
-        Block genesis = UnitTestParams.get().getGenesisBlock();
+        Block genesis = Genesis.getFor(Net.UNITTEST);
         Block block1 = genesis.createNextBlock(new ECKey().toAddress(UnitTestParams.get()),
                     genesis.getTransactions().get(0).getOutput(0).getOutPointFor());
 

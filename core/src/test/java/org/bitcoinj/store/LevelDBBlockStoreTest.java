@@ -15,6 +15,7 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.params.*;
 import org.junit.*;
 
@@ -35,7 +36,7 @@ public class LevelDBBlockStoreTest {
 
         // Check the first block in a new store is the genesis block.
         StoredBlock genesis = store.getChainHead();
-        assertEquals(params.getGenesisBlock(), genesis.getHeader());
+        assertEquals(Genesis.getFor(params), genesis.getHeader());
         assertEquals(0, genesis.getHeight());
 
         // Build a new block.

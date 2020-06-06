@@ -20,6 +20,7 @@ package org.bitcoinj.msg.protocol;
 import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
@@ -137,7 +138,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         TransactionOutput spendableOutput = rollingBlock.getTransactions().get(0).getOutput(0);
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
@@ -177,7 +178,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, rollingBlock.getTransactions().get(0).getHash());
         byte[] spendableOutputScriptPubKey = rollingBlock.getTransactions().get(0).getOutputs().get(0).getScriptBytes();
@@ -251,7 +252,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
@@ -302,7 +303,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output.
-        Block rollingBlock = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
@@ -366,7 +367,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
             chain = new FullPrunedBlockChain(PARAMS, store);
             ECKey outKey = new ECKey();
             int height = 1;
-            Block chainHead = PARAMS.getGenesisBlock();
+            Block chainHead = Genesis.getFor(NET);
 
             // Build some blocks on genesis block to create a spendable output.
 

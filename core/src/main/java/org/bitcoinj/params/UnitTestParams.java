@@ -16,7 +16,6 @@
 
 package org.bitcoinj.params;
 
-import org.bitcoinj.msg.protocol.Block;
 
 import java.math.BigInteger;
 
@@ -24,7 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Network parameters used by the bitcoinj unit tests (and potentially your own). This lets you solve a block using
- * {@link Block#solve()} by setting difficulty to the easiest possible.
+ * { Block#solve()} by setting difficulty to the easiest possible.
  */
 public class UnitTestParams extends AbstractBitcoinNetParams {
     public static final int UNITNET_MAJORITY_WINDOW = 8;
@@ -59,10 +58,11 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
     }
 
     @Override
-    protected void configureGenesis(Block genesisBlock) {
-        genesisBlock.setTime(System.currentTimeMillis() / 1000);
-        genesisBlock.setDifficultyTarget(Block.EASIEST_DIFFICULTY_TARGET);
-        genesisBlock.solve();
+    protected void configureGenesis() {
+        genesisDifficulty = EASIEST_DIFFICULTY_TARGET;
+        genesisTime = System.currentTimeMillis() / 1000;
+        genesisNonce = 0;
+        genesisHash = "unknown";
     }
 
     private static UnitTestParams instance = new UnitTestParams(Net.UNITTEST);

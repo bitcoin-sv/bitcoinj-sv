@@ -17,6 +17,7 @@
 package org.bitcoinj.core;
 
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;
@@ -193,11 +194,11 @@ public class CheckpointManager {
      */
     public StoredBlock getCheckpointBefore(long time) {
         try {
-            checkArgument(time > params.getGenesisBlock().getTimeSeconds());
+            checkArgument(time > Genesis.getFor(params).getTimeSeconds());
             // This is thread safe because the map never changes after creation.
             Map.Entry<Long, StoredBlock> entry = checkpoints.floorEntry(time);
             if (entry != null) return entry.getValue();
-            Block genesis = params.getGenesisBlock().cloneAsHeader();
+            Block genesis = Genesis.getFor(params).cloneAsHeader();
             return new StoredBlock(genesis, genesis.getWork(), 0);
         } catch (VerificationException e) {
             throw new RuntimeException(e);  // Cannot happen.

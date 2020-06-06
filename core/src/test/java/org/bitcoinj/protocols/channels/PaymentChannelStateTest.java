@@ -18,6 +18,7 @@ package org.bitcoinj.protocols.channels;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
@@ -999,7 +1000,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         doubleSpendContract.addOutput(HALF_COIN, myKey);
         doubleSpendContract = new Transaction(NET, doubleSpendContract.bitcoinSerialize());
 
-        StoredBlock block = new StoredBlock(PARAMS.getGenesisBlock().createNextBlock(myKey.toAddress(PARAMS)), BigInteger.TEN, 1);
+        StoredBlock block = new StoredBlock(Genesis.getFor(NET).createNextBlock(myKey.toAddress(PARAMS)), BigInteger.TEN, 1);
         serverWallet.receiveFromBlock(doubleSpendContract, block, AbstractBlockChain.NewBlockType.BEST_CHAIN, 0);
 
         // Now if we try to spend again the server will reject it since it saw a double-spend
