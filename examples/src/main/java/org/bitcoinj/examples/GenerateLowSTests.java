@@ -26,6 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -97,7 +98,7 @@ public class GenerateLowSTests {
         signer.signInputs(proposedTransaction, bag);
         final TransactionInput input = proposedTransaction.partialTx.getInput(0);
 
-        input.verify(output);
+        TxHelper.verify(input, output);
         input.getScriptSig().correctlySpends(outputTransaction, 0, output.getScriptPubKey(),
             EnumSet.of(ScriptVerifyFlag.DERSIG, ScriptVerifyFlag.P2SH));
 
@@ -143,7 +144,7 @@ public class GenerateLowSTests {
         for (int i = 0; i < numInputs; i++) {
             TransactionInput txIn = outputTransaction.getInput(i);
             Script scriptPubKey = txIn.getConnectedOutput().getScriptPubKey();
-            RedeemData redeemData = txIn.getConnectedRedeemData(bag);
+            RedeemData redeemData = TxHelper.getConnectedRedeemData(txIn, bag);
             checkNotNull(redeemData, "Transaction exists in wallet that we cannot redeem: %s", txIn.getOutpoint().getHash());
             txIn.setScriptSig(scriptPubKey.createEmptyInputScript(redeemData.keys.get(0).getPubKey(), redeemData.redeemScript));
         }

@@ -430,7 +430,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         TxFuturePair broadcastRefund = broadcasts.take();
         assertEquals(clientBroadcastedMultiSig.tx.getHash(), multisigContract.getHash());
         for (TransactionInput input : clientBroadcastedMultiSig.tx.getInputs())
-            input.verify();
+            TxHelper.verify(input);
         clientBroadcastedMultiSig.future.set(clientBroadcastedMultiSig.tx);
 
         Transaction clientBroadcastedRefund = broadcastRefund.tx;
@@ -439,7 +439,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
             // If the multisig output is connected, the wallet will fail to deserialize
             if (input.getOutpoint().getHash().equals(clientBroadcastedMultiSig.tx.getHash()))
                 assertNull(input.getConnectedOutput().getSpentBy());
-            input.verify(clientBroadcastedMultiSig.tx.getOutput(0), ScriptVerifyFlag.ALL_VERIFY_FLAGS_PRE_GENESIS);
+            TxHelper.verify(input, clientBroadcastedMultiSig.tx.getOutput(0), ScriptVerifyFlag.ALL_VERIFY_FLAGS_PRE_GENESIS);
         }
         broadcastRefund.future.set(clientBroadcastedRefund);
 

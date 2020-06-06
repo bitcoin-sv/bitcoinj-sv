@@ -195,7 +195,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         Transaction t = new Transaction(NET);
         // Entirely invalid scriptPubKey
         t.addOutput(new TransactionOutput(NET, t, FIFTY_COINS, new byte[]{}));
-        t.addSignedInput(spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
+        TxHelper.addSignedInput(t, spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
         rollingBlock.addTransaction(t);
         rollingBlock.solve();
         
@@ -272,7 +272,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
 
         Transaction t = new Transaction(NET);
         t.addOutput(new TransactionOutput(NET, t, amount, toKey));
-        t.addSignedInput(spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
+        TxHelper.addSignedInput(t, spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
         rollingBlock.addTransaction(t);
         rollingBlock.solve();
         chain.add(rollingBlock);
@@ -326,7 +326,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
 
         Transaction t = new Transaction(NET);
         t.addOutput(new TransactionOutput(NET, t, amount, toKey));
-        t.addSignedInput(spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
+        TxHelper.addSignedInput(t, spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
         rollingBlock.addTransaction(t);
         rollingBlock.solve();
         chain.add(rollingBlock);

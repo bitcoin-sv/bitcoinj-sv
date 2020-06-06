@@ -25,6 +25,7 @@ import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
@@ -255,7 +256,7 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
         log.info("Multi-sig contract scriptPubKey: {}", multisigScript);
         TransactionInput refundInput = refundTx.getInput(0);
         refundInput.setScriptSig(scriptSig);
-        refundInput.verify(multisigContractOutput);
+        TxHelper.verify(refundInput, multisigContractOutput);
         stateMachine.transition(State.SAVE_STATE_IN_WALLET);
     }
 

@@ -24,6 +24,7 @@ import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.wallet.KeyBag;
@@ -81,7 +82,7 @@ public abstract class CustomTransactionSigner extends StatelessTransactionSigner
                 // Expected.
             }
 
-            RedeemData redeemData = txIn.getConnectedRedeemData(keyBag);
+            RedeemData redeemData = TxHelper.getConnectedRedeemData(txIn, keyBag);
             if (redeemData == null) {
                 log.warn("No redeem data found for input {}", i);
                 continue;

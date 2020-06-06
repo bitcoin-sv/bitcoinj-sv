@@ -405,7 +405,7 @@ public class WalletTest extends TestWithWallet {
         assertEquals(wallet.currentChangeAddress(), ScriptUtils.getToAddress(t.getOutputs().get(1).getScriptPubKey(), PARAMS));
         assertEquals(valueOf(0, 50), t.getOutputs().get(1).getValue());
         // Check the script runs and signatures verify.
-        t.getInputs().get(0).verify();
+        TxHelper.verify(t.getInputs().get(0));
     }
 
     private static void broadcastAndCommit(Wallet wallet, Transaction t) throws Exception {
@@ -685,7 +685,7 @@ public class WalletTest extends TestWithWallet {
         Wallet wallet = new Wallet(PARAMS);
         TransactionOutput to = createMock(TransactionOutput.class);
         EasyMock.expect(to.isAvailableForSpending()).andReturn(true);
-        EasyMock.expect(to.isMineOrWatched(wallet)).andReturn(true);
+        EasyMock.expect(TxHelper.isMineOrWatched(to, wallet)).andReturn(true);
         EasyMock.expect(to.getSpentBy()).andReturn(new TransactionInput(NET, null, new byte[0]));
 
         Transaction tx = FakeTxBuilder.createFakeTxWithoutChange(NET, to);
@@ -2374,10 +2374,10 @@ public class WalletTest extends TestWithWallet {
         Transaction txCoin = sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, COIN);
         assertEquals(COIN.add(CENT), wallet.getBalance());
 
-        assertTrue(txCent.getOutput(0).isMine(wallet));
+        assertTrue(TxHelper.isMine(txCent.getOutput(0), wallet));
         assertTrue(txCent.getOutput(0).isAvailableForSpending());
         assertEquals(199, txCent.getConfidence().getDepthInBlocks());
-        assertTrue(txCoin.getOutput(0).isMine(wallet));
+        assertTrue(TxHelper.isMine(txCoin.getOutput(0), wallet));
         assertTrue(txCoin.getOutput(0).isAvailableForSpending());
         assertEquals(1, txCoin.getConfidence().getDepthInBlocks());
         // txCent has higher coin*depth than txCoin...
@@ -2389,10 +2389,10 @@ public class WalletTest extends TestWithWallet {
         assertEquals(CENT, spend1.getInput(0).getValue());
 
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN);
-        assertTrue(txCent.getOutput(0).isMine(wallet));
+        assertTrue(TxHelper.isMine(txCent.getOutput(0), wallet));
         assertTrue(txCent.getOutput(0).isAvailableForSpending());
         assertEquals(200, txCent.getConfidence().getDepthInBlocks());
-        assertTrue(txCoin.getOutput(0).isMine(wallet));
+        assertTrue(TxHelper.isMine(txCoin.getOutput(0), wallet));
         assertTrue(txCoin.getOutput(0).isAvailableForSpending());
         assertEquals(2, txCoin.getConfidence().getDepthInBlocks());
         // Now txCent and txCoin have exactly the same coin*depth...
@@ -2404,10 +2404,10 @@ public class WalletTest extends TestWithWallet {
         assertEquals(COIN, spend2.getInput(0).getValue());
 
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN);
-        assertTrue(txCent.getOutput(0).isMine(wallet));
+        assertTrue(TxHelper.isMine(txCent.getOutput(0), wallet));
         assertTrue(txCent.getOutput(0).isAvailableForSpending());
         assertEquals(201, txCent.getConfidence().getDepthInBlocks());
-        assertTrue(txCoin.getOutput(0).isMine(wallet));
+        assertTrue(TxHelper.isMine(txCoin.getOutput(0), wallet));
         assertTrue(txCoin.getOutput(0).isAvailableForSpending());
         assertEquals(3, txCoin.getConfidence().getDepthInBlocks());
         // Now txCent has lower coin*depth than txCoin...
@@ -3081,7 +3081,7 @@ public class WalletTest extends TestWithWallet {
         wallet.setKeyRotationTime(goodKey.getCreationTimeSeconds());
         List<Transaction> txns = wallet.doMaintenance(null, false).get();
         assertEquals(1, txns.size());
-        Addressable output = txns.get(0).getOutput(0).getAddressFromP2PKHScript(PARAMS);
+        Addressable output = TxHelper.getAddressFromP2PKHScript(txns.get(0).getOutput(0), PARAMS);
         ECKey usedKey = wallet.findKeyFromPubHash(output.getHash160());
         assertEquals(goodKey.getCreationTimeSeconds(), usedKey.getCreationTimeSeconds());
         assertEquals(goodKey.getCreationTimeSeconds(), wallet.freshReceiveKey().getCreationTimeSeconds());

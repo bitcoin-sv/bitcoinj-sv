@@ -22,7 +22,6 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
-import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.*;
 import org.bitcoinj.wallet.Wallet;
 import org.slf4j.*;
@@ -123,43 +122,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
             scriptPubKey = new Script(scriptBytes);
         }
         return scriptPubKey;
-    }
-
-    /**
-     * <p>If the output script pays to an address as in <a href="https://bitcoin.org/en/developer-guide#term-p2pkh">
-     * P2PKH</a>, return the address of the receiver, i.e., a base58 encoded hash of the public key in the script. </p>
-     *
-     * @param networkParameters needed to specify an address
-     * @return null, if the output script is not the form <i>OP_DUP OP_HASH160 <PubkeyHash> OP_EQUALVERIFY OP_CHECKSIG</i>,
-     * i.e., not P2PKH
-     * @return an address made out of the public key hash
-     */
-    @Nullable
-    public Addressable getAddressFromP2PKHScript(NetworkParameters networkParameters) throws ScriptException{
-        if (getScriptPubKey().isSentToAddress())
-            return ScriptUtils.getToAddress(getScriptPubKey(), networkParameters);
-
-        return null;
-    }
-
-    /**
-     * <p>If the output script pays to a redeem script, return the address of the redeem script as described by,
-     * i.e., a base58 encoding of [one-byte version][20-byte hash][4-byte checksum], where the 20-byte hash refers to
-     * the redeem script.</p>
-     *
-     * <p>P2SH is described by <a href="https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki">BIP 16</a> and
-     * <a href="https://bitcoin.org/en/developer-guide#p2sh-scripts">documented in the Bitcoin Developer Guide</a>.</p>
-     *
-     * @param networkParameters needed to specify an address
-     * @return null if the output script does not pay to a script hash
-     * @return an address that belongs to the redeem script
-     */
-    @Nullable
-    public Addressable getAddressFromP2SH(NetworkParameters networkParameters) throws ScriptException{
-        if (getScriptPubKey().isPayToScriptHash())
-            return ScriptUtils.getToAddress(getScriptPubKey(), networkParameters);
-
-        return null;
     }
 
     @Override
@@ -312,49 +274,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
     }
 
     /**
-     * Returns true if this output is to a key in the wallet or to an address/script we are watching.
-     */
-    public boolean isMineOrWatched(TransactionBag transactionBag) {
-        return isMine(transactionBag) || isWatched(transactionBag);
-    }
-
-    /**
-     * Returns true if this output is to a key, or an address we have the keys for, in the wallet.
-     */
-    public boolean isWatched(TransactionBag transactionBag) {
-        try {
-            Script script = getScriptPubKey();
-            return transactionBag.isWatchedScript(script);
-        } catch (ScriptException e) {
-            // Just means we didn't understand the output of this transaction: ignore it.
-            log.debug("Could not parse tx output script: {}", e.toString());
-            return false;
-        }
-    }
-
-    /**
-     * Returns true if this output is to a key, or an address we have the keys for, in the wallet.
-     */
-    public boolean isMine(TransactionBag transactionBag) {
-        try {
-            Script script = getScriptPubKey();
-            if (script.isSentToRawPubKey()) {
-                byte[] pubkey = script.getPubKey();
-                return transactionBag.isPubKeyMine(pubkey);
-            } if (script.isPayToScriptHash()) {
-                return transactionBag.isPayToScriptHashMine(script.getPubKeyHash());
-            } else {
-                byte[] pubkeyHash = script.getPubKeyHash();
-                return transactionBag.isPubKeyHashMine(pubkeyHash);
-            }
-        } catch (ScriptException e) {
-            // Just means we didn't understand the output of this transaction: ignore it.
-            log.debug("Could not parse tx {} output script: {}", parent != null ? parent.getHash() : "(no parent)", e.toString());
-            return false;
-        }
-    }
-
-    /**
      * Returns a human readable debug string.
      */
     @Override
@@ -405,34 +324,12 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
     }
 
     /**
-     * Returns the depth in blocks of the parent tx.
-     *
-     * <p>If the transaction appears in the top block, the depth is one. If it's anything else (pending, dead, unknown)
-     * then -1.</p>
-     * @return The tx depth or -1.
-     */
-    public int getParentTransactionDepthInBlocks() {
-        if (getParentTransaction() != null) {
-            TransactionConfidence confidence = getParentTransaction().getConfidence();
-            if (confidence.getConfidenceType() == TransactionConfidence.ConfidenceType.BUILDING) {
-                return confidence.getDepthInBlocks();
-            }
-        }
-        return -1;
-    }
-
-    /**
      * Returns a new {@link TransactionOutPoint}, which is essentially a structure pointing to this output.
      * Requires that this output is not detached.
      */
     @Override
     public TransactionOutPoint getOutPointFor() {
         return new TransactionOutPoint(net, getIndex(), getParentTransaction());
-    }
-
-    /** Returns a copy of the output detached from its containing transaction, if need be. */
-    public TransactionOutput duplicateDetached() {
-        return new TransactionOutput(net, null, Coin.valueOf(value), org.spongycastle.util.Arrays.clone(scriptBytes));
     }
 
     @Override

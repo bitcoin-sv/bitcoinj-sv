@@ -24,6 +24,7 @@ import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.wallet.SendRequest;
@@ -245,7 +246,7 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
             // Some checks that shouldn't be necessary but it can't hurt to check.
             tx.verify();  // Sanity check syntax.
             for (TransactionInput input : tx.getInputs())
-                input.verify();  // Run scripts and ensure it is valid.
+                TxHelper.verify(input);  // Run scripts and ensure it is valid.
         } catch (InsufficientMoneyException e) {
             throw e;  // Don't fall through.
         } catch (Exception e) {

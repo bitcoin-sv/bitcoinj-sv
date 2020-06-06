@@ -20,7 +20,6 @@ package org.bitcoinj.msg.protocol;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.ecc.ECDSASignature;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
@@ -39,7 +38,6 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -296,7 +294,7 @@ public class Transaction extends ChildMessage implements ITransaction {
         // This is tested in WalletTest.
         Coin v = Coin.ZERO;
         for (TransactionOutput o : outputs) {
-            if (!o.isMineOrWatched(transactionBag)) continue;
+            if (!TxHelper.isMineOrWatched(o, transactionBag)) continue;
             v = v.add(o.getValue());
         }
         return v;
@@ -380,7 +378,7 @@ public class Transaction extends ChildMessage implements ITransaction {
                 continue;
             // The connected output may be the change to the sender of a previous input sent to this wallet. In this
             // case we ignore it.
-            if (!connected.isMineOrWatched(wallet))
+            if (!TxHelper.isMineOrWatched(connected, wallet))
                 continue;
             v = v.add(connected.getValue());
         }
@@ -460,7 +458,7 @@ public class Transaction extends ChildMessage implements ITransaction {
     public boolean isEveryOwnedOutputSpent(TransactionBag transactionBag) {
         maybeParse();
         for (TransactionOutput output : outputs) {
-            if (output.isAvailableForSpending() && output.isMineOrWatched(transactionBag))
+            if (output.isAvailableForSpending() && TxHelper.isMineOrWatched(output, transactionBag))
                 return false;
         }
         return true;
@@ -811,137 +809,6 @@ public class Transaction extends ChildMessage implements ITransaction {
     }
 
     /**
-     * Adds a new and fully signed input for the given parameters. Note that this method is <b>not</b> thread safe
-     * and requires external synchronization. Please refer to general documentation on Bitcoin scripting and contracts
-     * to understand the values of sigHash and anyoneCanPay: otherwise you can use the other form of this method
-     * that sets them to typical defaults.
-     *
-     * @throws ScriptException if the scriptPubKey is not a pay to address or pay to pubkey script.
-     */
-    public TransactionInput addSignedInput(TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey,
-                                           SigHash sigHash, boolean anyoneCanPay) throws ScriptException {
-        // Verify the API user didn't try to do operations out of order.
-        checkState(!outputs.isEmpty(), "Attempting to sign tx without outputs.");
-        TransactionInput input = new TransactionInput(net, this, new byte[]{}, prevOut);
-        addInput(input);
-        Sha256Hash hash = hashForSignature(inputs.size() - 1, scriptPubKey, sigHash, anyoneCanPay);
-        ECDSASignature ecSig = sigKey.sign(hash);
-        TransactionSignature txSig = new TransactionSignature(ecSig, sigHash, anyoneCanPay, false);
-        if (scriptPubKey.isSentToRawPubKey())
-            input.setScriptSig(ScriptBuilder.createInputScript(txSig));
-        else if (scriptPubKey.isSentToAddress())
-            input.setScriptSig(ScriptBuilder.createInputScript(txSig, sigKey));
-        else
-            throw new ScriptException("Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
-        return input;
-    }
-    /**
-     * Adds a new and fully signed input for the given parameters. Note that this method is <b>not</b> thread safe
-     * and requires external synchronization. Please refer to general documentation on Bitcoin scripting and contracts
-     * to understand the values of sigHash and anyoneCanPay: otherwise you can use the other form of this method
-     * that sets them to typical defaults.
-     *
-     * @throws ScriptException if the scriptPubKey is not a pay to address or pay to pubkey script.
-     */
-    public TransactionInput addSignedInput(TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey,
-                                           SigHash sigHash, boolean anyoneCanPay, boolean forkId) throws ScriptException {
-        // Verify the API user didn't try to do operations out of order.
-        checkState(!outputs.isEmpty(), "Attempting to sign tx without outputs.");
-        TransactionInput input = new TransactionInput(net, this, new byte[]{}, prevOut);
-        addInput(input);
-        Sha256Hash hash = forkId ?
-                hashForSignatureWitness(inputs.size() -1, scriptPubKey, prevOut.getConnectedOutput().getValue(), sigHash, anyoneCanPay) :
-                hashForSignature(inputs.size() - 1, scriptPubKey, sigHash, anyoneCanPay);
-
-        ECDSASignature ecSig = sigKey.sign(hash);
-        TransactionSignature txSig = new TransactionSignature(ecSig, sigHash, anyoneCanPay, forkId);
-        if (scriptPubKey.isSentToRawPubKey())
-            input.setScriptSig(ScriptBuilder.createInputScript(txSig));
-        else if (scriptPubKey.isSentToAddress())
-            input.setScriptSig(ScriptBuilder.createInputScript(txSig, sigKey));
-        else
-            throw new ScriptException("Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
-        return input;
-    }
-
-    /**
-     * Adds a new and fully signed input for the given parameters. Note that this method is <b>not</b> thread safe
-     * and requires external synchronization. Please refer to general documentation on Bitcoin scripting and contracts
-     * to understand the values of sigHash and anyoneCanPay: otherwise you can use the other form of this method
-     * that sets them to typical defaults.  The amount parameter is used instead of prevOut.getConnectedOutput().getValue().
-     *
-     * @throws ScriptException if the scriptPubKey is not a pay to address or pay to pubkey script.
-     */
-    public TransactionInput addSignedInput(TransactionOutPoint prevOut, Coin amount, Script scriptPubKey, ECKey sigKey,
-                                           SigHash sigHash, boolean anyoneCanPay, boolean forkId) throws ScriptException {
-        // Verify the API user didn't try to do operations out of order.
-        checkState(!outputs.isEmpty(), "Attempting to sign tx without outputs.");
-        TransactionInput input = new TransactionInput(net, this, new byte[]{}, prevOut);
-        addInput(input);
-        Sha256Hash hash = forkId ?
-                hashForSignatureWitness(inputs.size() -1, scriptPubKey, amount, sigHash, anyoneCanPay) :
-                hashForSignature(inputs.size() - 1, scriptPubKey, sigHash, anyoneCanPay);
-
-        ECDSASignature ecSig = sigKey.sign(hash);
-        TransactionSignature txSig = new TransactionSignature(ecSig, sigHash, anyoneCanPay, forkId);
-        if (scriptPubKey.isSentToRawPubKey())
-            input.setScriptSig(ScriptBuilder.createInputScript(txSig));
-        else if (scriptPubKey.isSentToAddress())
-            input.setScriptSig(ScriptBuilder.createInputScript(txSig, sigKey));
-        else
-            throw new ScriptException("Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
-        return input;
-    }
-
-    /**
-     * Same as {@link #addSignedInput(TransactionOutPoint, org.bitcoinj.script.Script, ECKey, SigHash, boolean)}
-     * but defaults to {@link SigHash#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
-     */
-    public TransactionInput addSignedInput(TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey) throws ScriptException {
-        return addSignedInput(prevOut, scriptPubKey, sigKey, SigHash.ALL, false);
-    }
-
-    /**
-     * Same as {@link #addSignedInput(TransactionOutPoint, Coin, org.bitcoinj.script.Script, ECKey, SigHash, boolean, boolean)}
-     * but defaults to {@link SigHash#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
-     */
-    public TransactionInput addSignedInput(TransactionOutPoint prevOut, Coin amount, Script scriptPubKey, ECKey sigKey) throws ScriptException {
-        return addSignedInput(prevOut, amount, scriptPubKey, sigKey, SigHash.ALL, false, true);
-    }
-
-    /**
-     * Adds an input that points to the given output and contains a valid signature for it, calculated using the
-     * signing key.
-     */
-    public TransactionInput addSignedInput(TransactionOutput output, ECKey signingKey) {
-        return addSignedInput(output.getOutPointFor(), output.getScriptPubKey(), signingKey);
-    }
-
-    /**
-     * Adds an input that points to the given output and contains a valid signature for it, calculated using the
-     * signing key.  Assumes forkId is true for {@link #addSignedInput(TransactionOutPoint, Coin, Script, ECKey)}
-     */
-    public TransactionInput addSignedInput(TransactionOutput output, Coin amount, ECKey signingKey) {
-        return addSignedInput(output.getOutPointFor(), amount, output.getScriptPubKey(), signingKey);
-    }
-
-    /**
-     * Adds an input that points to the given output and contains a valid signature for it, calculated using the
-     * signing key.
-     */
-    public TransactionInput addSignedInput(TransactionOutput output, ECKey signingKey, SigHash sigHash, boolean anyoneCanPay) {
-        return addSignedInput(output.getOutPointFor(), output.getScriptPubKey(), signingKey, sigHash, anyoneCanPay);
-    }
-
-    /**
-     * Adds an input that points to the given output and contains a valid signature for it, calculated using the
-     * signing key.  Assumes forkId is true (sign using Bitcoin Cash Signature)
-     */
-    public TransactionInput addSignedInput(TransactionOutput output, Coin amount, ECKey signingKey, SigHash sigHash, boolean anyoneCanPay) {
-        return addSignedInput(output.getOutPointFor(), amount, output.getScriptPubKey(), signingKey, sigHash, anyoneCanPay, true);
-    }
-
-    /**
      * Removes all the outputs from this transaction.
      * Note that this also invalidates the length attribute
      */
@@ -1050,82 +917,6 @@ public class Transaction extends ChildMessage implements ITransaction {
         return new TransactionSignature(key.sign(hash), hashType, anyoneCanPay, true);
     }
 
-    /**
-     * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], SigHash, boolean)}
-     * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}. The key
-     * must be usable for signing as-is: if the key is encrypted it must be decrypted first external to this method.
-     *
-     * @param inputIndex Which input to calculate the signature for, as an index.
-     * @param key The private key used to calculate the signature.
-     * @param aesKey The AES key to use for decryption of the private key. If null then no decryption is required.
-     * @param redeemScript Byte-exact contents of the scriptPubKey that is being satisified, or the P2SH redeem script.
-     * @param hashType Signing mode, see the enum for documentation.
-     * @param anyoneCanPay Signing mode, see the SigHash enum for documentation.
-     * @return A newly calculated signature object that wraps the r, s and sighash components.
-     */
-    public TransactionSignature calculateSignature(
-            int inputIndex,
-            ECKey key,
-            @Nullable KeyParameter aesKey,
-            byte[] redeemScript,
-            SigHash hashType,
-            boolean anyoneCanPay, boolean forkId)
-    {
-        Sha256Hash hash = hashForSignature(inputIndex, redeemScript, hashType, anyoneCanPay);
-        return new TransactionSignature(key.sign(hash, aesKey), hashType, anyoneCanPay);
-    }
-
-    public TransactionSignature calculateWitnessSignature(
-            int inputIndex,
-            ECKey key,
-            @Nullable KeyParameter aesKey,
-            byte[] redeemScript,
-            Coin value,
-            SigHash hashType,
-            boolean anyoneCanPay)
-    {
-        Sha256Hash hash = hashForSignatureWitness(this, inputIndex, redeemScript, value, hashType, anyoneCanPay);
-        return new TransactionSignature(key.sign(hash, aesKey), hashType, anyoneCanPay, true);
-    }
-
-    /**
-     * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], SigHash, boolean)}
-     * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}.
-     *
-     * @param inputIndex Which input to calculate the signature for, as an index.
-     * @param key The private key used to calculate the signature.
-     * @param aesKey The AES key to use for decryption of the private key. If null then no decryption is required.
-     * @param redeemScript The scriptPubKey that is being satisified, or the P2SH redeem script.
-     * @param hashType Signing mode, see the enum for documentation.
-     * @param anyoneCanPay Signing mode, see the SigHash enum for documentation.
-     * @return A newly calculated signature object that wraps the r, s and sighash components.
-     */
-    public TransactionSignature calculateSignature(
-            int inputIndex,
-            ECKey key,
-            @Nullable KeyParameter aesKey,
-            Script redeemScript,
-            SigHash hashType,
-            boolean anyoneCanPay)
-    {
-        Sha256Hash hash = hashForSignature(inputIndex, redeemScript.getProgram(), hashType, anyoneCanPay);
-        return new TransactionSignature(key.sign(hash, aesKey), hashType, anyoneCanPay, false);
-    }
-
-    public TransactionSignature calculateWitnessSignature(
-            int inputIndex,
-            ECKey key,
-            @Nullable KeyParameter aesKey,
-            Script redeemScript,
-            Coin value,
-            SigHash hashType,
-            boolean anyoneCanPay)
-    {
-        Sha256Hash hash = hashForSignatureWitness(this, inputIndex, redeemScript.getProgram(), value, hashType, anyoneCanPay);
-        return new TransactionSignature(key.sign(hash, aesKey), hashType, anyoneCanPay, true);
-    }
     /**
      * <p>Calculates a signature hash, that is, a hash of a simplified form of the transaction. How exactly the transaction
      * is simplified is specified by the type and anyoneCanPay parameters.</p>
@@ -1452,7 +1243,7 @@ public class Transaction extends ChildMessage implements ITransaction {
         maybeParse();
         List<TransactionOutput> walletOutputs = new LinkedList<TransactionOutput>();
         for (TransactionOutput o : outputs) {
-            if (!o.isMineOrWatched(transactionBag)) continue;
+            if (!TxHelper.isMineOrWatched(o, transactionBag)) continue;
             walletOutputs.add(o);
         }
 

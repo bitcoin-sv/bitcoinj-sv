@@ -27,6 +27,7 @@ import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.SendRequest;
@@ -120,7 +121,7 @@ public abstract class PaymentChannelClientState {
     public synchronized boolean isSettlementTransaction(Transaction tx) {
         try {
             tx.verify();
-            tx.getInput(0).verify(getContractInternal().getOutput(0));
+            TxHelper.verify(tx.getInput(0), getContractInternal().getOutput(0));
             return true;
         } catch (VerificationException e) {
             return false;

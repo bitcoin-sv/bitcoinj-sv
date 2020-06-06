@@ -17,6 +17,7 @@ package org.bitcoinj.core;
 import com.google.common.collect.ImmutableList;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
@@ -72,15 +73,15 @@ public class TransactionOutputTest extends TestWithWallet {
         Script script = ScriptBuilder.createOutputScript(P2SHAddress);
         Transaction tx = new Transaction(Net.MAINNET);
         tx.addOutput(Coin.COIN, script);
-        assertEquals(P2SHAddressString, tx.getOutput(0).getAddressFromP2SH(MainNetParams.get()).toString());
+        assertEquals(P2SHAddressString, TxHelper.getAddressFromP2SH(tx.getOutput(0), MainNetParams.get()).toString());
     }
 
     @Test
     public void getAddressTests() throws Exception {
         Transaction tx = new Transaction(Net.MAINNET);
         tx.addOutput(Coin.CENT, ScriptBuilder.createOpReturnScript("hello world!".getBytes()));
-        assertNull(tx.getOutput(0).getAddressFromP2SH(PARAMS));
-        assertNull(tx.getOutput(0).getAddressFromP2PKHScript(PARAMS));
+        assertNull(TxHelper.getAddressFromP2SH(tx.getOutput(0), PARAMS));
+        assertNull(TxHelper.getAddressFromP2PKHScript(tx.getOutput(0), PARAMS));
     }
 
     @Test

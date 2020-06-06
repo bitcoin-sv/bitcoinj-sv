@@ -15,6 +15,7 @@
 package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.Coin;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.TransactionConfidence;
@@ -61,8 +62,8 @@ public class DefaultCoinSelector implements CoinSelector {
         Collections.sort(outputs, new Comparator<TransactionOutput>() {
             @Override
             public int compare(TransactionOutput a, TransactionOutput b) {
-                int depth1 = a.getParentTransactionDepthInBlocks();
-                int depth2 = b.getParentTransactionDepthInBlocks();
+                int depth1 = TxHelper.getParentTransactionDepthInBlocks(a);
+                int depth2 = TxHelper.getParentTransactionDepthInBlocks(b);
                 Coin aValue = a.getValue();
                 Coin bValue = b.getValue();
                 BigInteger aCoinDepth = BigInteger.valueOf(aValue.value).multiply(BigInteger.valueOf(depth1));

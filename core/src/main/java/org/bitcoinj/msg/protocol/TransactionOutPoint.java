@@ -22,8 +22,6 @@ import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
-import org.bitcoinj.script.*;
-import org.bitcoinj.wallet.*;
 
 import javax.annotation.*;
 import java.io.*;
@@ -132,66 +130,6 @@ public class TransactionOutPoint extends ChildMessage implements ITransactionOut
             return connectedOutput;
         }
         return null;
-    }
-
-    /**
-     * Returns the pubkey script from the connected output.
-     * @throws java.lang.NullPointerException if there is no connected output.
-     */
-    public byte[] getConnectedPubKeyScript() {
-        byte[] result = checkNotNull(getConnectedOutput()).getScriptBytes();
-        checkState(result.length > 0);
-        return result;
-    }
-
-    /**
-     * Returns the ECKey identified in the connected output, for either pay-to-address scripts or pay-to-key scripts.
-     * For P2SH scripts you can use {@link #getConnectedRedeemData(org.bitcoinj.wallet.KeyBag)} and then get the
-     * key from RedeemData.
-     * If the script form cannot be understood, throws ScriptException.
-     *
-     * @return an ECKey or null if the connected key cannot be found in the wallet.
-     */
-    @Nullable
-    public ECKey getConnectedKey(KeyBag keyBag) throws ScriptException {
-        TransactionOutput connectedOutput = getConnectedOutput();
-        checkNotNull(connectedOutput, "Input is not connected so cannot retrieve key");
-        Script connectedScript = connectedOutput.getScriptPubKey();
-        if (connectedScript.isSentToAddress()) {
-            byte[] addressBytes = connectedScript.getPubKeyHash();
-            return keyBag.findKeyFromPubHash(addressBytes);
-        } else if (connectedScript.isSentToRawPubKey()) {
-            byte[] pubkeyBytes = connectedScript.getPubKey();
-            return keyBag.findKeyFromPubKey(pubkeyBytes);
-        } else {
-            throw new ScriptException("Could not understand form of connected output script: " + connectedScript);
-        }
-    }
-
-    /**
-     * Returns the RedeemData identified in the connected output, for either pay-to-address scripts, pay-to-key
-     * or P2SH scripts.
-     * If the script forms cannot be understood, throws ScriptException.
-     *
-     * @return a RedeemData or null if the connected data cannot be found in the wallet.
-     */
-    @Nullable
-    public RedeemData getConnectedRedeemData(KeyBag keyBag) throws ScriptException {
-        TransactionOutput connectedOutput = getConnectedOutput();
-        checkNotNull(connectedOutput, "Input is not connected so cannot retrieve key");
-        Script connectedScript = connectedOutput.getScriptPubKey();
-        if (connectedScript.isSentToAddress()) {
-            byte[] addressBytes = connectedScript.getPubKeyHash();
-            return RedeemData.of(keyBag.findKeyFromPubHash(addressBytes), connectedScript);
-        } else if (connectedScript.isSentToRawPubKey()) {
-            byte[] pubkeyBytes = connectedScript.getPubKey();
-            return RedeemData.of(keyBag.findKeyFromPubKey(pubkeyBytes), connectedScript);
-        } else if (connectedScript.isPayToScriptHash()) {
-            byte[] scriptHash = connectedScript.getPubKeyHash();
-            return keyBag.findRedeemDataFromScriptHash(scriptHash);
-        } else {
-            throw new ScriptException("Could not understand form of connected output script: " + connectedScript);
-        }
     }
 
     @Override

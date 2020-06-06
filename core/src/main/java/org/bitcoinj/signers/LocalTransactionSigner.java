@@ -24,6 +24,7 @@ import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.wallet.KeyBag;
@@ -80,7 +81,7 @@ public class LocalTransactionSigner extends StatelessTransactionSigner {
                 // Expected.
             }
 
-            RedeemData redeemData = txIn.getConnectedRedeemData(keyBag);
+            RedeemData redeemData = TxHelper.getConnectedRedeemData(txIn, keyBag);
 
             Script scriptPubKey = txIn.getConnectedOutput().getScriptPubKey();
 

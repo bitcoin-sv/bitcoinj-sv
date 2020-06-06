@@ -334,7 +334,7 @@ public class TransactionTest {
 
         Script script = ScriptBuilder.createOpReturnScript(new byte[0]);
 
-        tx.addSignedInput(fakeTx.getOutput(0).getOutPointFor(), script, key);
+        TxHelper.addSignedInput(tx, fakeTx.getOutput(0).getOutPointFor(), script, key);
     }
 
     @Test

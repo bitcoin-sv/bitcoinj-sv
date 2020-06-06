@@ -30,11 +30,8 @@ import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutPoint;
-import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.crypto.*;
@@ -1574,7 +1571,7 @@ public class Wallet extends BaseTaggableObject
         boolean isActuallySpent = true;
         for (TransactionOutput o : tx.getOutputs()) {
             if (o.isAvailableForSpending()) {
-                if (o.isMineOrWatched(this)) isActuallySpent = false;
+                if (TxHelper.isMineOrWatched(o, this)) isActuallySpent = false;
                 if (o.getSpentBy() != null) {
                     log.error("isAvailableForSpending != spentBy");
                     return false;
@@ -2223,13 +2220,13 @@ public class Wallet extends BaseTaggableObject
         if (fromChain)
             checkState(!pending.containsKey(tx.getHash()));
         for (TransactionInput input : tx.getInputs()) {
-            TransactionInput.ConnectionResult result = input.connect(unspent, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
+            TransactionInput.ConnectionResult result = TxHelper.connect(input, unspent, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
             if (result == TransactionInput.ConnectionResult.NO_SUCH_TX) {
                 // Not found in the unspent map. Try again with the spent map.
-                result = input.connect(spent, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
+                result = TxHelper.connect(input, spent, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
                 if (result == TransactionInput.ConnectionResult.NO_SUCH_TX) {
                     // Not found in the unspent and spent maps. Try again with the pending map.
-                    result = input.connect(pending, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
+                    result = TxHelper.connect(input, pending, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
                     if (result == TransactionInput.ConnectionResult.NO_SUCH_TX) {
                         // Doesn't spend any of our outputs or is coinbase.
                         continue;
@@ -2264,7 +2261,7 @@ public class Wallet extends BaseTaggableObject
                 log.info("  marked {} as spent by {}", input.getOutpoint(), tx.getHashAsString());
                 maybeMovePool(connected, "prevtx");
                 // Just because it's connected doesn't mean it's actually ours: sometimes we have total visibility.
-                if (output.isMineOrWatched(this)) {
+                if (TxHelper.isMineOrWatched(output, this)) {
                     checkState(myUnspents.remove(output));
                 }
             }
@@ -2277,7 +2274,7 @@ public class Wallet extends BaseTaggableObject
         // less random order.
         for (Transaction pendingTx : pending.values()) {
             for (TransactionInput input : pendingTx.getInputs()) {
-                TransactionInput.ConnectionResult result = input.connect(tx, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
+                TransactionInput.ConnectionResult result = TxHelper.connect(input, tx, TransactionInput.ConnectMode.ABORT_ON_CONFLICT);
                 if (fromChain) {
                     // This TX is supposed to have just appeared on the best chain, so its outputs should not be marked
                     // as spent yet. If they are, it means something is happening out of order.
@@ -2341,13 +2338,13 @@ public class Wallet extends BaseTaggableObject
             return;
         log.warn("Now attempting to connect the inputs of the overriding transaction.");
         for (TransactionInput input : overridingTx.getInputs()) {
-            TransactionInput.ConnectionResult result = input.connect(unspent, TransactionInput.ConnectMode.DISCONNECT_ON_CONFLICT);
+            TransactionInput.ConnectionResult result = TxHelper.connect(input, unspent, TransactionInput.ConnectMode.DISCONNECT_ON_CONFLICT);
             if (result == TransactionInput.ConnectionResult.SUCCESS) {
                 maybeMovePool(input.getConnectedTransaction(), "kill");
                 myUnspents.remove(input.getConnectedOutput());
                 log.info("Removing from UNSPENTS: {}", input.getConnectedOutput());
             } else {
-                result = input.connect(spent, TransactionInput.ConnectMode.DISCONNECT_ON_CONFLICT);
+                result = TxHelper.connect(input, spent, TransactionInput.ConnectMode.DISCONNECT_ON_CONFLICT);
                 if (result == TransactionInput.ConnectionResult.SUCCESS) {
                     maybeMovePool(input.getConnectedTransaction(), "kill");
                     myUnspents.remove(input.getConnectedOutput());
@@ -2398,7 +2395,7 @@ public class Wallet extends BaseTaggableObject
             // Put any outputs that are sending money back to us into the unspents map, and calculate their total value.
             Coin valueSentToMe = Coin.ZERO;
             for (TransactionOutput o : tx.getOutputs()) {
-                if (!o.isMineOrWatched(this)) continue;
+                if (!TxHelper.isMineOrWatched(o, this)) continue;
                 valueSentToMe = valueSentToMe.add(o.getValue());
             }
             // Mark the outputs we're spending as spent so we won't try and use them in future creations. This will also
@@ -2874,7 +2871,7 @@ public class Wallet extends BaseTaggableObject
         }
         if (pool == Pool.UNSPENT || pool == Pool.PENDING) {
             for (TransactionOutput output : tx.getOutputs()) {
-                if (output.isAvailableForSpending() && output.isMineOrWatched(this))
+                if (output.isAvailableForSpending() && TxHelper.isMineOrWatched(output, this))
                     myUnspents.add(output);
             }
         }
@@ -3050,7 +3047,7 @@ public class Wallet extends BaseTaggableObject
                         for (TransactionInput input : tx.getInputs()) {
                             TransactionOutput output = input.getConnectedOutput();
                             if (output == null) continue;
-                            if (output.isMineOrWatched(this))
+                            if (TxHelper.isMineOrWatched(output, this))
                                 checkState(myUnspents.add(output));
                             input.disconnect();
                         }
@@ -3600,13 +3597,13 @@ public class Wallet extends BaseTaggableObject
         for (Transaction tx: transactions.values()) {
             Coin txTotal = Coin.ZERO;
             for (TransactionOutput output : tx.getOutputs()) {
-                if (output.isMine(this)) {
+                if (TxHelper.isMine(output, this)) {
                     txTotal = txTotal.add(output.getValue());
                 }
             }
             for (TransactionInput in : tx.getInputs()) {
                 TransactionOutput prevOut = in.getConnectedOutput();
-                if (prevOut != null && prevOut.isMine(this)) {
+                if (prevOut != null && TxHelper.isMine(prevOut, this)) {
                     txTotal = txTotal.subtract(prevOut.getValue());
                 }
             }
@@ -3632,7 +3629,7 @@ public class Wallet extends BaseTaggableObject
             // Count spent outputs to only if they were not to us. This means we don't count change outputs.
             Coin txOutputTotal = Coin.ZERO;
             for (TransactionOutput out : tx.getOutputs()) {
-                if (out.isMine(this) == false) {
+                if (TxHelper.isMine(out, this) == false) {
                     txOutputTotal = txOutputTotal.add(out.getValue());
                 }
             }
@@ -3641,7 +3638,7 @@ public class Wallet extends BaseTaggableObject
             Coin txOwnedInputsTotal = Coin.ZERO;
             for (TransactionInput in : tx.getInputs()) {
                 TransactionOutput prevOut = in.getConnectedOutput();
-                if (prevOut != null && prevOut.isMine(this)) {
+                if (prevOut != null && TxHelper.isMine(prevOut, this)) {
                     txOwnedInputsTotal = txOwnedInputsTotal.add(prevOut.getValue());
                 }
             }
@@ -4061,7 +4058,7 @@ public class Wallet extends BaseTaggableObject
                 }
 
                 Script scriptPubKey = txIn.getConnectedOutput().getScriptPubKey();
-                RedeemData redeemData = txIn.getConnectedRedeemData(maybeDecryptingKeyBag);
+                RedeemData redeemData = TxHelper.getConnectedRedeemData(txIn, maybeDecryptingKeyBag);
                 checkNotNull(redeemData, "Transaction exists in wallet that we cannot redeem: %s", txIn.getOutpoint().getHash());
                 txIn.setScriptSig(scriptPubKey.createEmptyInputScript(redeemData.keys.get(0).getPubKey(), redeemData.redeemScript));
             }
@@ -4198,14 +4195,14 @@ public class Wallet extends BaseTaggableObject
         for (Transaction tx : pending.values()) {
             // Remove the spent outputs.
             for (TransactionInput input : tx.getInputs()) {
-                if (input.getConnectedOutput().isMine(this)) {
+                if (TxHelper.isMine(input.getConnectedOutput(), this)) {
                     candidates.remove(input.getConnectedOutput());
                 }
             }
             // Add change outputs. Do not try and spend coinbases that were mined too recently, the protocol forbids it.
             if (!excludeImmatureCoinbases || tx.isMature()) {
                 for (TransactionOutput output : tx.getOutputs()) {
-                    if (output.isAvailableForSpending() && output.isMine(this)) {
+                    if (output.isAvailableForSpending() && TxHelper.isMine(output, this)) {
                         candidates.add(output);
                     }
                 }
@@ -4331,16 +4328,6 @@ public class Wallet extends BaseTaggableObject
             return output;
         }
 
-        /**
-         * Get the depth withing the chain of the parent tx, depth is 1 if it the output height is the height of
-         * the latest block.
-         * @return The depth.
-         */
-        @Override
-        public int getParentTransactionDepthInBlocks() {
-            return chainHeight - output.getHeight() + 1;
-        }
-
         @Override
         public int getIndex() {
             return (int) output.getIndex();
@@ -4453,7 +4440,7 @@ public class Wallet extends BaseTaggableObject
                         for (TransactionOutput output : tx.getOutputs()) {
                             TransactionInput input = output.getSpentBy();
                             if (input != null) {
-                                if (output.isMineOrWatched(this))
+                                if (TxHelper.isMineOrWatched(output, this))
                                     checkState(myUnspents.add(output));
                                 input.disconnect();
                             }

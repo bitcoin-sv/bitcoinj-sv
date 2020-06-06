@@ -23,9 +23,6 @@ import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptUtils;
-import org.bitcoinj.script.ScriptVerifyFlag;
-import org.bitcoinj.wallet.DefaultRiskAnalysis;
 import org.bitcoinj.wallet.KeyBag;
 import org.bitcoinj.wallet.RedeemData;
 
@@ -38,7 +35,6 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -301,65 +297,10 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
         return tx.getOutputs().get((int) outpoint.getIndex());
     }
 
-    /**
-     * Alias for getOutpoint().getConnectedRedeemData(keyBag)
-     * @see TransactionOutPoint#getConnectedRedeemData(org.bitcoinj.wallet.KeyBag)
-     */
-    @Nullable
-    public RedeemData getConnectedRedeemData(KeyBag keyBag) throws ScriptException {
-        return getOutpoint().getConnectedRedeemData(keyBag);
-    }
-
 
     public enum ConnectMode {
         DISCONNECT_ON_CONFLICT,
         ABORT_ON_CONFLICT
-    }
-
-    /**
-     * Connects this input to the relevant output of the referenced transaction if it's in the given map.
-     * Connecting means updating the internal pointers and spent flags. If the mode is to ABORT_ON_CONFLICT then
-     * the spent output won't be changed, but the outpoint.fromTx pointer will still be updated.
-     *
-     * @param transactions Map of txhash->transaction.
-     * @param mode   Whether to abort if there's a pre-existing connection or not.
-     * @return NO_SUCH_TX if the prevtx wasn't found, ALREADY_SPENT if there was a conflict, SUCCESS if not.
-     */
-    public ConnectionResult connect(Map<Sha256Hash, Transaction> transactions, ConnectMode mode) {
-        Transaction tx = transactions.get(outpoint.getHash());
-        if (tx == null) {
-            return TransactionInput.ConnectionResult.NO_SUCH_TX;
-        }
-        return connect(tx, mode);
-    }
-
-    /**
-     * Connects this input to the relevant output of the referenced transaction.
-     * Connecting means updating the internal pointers and spent flags. If the mode is to ABORT_ON_CONFLICT then
-     * the spent output won't be changed, but the outpoint.fromTx pointer will still be updated.
-     *
-     * @param transaction The transaction to try.
-     * @param mode   Whether to abort if there's a pre-existing connection or not.
-     * @return NO_SUCH_TX if transaction is not the prevtx, ALREADY_SPENT if there was a conflict, SUCCESS if not.
-     */
-    public ConnectionResult connect(Transaction transaction, ConnectMode mode) {
-        if (!transaction.getHash().equals(outpoint.getHash()))
-            return ConnectionResult.NO_SUCH_TX;
-        checkElementIndex((int) outpoint.getIndex(), transaction.getOutputs().size(), "Corrupt transaction");
-        TransactionOutput out = transaction.getOutput((int) outpoint.getIndex());
-        if (!out.isAvailableForSpending()) {
-            if (getParentTransaction().equals(outpoint.fromTx)) {
-                // Already connected.
-                return ConnectionResult.SUCCESS;
-            } else if (mode == ConnectMode.DISCONNECT_ON_CONFLICT) {
-                out.markAsUnspent();
-            } else if (mode == ConnectMode.ABORT_ON_CONFLICT) {
-                outpoint.fromTx = out.getParentTransaction();
-                return TransactionInput.ConnectionResult.ALREADY_SPENT;
-            }
-        }
-        connect(out);
-        return TransactionInput.ConnectionResult.SUCCESS;
     }
 
     /** Internal use only: connects this TransactionInput to the given output (updates pointers and spent flags) */
@@ -404,52 +345,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
     }
 
     /**
-     * For a connected transaction, runs the script against the connected pubkey and verifies they are correct.
-     * @throws ScriptException if the script did not verify.
-     * @throws VerificationException If the outpoint doesn't match the given output.
-     */
-    public void verify() throws VerificationException {
-        final Transaction fromTx = getOutpoint().fromTx;
-        long spendingIndex = getOutpoint().getIndex();
-        checkNotNull(fromTx, "Not connected");
-        final TransactionOutput output = fromTx.getOutput((int) spendingIndex);
-        verify(output);
-    }
-
-    /**
-     * Verifies that this input can spend the given output. Note that this input must be a part of a transaction.
-     * Also note that the consistency of the outpoint will be checked, even if this input has not been connected.
-     *
-     * @param output the output that this input is supposed to spend.
-     * @throws ScriptException If the script doesn't verify.
-     * @throws VerificationException If the outpoint doesn't match the given output.
-     */
-    public void verify(TransactionOutput output, Set<ScriptVerifyFlag> verifyFlags) throws VerificationException {
-        if (output.getParent() != null) {
-            if (!getOutpoint().getHash().equals(output.getParentTransaction().getHash()))
-                throw new VerificationException("This input does not refer to the tx containing the output.");
-            if (getOutpoint().getIndex() != output.getIndex())
-                throw new VerificationException("This input refers to a different output on the given tx.");
-        }
-        Script pubKey = output.getScriptPubKey();
-        int myIndex = getParentTransaction().getInputs().indexOf(this);
-        //this is used in tests for CLTV so we have to be more liberal about disabled opcodes than usual.
-        getScriptSig().correctlySpends(getParentTransaction(), myIndex, pubKey, verifyFlags);
-    }
-
-    /**
-     * Verifies that this input can spend the given output. Note that this input must be a part of a transaction.
-     * Also note that the consistency of the outpoint will be checked, even if this input has not been connected.
-     *
-     * @param output the output that this input is supposed to spend.
-     * @throws ScriptException If the script doesn't verify.
-     * @throws VerificationException If the outpoint doesn't match the given output.
-     */
-    public void verify(TransactionOutput output) throws VerificationException {
-        verify(output, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
-    }
-
-    /**
      * Returns the connected output, assuming the input was connected with
      * {@link TransactionInput#connect(TransactionOutput)} or variants at some point. If it wasn't connected, then
      * this method returns null.
@@ -472,17 +367,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
     /** Returns a copy of the input detached from its containing transaction, if need be. */
     public TransactionInput duplicateDetached() {
         return new TransactionInput(net, null, bitcoinSerialize(), 0);
-    }
-
-    /**
-     * <p>Returns either RuleViolation.NONE if the input is standard, or which rule makes it non-standard if so.
-     * The "IsStandard" rules control whether the default Bitcoin Core client blocks relay of a tx / refuses to mine it,
-     * however, non-standard transactions can still be included in blocks and will be accepted as valid if so.</p>
-     *
-     * <p>This method simply calls <tt>DefaultRiskAnalysis.isInputStandard(this)</tt>.</p>
-     */
-    public DefaultRiskAnalysis.RuleViolation isStandard() {
-        return DefaultRiskAnalysis.isInputStandard(this);
     }
 
     @Override
