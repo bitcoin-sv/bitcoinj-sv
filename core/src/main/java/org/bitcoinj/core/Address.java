@@ -22,7 +22,6 @@ import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.WrongNetworkException;
 import org.bitcoinj.msg.p2p.AddressMessage;
 import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.Networks;
 import org.bitcoinj.script.Script;

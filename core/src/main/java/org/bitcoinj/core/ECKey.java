@@ -30,7 +30,6 @@ import org.bitcoin.NativeSecp256k1Util;
 import org.bitcoin.Secp256k1Context;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.wallet.Protos;
-//import org.bitcoinj.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;
