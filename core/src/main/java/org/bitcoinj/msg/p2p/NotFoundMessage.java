@@ -18,6 +18,7 @@ package org.bitcoinj.msg.p2p;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
+import org.bitcoinj.params.Net;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,16 +32,16 @@ import java.util.List;
 public class NotFoundMessage extends InventoryMessage {
     public static int MIN_PROTOCOL_VERSION = 70001;
 
-    public NotFoundMessage(NetworkParameters params) {
-        super(params);
+    public NotFoundMessage(Net net) {
+        super(net);
     }
 
-    public NotFoundMessage(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes);
+    public NotFoundMessage(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes);
     }
 
-    public NotFoundMessage(NetworkParameters params, List<InventoryItem> items) {
-        super(params);
+    public NotFoundMessage(Net net, List<InventoryItem> items) {
+        super(net);
         this.items = new ArrayList<InventoryItem>(items);
     }
 }

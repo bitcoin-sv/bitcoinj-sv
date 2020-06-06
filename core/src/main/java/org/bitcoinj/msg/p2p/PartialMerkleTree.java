@@ -29,6 +29,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 /**
  * <p>A data structure that contains proofs of block inclusion for one or more transactions, in an efficient manner.</p>
@@ -68,16 +69,16 @@ public class PartialMerkleTree extends Message {
     // txids and internal hashes
     private List<Sha256Hash> hashes;
     
-    public PartialMerkleTree(NetworkParameters params, byte[] payloadBytes, int offset) throws ProtocolException {
-        super(params, payloadBytes, offset);
+    public PartialMerkleTree(Net net, byte[] payloadBytes, int offset) throws ProtocolException {
+        super(net, payloadBytes, offset);
     }
 
     /**
      * Constructs a new PMT with the given bit set (little endian) and the raw list of hashes including internal hashes,
      * taking ownership of the list.
      */
-    public PartialMerkleTree(NetworkParameters params, byte[] bits, List<Sha256Hash> hashes, int origTxCount) {
-        super(params);
+    public PartialMerkleTree(Net net, byte[] bits, List<Sha256Hash> hashes, int origTxCount) {
+        super(net);
         this.matchedChildBits = bits;
         this.hashes = hashes;
         this.transactionCount = origTxCount;
@@ -87,7 +88,7 @@ public class PartialMerkleTree extends Message {
      * Calculates a PMT given the list of leaf hashes and which leaves need to be included. The relevant interior hashes
      * are calculated and a new PMT returned.
      */
-    public static PartialMerkleTree buildFromLeaves(NetworkParameters params, byte[] includeBits, List<Sha256Hash> allLeafHashes) {
+    public static PartialMerkleTree buildFromLeaves(Net net, byte[] includeBits, List<Sha256Hash> allLeafHashes) {
         // Calculate height of the tree.
         int height = 0;
         while (getTreeWidth(allLeafHashes.size(), height) > 1)
@@ -99,7 +100,7 @@ public class PartialMerkleTree extends Message {
         for (int i = 0; i < bitList.size(); i++)
             if (bitList.get(i))
                 Utils.setBitLE(bits, i);
-        return new PartialMerkleTree(params, bits, hashes, allLeafHashes.size());
+        return new PartialMerkleTree(net, bits, hashes, allLeafHashes.size());
     }
 
     @Override

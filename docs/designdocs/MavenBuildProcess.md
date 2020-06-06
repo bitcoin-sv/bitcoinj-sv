@@ -48,7 +48,7 @@ able to execute these tests frequently without disrupting flow of work. Unit tes
 which take too much time should be moved to the integration test set.
 
 Integration tests are divided into a number of groups. Tests in the base group must 
-have no external dependencies except disk, io, memory, network. Tests which have other
+have no external dependencies except disk, io, memory, net. Tests which have other
 external dependencies (e.g. Postgres, MySQL) must be grouped according to the
 dependency. By default, only the tests from the base group are performed. 
 The tests from all groups must be performed by Travis. 

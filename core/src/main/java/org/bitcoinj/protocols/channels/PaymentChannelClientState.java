@@ -251,7 +251,7 @@ public abstract class PaymentChannelClientState {
     public abstract Transaction getContract();
 
     private synchronized Transaction makeUnsignedChannelContract(Coin valueToMe) throws ValueOutOfRangeException {
-        Transaction tx = new Transaction(wallet.getParams());
+        Transaction tx = new Transaction(wallet.getNet());
         tx.addInput(getContractInternal().getOutput(0));
         // Our output always comes first.
         // TODO: We should drop myKey in favor of output key + multisig key separation

@@ -20,6 +20,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.MemoryBlockStore;
@@ -41,6 +42,7 @@ import static org.bitcoinj.testing.FakeTxBuilder.createFakeTx;
  */
 public class TestWithWallet {
     protected static final NetworkParameters PARAMS = UnitTestParams.get();
+    protected static final Net NET = Net.UNITTEST;
     protected ECKey myKey;
     protected Address myAddress;
     protected Wallet wallet;
@@ -83,12 +85,12 @@ public class TestWithWallet {
 
     @Nullable
     protected Transaction sendMoneyToWallet(Wallet wallet, AbstractBlockChain.NewBlockType type, Coin value, Address toAddress) throws VerificationException {
-        return sendMoneyToWallet(wallet, type, createFakeTx(PARAMS, value, toAddress));
+        return sendMoneyToWallet(wallet, type, createFakeTx(NET, value, toAddress));
     }
 
     @Nullable
     protected Transaction sendMoneyToWallet(Wallet wallet, AbstractBlockChain.NewBlockType type, Coin value, ECKey toPubKey) throws VerificationException {
-        return sendMoneyToWallet(wallet, type, createFakeTx(PARAMS, value, toPubKey));
+        return sendMoneyToWallet(wallet, type, createFakeTx(NET, value, toPubKey));
     }
 
     @Nullable

@@ -28,8 +28,8 @@ import static com.google.common.base.Preconditions.checkState;
 public class RegTestParams extends TestNet2Params {
     private static final BigInteger MAX_TARGET = new BigInteger("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16);
 
-    public RegTestParams(Network network) {
-        super(network);
+    public RegTestParams(Net net) {
+        super(net);
         // Difficulty adjustments are disabled for regtest. 
         // By setting the block interval for difficulty adjustments to Integer.MAX_VALUE we make sure difficulty never changes.    
         interval = Integer.MAX_VALUE;
@@ -70,8 +70,9 @@ public class RegTestParams extends TestNet2Params {
         }
     }
 
-    private static RegTestParams instance = new RegTestParams(Network.REGTEST);
-    static {Network.register(instance.network, instance);}
+    private static RegTestParams instance = new RegTestParams(Net.REGTEST);
+    static {
+        Net.register(instance.net, instance);}
     public static synchronized RegTestParams get() {
 
         return instance;

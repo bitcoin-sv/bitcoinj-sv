@@ -604,7 +604,7 @@ public class WalletProtobufSerializer {
     }
 
     private void readTransaction(Protos.Transaction txProto, NetworkParameters params) throws UnreadableWalletException {
-        Transaction tx = new Transaction(params);
+        Transaction tx = new Transaction(params.getNet());
 
         tx.setVersion(txProto.getVersion());
 
@@ -615,18 +615,18 @@ public class WalletProtobufSerializer {
         for (Protos.TransactionOutput outputProto : txProto.getTransactionOutputList()) {
             Coin value = Coin.valueOf(outputProto.getValue());
             byte[] scriptBytes = outputProto.getScriptBytes().toByteArray();
-            TransactionOutput output = new TransactionOutput(params, tx, value, scriptBytes);
+            TransactionOutput output = new TransactionOutput(params.getNet(), tx, value, scriptBytes);
             tx.addOutput(output);
         }
 
         for (Protos.TransactionInput inputProto : txProto.getTransactionInputList()) {
             byte[] scriptBytes = inputProto.getScriptBytes().toByteArray();
-            TransactionOutPoint outpoint = new TransactionOutPoint(params,
+            TransactionOutPoint outpoint = new TransactionOutPoint(params.getNet(),
                     inputProto.getTransactionOutPointIndex() & 0xFFFFFFFFL,
                     byteStringToHash(inputProto.getTransactionOutPointHash())
             );
             Coin value = inputProto.hasValue() ? Coin.valueOf(inputProto.getValue()) : null;
-            TransactionInput input = new TransactionInput(params, tx, scriptBytes, outpoint, value);
+            TransactionInput input = new TransactionInput(params.getNet(), tx, scriptBytes, outpoint, value);
             if (inputProto.hasSequence())
                 input.setSequenceNumber(0xffffffffL & inputProto.getSequence());
             tx.addInput(input);

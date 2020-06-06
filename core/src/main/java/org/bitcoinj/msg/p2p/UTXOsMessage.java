@@ -20,6 +20,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,16 +57,16 @@ public class UTXOsMessage extends Message {
     /** This is a special sentinel value that can appear in the heights field if the given tx is in the mempool. */
     public static long MEMPOOL_HEIGHT = 0x7FFFFFFFL;
 
-    public UTXOsMessage(NetworkParameters params, byte[] payloadBytes) {
-        super(params, payloadBytes, 0);
+    public UTXOsMessage(Net net, byte[] payloadBytes) {
+        super(net, payloadBytes, 0);
     }
 
     /**
      * Provide an array of output objects, with nulls indicating that the output was missing. The bitset will
      * be calculated from this.
      */
-    public UTXOsMessage(NetworkParameters params, List<TransactionOutput> outputs, long[] heights, Sha256Hash chainHead, long height) {
-        super(params);
+    public UTXOsMessage(Net net, List<TransactionOutput> outputs, long[] heights, Sha256Hash chainHead, long height) {
+        super(net);
         hits = new byte[(int) Math.ceil(outputs.size() / 8.0)];
         for (int i = 0; i < outputs.size(); i++) {
             if (outputs.get(i) != null)
@@ -122,7 +123,7 @@ public class UTXOsMessage extends Message {
             long height = readUint32();
             if (version > 1)
                 throw new ProtocolException("Unknown tx version in getutxo output: " + version);
-            TransactionOutput output = new TransactionOutput(params, null, payload, cursor);
+            TransactionOutput output = new TransactionOutput(net, null, payload, cursor);
             outputs.add(output);
             heights[i] = height;
             cursor += output.length();

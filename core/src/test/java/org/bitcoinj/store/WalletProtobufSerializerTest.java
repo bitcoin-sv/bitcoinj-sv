@@ -27,6 +27,7 @@ import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.testing.FakeTxBuilder;
@@ -66,6 +67,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class WalletProtobufSerializerTest {
     private static final NetworkParameters PARAMS = UnitTestParams.get();
+    private static final Net NET = Net.UNITTEST;
     private ECKey myKey;
     private ECKey myWatchedKey;
     private Address myAddress;
@@ -115,7 +117,7 @@ public class WalletProtobufSerializerTest {
     public void oneTx() throws Exception {
         // Check basic tx serialization.
         Coin v1 = COIN;
-        Transaction t1 = createFakeTx(PARAMS, v1, myAddress);
+        Transaction t1 = createFakeTx(NET, v1, myAddress);
         t1.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("1.2.3.4")));
         t1.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("5.6.7.8")));
         t1.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
@@ -151,7 +153,7 @@ public class WalletProtobufSerializerTest {
     public void raiseFeeTx() throws Exception {
         // Check basic tx serialization.
         Coin v1 = COIN;
-        Transaction t1 = createFakeTx(PARAMS, v1, myAddress);
+        Transaction t1 = createFakeTx(NET, v1, myAddress);
         t1.setPurpose(Purpose.RAISE_FEE);
         myWallet.receivePending(t1, null);
         Wallet wallet1 = roundTrip(myWallet);
@@ -162,7 +164,7 @@ public class WalletProtobufSerializerTest {
     @Test
     public void doubleSpend() throws Exception {
         // Check that we can serialize double spends correctly, as this is a slightly tricky case.
-        FakeTxBuilder.DoubleSpends doubleSpends = FakeTxBuilder.createFakeDoubleSpendTxns(PARAMS, myAddress);
+        FakeTxBuilder.DoubleSpends doubleSpends = FakeTxBuilder.createFakeDoubleSpendTxns(NET, myAddress);
         // t1 spends to our wallet.
         myWallet.receivePending(doubleSpends.t1, null);
         // t2 rolls back t1 and spends somewhere else.
@@ -221,10 +223,10 @@ public class WalletProtobufSerializerTest {
     @Test
     public void testSequenceNumber() throws Exception {
         Wallet wallet = new Wallet(PARAMS);
-        Transaction tx1 = createFakeTx(PARAMS, Coin.COIN, wallet.currentReceiveAddress());
+        Transaction tx1 = createFakeTx(NET, Coin.COIN, wallet.currentReceiveAddress());
         tx1.getInput(0).setSequenceNumber(TransactionInput.NO_SEQUENCE);
         wallet.receivePending(tx1, null);
-        Transaction tx2 = createFakeTx(PARAMS, Coin.COIN, wallet.currentReceiveAddress());
+        Transaction tx2 = createFakeTx(NET, Coin.COIN, wallet.currentReceiveAddress());
         tx2.getInput(0).setSequenceNumber(TransactionInput.NO_SEQUENCE - 1);
         wallet.receivePending(tx2, null);
         Wallet walletCopy = roundTrip(wallet);
@@ -367,7 +369,7 @@ public class WalletProtobufSerializerTest {
 
     @Test
     public void roundtripVersionTwoTransaction() throws Exception {
-        Transaction tx = new Transaction(PARAMS, Utils.HEX.decode(
+        Transaction tx = new Transaction(NET, Utils.HEX.decode(
                 "0200000001d7902864af9310420c6e606b814c8f89f7902d40c130594e85df2e757a7cc301070000006b483045022100ca1757afa1af85c2bb014382d9ce411e1628d2b3d478df9d5d3e9e93cb25dcdd02206c5d272b31a23baf64e82793ee5c816e2bbef251e733a638b630ff2331fc83ba0121026ac2316508287761befbd0f7495ea794b396dbc5b556bf276639f56c0bd08911feffffff0274730700000000001976a91456da2d038a098c42390c77ef163e1cc23aedf24088ac91062300000000001976a9148ebf3467b9a8d7ae7b290da719e61142793392c188ac22e00600"));
         assertEquals(tx.getVersion(), 2);
         assertEquals(tx.getHashAsString(), "0321b1413ed9048199815bd6bc2650cab1a9e8d543f109a42c769b1f18df4174");

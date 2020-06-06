@@ -417,7 +417,7 @@
     "desc/all-recent" -- the latest server descriptor for every router that
       Tor knows about.
 
-    "network-status" -- a space-separated list (v1 directory style)
+    "net-status" -- a space-separated list (v1 directory style)
       of all known OR identities. This is in the same format as the
       router-status line in v1 directories; see dir-spec-v1.txt section
       3 for details.  (If VERBOSE_NAMES is enabled, the output will
@@ -1294,7 +1294,7 @@
 
      DIR_ALL_UNREACHABLE
        Tor believes that none of the known directory servers are
-       reachable -- this is most likely because the local network is
+       reachable -- this is most likely because the local net is
        down or otherwise not working, and might help to explain for the
        user why Tor appears to be broken.
 
@@ -1319,7 +1319,7 @@
      ]
 
        Tor has made some progress at establishing a connection to the
-       Tor network, fetching directory information, or making its first
+       Tor net, fetching directory information, or making its first
        circuit; or it has encountered a problem while bootstrapping. This
        status event is especially useful for users with slow connections
        or with connectivity problems.
@@ -1363,7 +1363,7 @@
        occasional errors and reporting serious problems quickly.
 
      ENOUGH_DIR_INFO
-       Tor now knows enough network-status documents and enough server
+       Tor now knows enough net-status documents and enough server
        descriptors that it's going to start trying to build circuits now.
 
        {Controllers may want to use this event to decide when to indicate
@@ -1459,7 +1459,7 @@
        option.  If the method is 'RESOLVED', we resolved the Address
        configuration option to get the IP.  If the method is 'GETHOSTNAME',
        we resolved our hostname to get the IP.  If the method is 'INTERFACE',
-       we got the address of one of our network interfaces to get the IP.  If
+       we got the address of one of our net interfaces to get the IP.  If
        the method is 'DIRSERV', a directory server told us a guess for what
        our IP might be.
 
@@ -1752,7 +1752,7 @@
 
   Tor will stay at this phase until it has successfully established
   a TCP connection with some directory mirror. Problems in this phase
-  generally happen because Tor doesn't have a network connection, or
+  generally happen because Tor doesn't have a net connection, or
   because the local firewall is dropping SYN packets.
 
   Phase 10:

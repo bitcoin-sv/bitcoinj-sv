@@ -20,6 +20,8 @@ import org.bitcoinj.msg.protocol.Block;
 
 import java.math.BigInteger;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * Network parameters used by the bitcoinj unit tests (and potentially your own). This lets you solve a block using
  * {@link Block#solve()} by setting difficulty to the easiest possible.
@@ -29,17 +31,14 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
     public static final int TESTNET_MAJORITY_REJECT_BLOCK_OUTDATED = 6;
     public static final int TESTNET_MAJORITY_ENFORCE_BLOCK_UPGRADE = 4;
 
-    public UnitTestParams(Network network) {
-        super(network);
+    public UnitTestParams(Net net) {
+        super(net);
         id = ID_UNITTESTNET;
         packetMagic = 0xf4e5f3f4L;      // must be same as testnet3
         addressHeader = 111;
         p2shHeader = 196;
         acceptableAddressCodes = new int[] { addressHeader, p2shHeader };
         maxTarget = new BigInteger("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16);
-        genesisBlock.setTime(System.currentTimeMillis() / 1000);
-        genesisBlock.setDifficultyTarget(Block.EASIEST_DIFFICULTY_TARGET);
-        genesisBlock.solve();
         port = 18333;
         interval = 10;
         dumpedPrivateKeyHeader = 239;
@@ -59,8 +58,16 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
         daaUpdateHeight = 1000000;
     }
 
-    private static UnitTestParams instance = new UnitTestParams(Network.UNITTEST);
-    static {Network.register(instance.network, instance);}
+    @Override
+    protected void configureGenesis(Block genesisBlock) {
+        genesisBlock.setTime(System.currentTimeMillis() / 1000);
+        genesisBlock.setDifficultyTarget(Block.EASIEST_DIFFICULTY_TARGET);
+        genesisBlock.solve();
+    }
+
+    private static UnitTestParams instance = new UnitTestParams(Net.UNITTEST);
+    static {
+        Net.register(instance.net, instance);}
     public static synchronized UnitTestParams get() {
         return instance;
     }

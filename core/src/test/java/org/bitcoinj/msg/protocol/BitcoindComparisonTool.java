@@ -46,6 +46,7 @@ public class BitcoindComparisonTool {
     private static final Logger log = LoggerFactory.getLogger(BitcoindComparisonTool.class);
 
     private static NetworkParameters params;
+    private static Net net;
     private static FullPrunedBlockChain chain;
     private static Sha256Hash bitcoindChainHead;
     private static volatile InventoryMessage mostRecentInv = null;
@@ -60,6 +61,7 @@ public class BitcoindComparisonTool {
         boolean runExpensiveTests = args.length > 1 && Integer.parseInt(args[1]) == 1;
 
         params = RegTestParams.get();
+        net = Net.REGTEST;
         Context ctx = new Context(params);
 
         File blockFile = File.createTempFile("testBlocks", ".dat");
@@ -80,7 +82,7 @@ public class BitcoindComparisonTool {
             System.exit(1);
         }
 
-        VersionMessage ver = new VersionMessage(params, 42);
+        VersionMessage ver = new VersionMessage(net, 42);
         ver.appendToSubVer("BlockAcceptanceComparisonTool", "1.1", null);
         ver.localServices = VersionMessage.NODE_NETWORK;
         final Peer bitcoind = new Peer(params, ver, new SPVBlockChain(params, new MemoryBlockStore(params)), new PeerAddress(params, InetAddress.getLocalHost()));
@@ -185,8 +187,8 @@ public class BitcoindComparisonTool {
                         }
                         if (!found)
                             sendHeaders = headers;
-                        bitcoind.sendMessage(new HeadersMessage(params, sendHeaders));
-                        InventoryMessage i = new InventoryMessage(params);
+                        bitcoind.sendMessage(new HeadersMessage(net, sendHeaders));
+                        InventoryMessage i = new InventoryMessage(net);
                         for (Block b : sendHeaders)
                             i.addBlock(b);
                         bitcoind.sendMessage(i);
@@ -271,7 +273,7 @@ public class BitcoindComparisonTool {
                 boolean shouldntRequest = blocksRequested.contains(nextBlock.getHash());
                 if (shouldntRequest)
                     blocksRequested.remove(nextBlock.getHash());
-                InventoryMessage message = new InventoryMessage(params);
+                InventoryMessage message = new InventoryMessage(net);
                 message.addBlock(nextBlock);
                 bitcoind.sendMessage(message);
                 log.info("Sent inv with block " + nextBlock.getHashAsString());
@@ -303,7 +305,7 @@ public class BitcoindComparisonTool {
                 //bitcoind.sendMessage(nextBlock);
                 locator.clear();
                 locator.add(bitcoindChainHead);
-                bitcoind.sendMessage(new GetHeadersMessage(params, locator, hashTo));
+                bitcoind.sendMessage(new GetHeadersMessage(net, locator, hashTo));
                 bitcoind.ping().get();
                 if (!chain.getChainHead().getHeader().getHash().equals(bitcoindChainHead)) {
                     rulesSinceFirstFail++;

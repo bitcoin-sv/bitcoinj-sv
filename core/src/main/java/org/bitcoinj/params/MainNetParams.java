@@ -18,8 +18,7 @@
 package org.bitcoinj.params;
 
 import org.bitcoinj.core.*;
-
-import java.net.*;
+import org.bitcoinj.msg.protocol.Block;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -31,8 +30,8 @@ public class MainNetParams extends AbstractBitcoinNetParams {
     public static final int MAINNET_MAJORITY_REJECT_BLOCK_OUTDATED = 950;
     public static final int MAINNET_MAJORITY_ENFORCE_BLOCK_UPGRADE = 750;
 
-    public MainNetParams(Network network) {
-        super(network);
+    public MainNetParams(Net net) {
+        super(net);
         interval = INTERVAL;
         targetTimespan = TARGET_TIMESPAN;
         maxTarget = Utils.decodeCompactBits(0x1d00ffffL);
@@ -50,15 +49,9 @@ public class MainNetParams extends AbstractBitcoinNetParams {
         majorityRejectBlockOutdated = MAINNET_MAJORITY_REJECT_BLOCK_OUTDATED;
         majorityWindow = MAINNET_MAJORITY_WINDOW;
 
-        genesisBlock.setDifficultyTarget(0x1d00ffffL);
-        genesisBlock.setTime(1231006505L);
-        genesisBlock.setNonce(2083236893);
         id = ID_MAINNET;
         subsidyDecreaseBlockCount = 210000;
         spendableCoinbaseDepth = 100;
-        String genesisHash = genesisBlock.getHashAsString();
-        checkState(genesisHash.equals("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
-                genesisHash);
 
         // This contains (at a minimum) the blocks which are not BIP30 compliant. BIP30 changed how duplicate
         // transactions are handled. Duplicated transactions could occur in the case where a coinbase had the same
@@ -129,8 +122,20 @@ public class MainNetParams extends AbstractBitcoinNetParams {
         daaUpdateHeight = 504031;
     }
 
-    private static MainNetParams instance = new MainNetParams(Network.MAINNET);
-    static {Network.register(instance.network, instance);}
+    @Override
+    protected void configureGenesis(Block genesisBlock) {
+        genesisBlock.setDifficultyTarget(0x1d00ffffL);
+        genesisBlock.setTime(1231006505L);
+        genesisBlock.setNonce(2083236893);
+        String genesisHash = genesisBlock.getHashAsString();
+        checkState(genesisHash.equals("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
+                genesisHash);
+
+    }
+
+    private static MainNetParams instance = new MainNetParams(Net.MAINNET);
+    static {
+        Net.register(instance.net, instance);}
     public static synchronized MainNetParams get() {
         return instance;
     }

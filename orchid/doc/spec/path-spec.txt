@@ -20,7 +20,7 @@ of their choices.
    information to do so (see section 5 of dir-spec.txt).  Some circuits are
    built preemptively because we expect to need them later (for user
    traffic), and some are built because of immediate need (for user traffic
-   that no current circuit can handle, for testing the network or our
+   that no current circuit can handle, for testing the net or our
    reachability, and so on).
 
    When a client application creates a new stream (by opening a SOCKS
@@ -73,7 +73,7 @@ of their choices.
 
 1.1. A server's bandwidth
 
-   Old versions of Tor did not report bandwidths in network status
+   Old versions of Tor did not report bandwidths in net status
    documents, so clients had to learn them from the routers' advertised
    server descriptors.
 
@@ -360,7 +360,7 @@ of their choices.
   18 hours for a week, and every 36 hours thereafter.  Additionally, Tor
   retries unreachable guards the first time it adds a new guard to the list,
   since it is possible that the old guards were only marked as unreachable
-  because the network was unreachable or down.
+  because the net was unreachable or down.
 
   Tor does not add a guard persistently to the list until the first time we
   have connected to it successfully.
@@ -388,7 +388,7 @@ X. Old notes
 
 X.1. Do we actually do this?
 
-How to deal with network down.
+How to deal with net down.
   - While all helpers are down/unreachable and there are no established
     or on-the-way testing circuits, launch a testing circuit. (Do this
     periodically in the same way we try to establish normal circuits

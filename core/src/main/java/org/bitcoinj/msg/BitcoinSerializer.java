@@ -23,6 +23,7 @@ import org.bitcoinj.core.listeners.SendHeadersMessage;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.params.Net;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,7 @@ public class BitcoinSerializer extends MessageSerializer {
     private static final int COMMAND_LEN = 12;
 
     private final NetworkParameters params;
+    private final Net net;
     private final SerializeMode serializeMode;
 
     private static final Map<Class<? extends Message>, String> names = new HashMap<Class<? extends Message>, String>();
@@ -102,11 +104,13 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     public BitcoinSerializer(NetworkParameters params, boolean parseLazy, boolean parseRetain, boolean compactTransactionsInBlock) {
         this.params = params;
+        this.net = params == null ? null : params.getNet();
         serializeMode = new SerializeMode(parseLazy, parseRetain, compactTransactionsInBlock);
     }
 
     public BitcoinSerializer(NetworkParameters params) {
         this.params = params;
+        this.net = params == null ? null : params.getNet();
         this.serializeMode = params.getDefaultSerializeMode();
     }
 
@@ -216,7 +220,7 @@ public class BitcoinSerializer extends MessageSerializer {
         // We use an if ladder rather than reflection because reflection is very slow on Android.
         Message message;
         if (command.equals("version")) {
-            return new VersionMessage(params, payloadBytes);
+            return new VersionMessage(net, payloadBytes);
         } else if (command.equals("inv")) { 
             message = makeInventoryMessage(payloadBytes, length);
         } else if (command.equals("block")) {
@@ -224,46 +228,46 @@ public class BitcoinSerializer extends MessageSerializer {
         } else if (command.equals("merkleblock")) {
             message = makeFilteredBlock(payloadBytes);
         } else if (command.equals("getdata")) {
-            message = new GetDataMessage(params, payloadBytes, serializeMode, length);
+            message = new GetDataMessage(net, payloadBytes, serializeMode, length);
         } else if (command.equals("getblocks")) {
-            message = new GetBlocksMessage(params, payloadBytes);
+            message = new GetBlocksMessage(net, payloadBytes);
         } else if (command.equals("getheaders")) {
-            message = new GetHeadersMessage(params, payloadBytes);
+            message = new GetHeadersMessage(net, payloadBytes);
         } else if (command.equals("tx")) {
             message = makeTransaction(payloadBytes, 0, length, hash);
         } else if (command.equals("addr")) {
             message = makeAddressMessage(payloadBytes, length);
         } else if (command.equals("ping")) {
-            message = new Ping(params, payloadBytes);
+            message = new Ping(net, payloadBytes);
         } else if (command.equals("pong")) {
-            message = new Pong(params, payloadBytes);
+            message = new Pong(net, payloadBytes);
         } else if (command.equals("verack")) {
-            return new VersionAck(params, payloadBytes);
+            return new VersionAck(net, payloadBytes);
         } else if (command.equals("headers")) {
-            return new HeadersMessage(params, payloadBytes);
+            return new HeadersMessage(net, payloadBytes);
         } else if (command.equals("alert")) {
             return makeAlertMessage(payloadBytes);
         } else if (command.equals("filterload")) {
             return makeBloomFilter(payloadBytes);
         } else if (command.equals("notfound")) {
-            return new NotFoundMessage(params, payloadBytes);
+            return new NotFoundMessage(net, payloadBytes);
         } else if (command.equals("mempool")) {
             return new MemoryPoolMessage();
         } else if (command.equals("reject")) {
-            return new RejectMessage(params, payloadBytes);
+            return new RejectMessage(net, payloadBytes);
         } else if (command.equals("utxos")) {
-            return new UTXOsMessage(params, payloadBytes);
+            return new UTXOsMessage(net, payloadBytes);
         } else if (command.equals("getutxos")) {
-            return new GetUTXOsMessage(params, payloadBytes);
+            return new GetUTXOsMessage(net, payloadBytes);
         } else if (command.equals("sendheaders")) {
-            return new SendHeadersMessage(params);
+            return new SendHeadersMessage(net);
         } else if (command.equals("feefilter")) {
-            return new FeeFilterMessage(params);
+            return new FeeFilterMessage(net);
         } else if (command.equals("getaddr")) {
-            return new GetAddrMessage(params);
+            return new GetAddrMessage(net);
         } else{
             log.warn("No support for deserializing message with name {}", command);
-            return new UnknownMessage(params, command, payloadBytes, length);
+            return new UnknownMessage(net, command, payloadBytes, length);
         }
         return message;
     }
@@ -281,7 +285,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public AddressMessage makeAddressMessage(byte[] payloadBytes, int length) throws ProtocolException {
-        return new AddressMessage(params, payloadBytes, serializeMode, length);
+        return new AddressMessage(net, payloadBytes, serializeMode, length);
     }
 
     /**
@@ -290,7 +294,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public Message makeAlertMessage(byte[] payloadBytes) throws ProtocolException {
-        return new AlertMessage(params, payloadBytes);
+        return new AlertMessage(net, payloadBytes);
     }
 
     /**
@@ -299,7 +303,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public Block makeBlock(final byte[] payloadBytes, final int offset, final int length) throws ProtocolException {
-        return new Block(params, payloadBytes, offset, serializeMode, length);
+        return new Block(net, payloadBytes, offset, serializeMode, length);
     }
 
     /**
@@ -308,7 +312,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public Message makeBloomFilter(byte[] payloadBytes) throws ProtocolException {
-        return new BloomFilter(params, payloadBytes);
+        return new BloomFilter(net, payloadBytes);
     }
 
     /**
@@ -317,7 +321,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public FilteredBlock makeFilteredBlock(byte[] payloadBytes) throws ProtocolException {
-        return new FilteredBlock(params, payloadBytes);
+        return new FilteredBlock(net, payloadBytes);
     }
 
     /**
@@ -326,7 +330,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public InventoryMessage makeInventoryMessage(byte[] payloadBytes, int length) throws ProtocolException {
-        return new InventoryMessage(params, payloadBytes, serializeMode, length);
+        return new InventoryMessage(net, payloadBytes, serializeMode, length);
     }
 
     /**
@@ -336,7 +340,7 @@ public class BitcoinSerializer extends MessageSerializer {
     @Override
     public Transaction makeTransaction(byte[] payloadBytes, int offset,
         int length, byte[] hash) throws ProtocolException {
-        Transaction tx = new Transaction(params, payloadBytes, offset, null, serializeMode, length);
+        Transaction tx = new Transaction(net, payloadBytes, offset, null, serializeMode, length);
         if (hash != null)
             tx.setHash(Sha256Hash.wrapReversed(hash));
         return tx;

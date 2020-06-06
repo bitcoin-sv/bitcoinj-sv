@@ -17,10 +17,10 @@
 package org.bitcoinj.msg.p2p;
 
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -59,8 +59,8 @@ public class AlertMessage extends Message {
     // Chosen arbitrarily to avoid memory blowups.
     private static final long MAX_SET_SIZE = 100;
 
-    public AlertMessage(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes, 0);
+    public AlertMessage(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes, 0);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class AlertMessage extends Message {
      * doesn't verify, because that would allow arbitrary attackers to spam your users.
      */
     public boolean isSignatureValid() {
-        return ECKey.verify(Sha256Hash.hashTwice(content), signature, params.getAlertSigningKey());
+        return ECKey.verify(Sha256Hash.hashTwice(content), signature, net.params().getAlertSigningKey());
     }
 
     @Override

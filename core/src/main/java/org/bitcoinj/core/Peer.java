@@ -27,6 +27,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.net.StreamConnection;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.utils.ListenerRegistration;
@@ -68,6 +69,7 @@ public class Peer extends PeerSocketHandler {
     protected final ReentrantLock lock;
 
     private final NetworkParameters params;
+    private final Net net;
     private final AbstractBlockChain blockChain;
     private final Context context;
 
@@ -233,6 +235,7 @@ public class Peer extends PeerSocketHandler {
                 @Nullable AbstractBlockChain chain, int downloadTxDependencyDepth) {
         super(params, remoteAddress);
         this.params = Preconditions.checkNotNull(params);
+        this.net = params.getNet();
         this.versionMessage = Preconditions.checkNotNull(ver);
         this.vDownloadTxDependencyDepth = chain != null ? downloadTxDependencyDepth : 0;
         this.blockChain = chain;  // Allowed to be null.
@@ -269,7 +272,7 @@ public class Peer extends PeerSocketHandler {
      * used to keep track of which peers relayed transactions and offer more descriptive logging.</p>
      */
     public Peer(NetworkParameters params, AbstractBlockChain blockChain, PeerAddress peerAddress, String thisSoftwareName, String thisSoftwareVersion) {
-        this(params, new VersionMessage(params, blockChain.getBestChainHeight()), blockChain, peerAddress);
+        this(params, new VersionMessage(params.getNet(), blockChain.getBestChainHeight()), blockChain, peerAddress);
         this.versionMessage.appendToSubVer(thisSoftwareName, thisSoftwareVersion, null);
     }
 
@@ -922,7 +925,7 @@ public class Peer extends PeerSocketHandler {
         try {
             // Build the request for the missing dependencies.
             List<ListenableFuture<Transaction>> futures = Lists.newArrayList();
-            GetDataMessage getdata = new GetDataMessage(params);
+            GetDataMessage getdata = new GetDataMessage(net);
             if (needToRequest.size() > 1)
                 log.info("{}: Requesting {} transactions for depth {} dep resolution", getAddress(), needToRequest.size(), depth + 1);
             for (Sha256Hash hash : needToRequest) {
@@ -1216,7 +1219,7 @@ public class Peer extends PeerSocketHandler {
             }
         }
 
-        GetDataMessage getdata = new GetDataMessage(params);
+        GetDataMessage getdata = new GetDataMessage(net);
 
         Iterator<InventoryItem> it = transactions.iterator();
         while (it.hasNext()) {
@@ -1315,7 +1318,7 @@ public class Peer extends PeerSocketHandler {
     public ListenableFuture<Block> getBlock(Sha256Hash blockHash) {
         // This does not need to be locked.
         log.info("Request to fetch block {}", blockHash);
-        GetDataMessage getdata = new GetDataMessage(params);
+        GetDataMessage getdata = new GetDataMessage(net);
         getdata.addBlock(blockHash);
         return sendSingleGetData(getdata);
     }
@@ -1333,7 +1336,7 @@ public class Peer extends PeerSocketHandler {
         // This does not need to be locked.
         // TODO: Unit test this method.
         log.info("Request to fetch peer mempool tx  {}", hash);
-        GetDataMessage getdata = new GetDataMessage(params);
+        GetDataMessage getdata = new GetDataMessage(net);
         getdata.addTransaction(hash);
         return sendSingleGetData(getdata);
     }
@@ -1354,7 +1357,7 @@ public class Peer extends PeerSocketHandler {
         synchronized (getAddrFutures) {
             getAddrFutures.add(future);
         }
-        sendMessage(new GetAddrMessage(params));
+        sendMessage(new GetAddrMessage(net));
         return future;
     }
 
@@ -1484,11 +1487,11 @@ public class Peer extends PeerSocketHandler {
         lastGetBlocksEnd = toHash;
 
         if (downloadBlockBodies) {
-            GetBlocksMessage message = new GetBlocksMessage(params, blockLocator, toHash);
+            GetBlocksMessage message = new GetBlocksMessage(net, blockLocator, toHash);
             sendMessage(message);
         } else {
             // Downloading headers for a while instead of full blocks.
-            GetHeadersMessage message = new GetHeadersMessage(params, blockLocator, toHash);
+            GetHeadersMessage message = new GetHeadersMessage(net, blockLocator, toHash);
             sendMessage(message);
         }
     }
@@ -1767,7 +1770,7 @@ public class Peer extends PeerSocketHandler {
                 public void run() {
                     lock.lock();
                     checkNotNull(awaitingFreshFilter);
-                    GetDataMessage getdata = new GetDataMessage(params);
+                    GetDataMessage getdata = new GetDataMessage(net);
                     for (Sha256Hash hash : awaitingFreshFilter)
                         getdata.addFilteredBlock(hash);
                     awaitingFreshFilter = null;
@@ -1830,7 +1833,7 @@ public class Peer extends PeerSocketHandler {
             if (getutxoFutures == null)
                 getutxoFutures = new LinkedList<SettableFuture<UTXOsMessage>>();
             getutxoFutures.add(future);
-            sendMessage(new GetUTXOsMessage(params, outPoints, includeMempool));
+            sendMessage(new GetUTXOsMessage(net, outPoints, includeMempool));
             return future;
         } finally {
             lock.unlock();

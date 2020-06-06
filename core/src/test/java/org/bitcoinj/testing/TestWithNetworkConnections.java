@@ -26,6 +26,7 @@ import org.bitcoinj.msg.p2p.Pong;
 import org.bitcoinj.msg.p2p.VersionAck;
 import org.bitcoinj.msg.p2p.VersionMessage;
 import org.bitcoinj.net.*;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.MemoryBlockStore;
@@ -56,6 +57,7 @@ public class TestWithNetworkConnections {
     public static final int PEER_SERVERS = 5;
     public static final long TIMEOUT_SECS = 60;
     protected static final NetworkParameters PARAMS = UnitTestParams.get();
+    protected static final Net NET = Net.UNITTEST;
     protected Context context;
     protected BlockStore blockStore;
     protected SPVBlockChain SPVBlockChain;

@@ -8,9 +8,9 @@
    before you read this specification. It will make more sense.
 
    Rendezvous points provide location-hidden services (server
-   anonymity) for the onion routing network. With rendezvous points,
+   anonymity) for the onion routing net. With rendezvous points,
    Bob can offer a TCP service (say, a webserver) via the onion
-   routing network, without revealing the IP of that service.
+   routing net, without revealing the IP of that service.
 
    Bob does this by anonymously advertising a public key for his
    service, along with a list of onion routers to act as "Introduction
@@ -26,7 +26,7 @@
    cells are received directly by Bob's OP, which passes data to
    and from the local server implementing Bob's service.
 
-   Below we describe a network-level specification of this service,
+   Below we describe a net-level specification of this service,
    along with interfaces to make this process transparent to Alice
    (so long as she is using an OP).
 
@@ -34,13 +34,13 @@
 
    In the specifications below, we use the same notation and terminology
    as in "tor-spec.txt".  The service specified here also requires the
-   existence of an onion routing network as specified in that file.
+   existence of an onion routing net as specified in that file.
 
         H(x) is a SHA1 digest of x.
         PKSign(SK,x) is a PKCS.1-padded RSA signature of x with SK.
         PKEncrypt(SK,x) is a PKCS.1-padded RSA encryption of x with SK.
         Public keys are all RSA, and encoded in ASN.1.
-        All integers are stored in network (big-endian) order.
+        All integers are stored in net (big-endian) order.
         All symmetric encryption uses AES in counter mode, except where
             otherwise noted.
 
@@ -200,11 +200,11 @@
 
        "current-time" contains the current system time in seconds since
        1970-01-01 00:00, e.g. 1188241957. "permanent-id-byte" is the first
-       (unsigned) byte of the permanent identifier (which is in network
+       (unsigned) byte of the permanent identifier (which is in net
        order), e.g. 143. Adding the product of "permanent-id-byte" and
        86400 (seconds per day), divided by 256, prevents "time-period" from
        changing for all descriptors at the same time of the day. The result
-       of the overall operation is a (network-ordered) 32-bit integer, e.g.
+       of the overall operation is a (net-ordered) 32-bit integer, e.g.
        13753 or 0x000035B9 with the example values given above.
 
      "version" version-number NL
@@ -442,7 +442,7 @@
    directory server's root, containing as its body Bob's service descriptor.
 
    Bob should upload a service descriptor for each version format that
-   is supported in the current Tor network.
+   is supported in the current Tor net.
 
    Upon receiving a descriptor, the directory server checks the signature,
    and discards the descriptor if the signature does not match the enclosed

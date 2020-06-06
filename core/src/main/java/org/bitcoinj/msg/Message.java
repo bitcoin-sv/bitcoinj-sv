@@ -23,7 +23,7 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.params.Network;
+import org.bitcoinj.params.Net;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,26 +68,25 @@ public abstract class Message {
 
     protected int protocolVersion;
 
-    protected Network network;
-    protected NetworkParameters params;
+    protected Net net;
 
     protected Message() {
         parsed = true;
         serializeMode = SerializeMode.DEFAULT;
     }
 
-    protected Message(NetworkParameters params) {
-        this.params = params;
+    protected Message(Net net) {
+        this.net = net;
         parsed = true;
         serializeMode = SerializeMode.DEFAULT;
     }
 
-    Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
-        this(params, payload, offset, protocolVersion, SerializeMode.DEFAULT, UNKNOWN_LENGTH);
+    Message(Net net, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
+        this(net, payload, offset, protocolVersion, SerializeMode.DEFAULT, UNKNOWN_LENGTH);
     }
 
     /**
-     * @param params          NetworkParameters object.
+     * @param net          NetworkParameters object.
      * @param payload         Bitcoin protocol formatted byte array containing message content.
      * @param offset          The location of the first payload byte within the array.
      * @param protocolVersion Bitcoin protocol version.
@@ -96,11 +95,11 @@ public abstract class Message {
      *                        as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    protected Message(NetworkParameters params, byte[] payload, int offset, int protocolVersion, SerializeMode serializeMode, int length) throws ProtocolException {
+    protected Message(Net net, byte[] payload, int offset, int protocolVersion, SerializeMode serializeMode, int length) throws ProtocolException {
         serializeMode = serializeMode == null ? SerializeMode.DEFAULT : serializeMode;
         this.serializeMode = serializeMode;
         this.protocolVersion = protocolVersion;
-        this.params = params;
+        this.net = net;
         this.payload = payload;
         this.cursor = this.offset = offset;
         this.setLength(length);
@@ -146,13 +145,13 @@ public abstract class Message {
                     Utils.HEX.encode(payloadBytes));
     }
 
-    protected Message(NetworkParameters params, byte[] payload, int offset) throws ProtocolException {
-        this(params, payload, offset, params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT),
+    protected Message(Net net, byte[] payload, int offset) throws ProtocolException {
+        this(net, payload, offset, net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT),
                 null, UNKNOWN_LENGTH);
     }
 
-    protected Message(NetworkParameters params, byte[] payload, int offset, SerializeMode serializeMode, int length) throws ProtocolException {
-        this(params, payload, offset, params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT),
+    protected Message(Net net, byte[] payload, int offset, SerializeMode serializeMode, int length) throws ProtocolException {
+        this(net, payload, offset, net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT),
                 serializeMode, length);
     }
 
@@ -469,15 +468,15 @@ public abstract class Message {
      * Network parameters this message was created with.
      */
     public NetworkParameters getParams() {
-        return params;
+        return net.params();
     }
 
     /**
      * The bitcoin network this message was created with.
      * @return
      */
-    public Network getNetwork() {
-        return network;
+    public Net getNet() {
+        return net;
     }
 
     /**
@@ -486,7 +485,7 @@ public abstract class Message {
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if (null != params) {
+        if (null != net.params()) {
             this.serializeMode = SerializeMode.DEFAULT;
         }
     }

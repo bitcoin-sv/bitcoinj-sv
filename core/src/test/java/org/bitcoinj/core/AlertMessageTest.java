@@ -18,8 +18,9 @@
 package org.bitcoinj.core;
 
 import org.bitcoinj.msg.p2p.AlertMessage;
-import org.bitcoinj.params.Network;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,16 +31,26 @@ import static org.junit.Assert.assertTrue;
 public class AlertMessageTest {
     private static final byte[] TEST_KEY_PRIV = HEX.decode("6421e091445ade4b24658e96aa60959ce800d8ea9e7bd8613335aa65ba8d840b");
     private NetworkParameters params;
+    private Net net;
+    private NetworkParameters originalParams;
+
 
     @Before
     public void setUp() throws Exception {
         final ECKey key = ECKey.fromPrivate(TEST_KEY_PRIV);
-        params = new UnitTestParams(Network.UNITTEST) {
+        net = Net.UNITTEST;
+        params = new UnitTestParams(net) {
             @Override
             public byte[] getAlertSigningKey() {
                 return key.getPubKey();
             }
         };
+        originalParams = Net.replaceForTesting(net, params);
+    }
+
+    @After
+    public void replaceOriginalParams() {
+        Net.replaceForTesting(net, originalParams);
     }
 
     @Test
@@ -47,7 +58,7 @@ public class AlertMessageTest {
         // A CAlert taken from Bitcoin Core.
         // TODO: This does not check the subVer or set fields. Support proper version matching.
         final byte[] payload = HEX.decode("5c010000004544eb4e000000004192ec4e00000000eb030000e9030000000000000048ee00000088130000002f43416c6572742073797374656d20746573743a2020202020202020207665722e302e352e3120617661696c61626c6500473045022100ec799908c008b272d5e5cd5a824abaaac53d210cc1fa517d8e22a701ecdb9e7002206fa1e7e7c251d5ba0d7c1fe428fc1870662f2927531d1cad8d4581b45bc4f8a7");
-        AlertMessage alert = new AlertMessage(params, payload);
+        AlertMessage alert = new AlertMessage(net, payload);
         assertEquals(1324041285, alert.getRelayUntil().getTime() / 1000);
         assertEquals(1324126785, alert.getExpiration().getTime() / 1000);
         assertEquals(1003, alert.getId());

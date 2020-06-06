@@ -5,7 +5,7 @@ This design doc describes the Context class that is new in 0.13.
 ## Goals
 
 - To centralise various bits of configuration that are presently duplicated throughout the API, such as directories for
-  storing files, the depth at which a tx is considered un-reorgable, the chosen network parameters and so on.
+  storing files, the depth at which a tx is considered un-reorgable, the chosen net parameters and so on.
 - To simplify bitcoinj programming in future.
 - To avoid the temptation to overload NetworkParameters with tweakable bits and pieces of misc configuration.
 - Unblock various bits of API evolution that are currently made difficult by the desire to avoid too many source code
@@ -13,8 +13,8 @@ This design doc describes the Context class that is new in 0.13.
 
 ## Background
 
-Since the very first version bitcoinj has had the concept of "network parameters": a class that wrapped various
-constants and magic numbers that distinguish the Bitcoin main network from the test network, and later, from settings
+Since the very first version bitcoinj has had the concept of "net parameters": a class that wrapped various
+constants and magic numbers that distinguish the Bitcoin main net from the test net, and later, from settings
 meant only for unit tests and local regression testing.
 
 However unlike many APIs, we have never had a more general notion of context and as the library has grown we have

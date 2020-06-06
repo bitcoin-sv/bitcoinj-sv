@@ -21,6 +21,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 /**
  * <p>Instances of this class are not safe for use by multiple threads.</p>
@@ -29,8 +30,8 @@ public class UnknownMessage extends Message {
 
     private String name;
 
-    public UnknownMessage(NetworkParameters params, String name, byte[] payloadBytes, int length) throws ProtocolException {
-        super(params, payloadBytes, 0, params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT), null, length);
+    public UnknownMessage(Net net, String name, byte[] payloadBytes, int length) throws ProtocolException {
+        super(net, payloadBytes, 0, net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT), null, length);
         this.name = name;
     }
 

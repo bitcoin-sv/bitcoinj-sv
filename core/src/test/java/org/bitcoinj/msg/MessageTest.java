@@ -20,6 +20,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
 import org.junit.Test;
 
@@ -28,15 +29,15 @@ public class MessageTest {
     // If readStr() is vulnerable this causes OutOfMemory
     @Test(expected = ProtocolException.class)
     public void readStrOfExtremeLength() throws Exception {
-        NetworkParameters params = UnitTestParams.get();
+        Net net = Net.UNITTEST;
         VarInt length = new VarInt(Integer.MAX_VALUE);
         byte[] payload = length.encode();
-        new VarStrMessage(params, payload);
+        new VarStrMessage(net, payload);
     }
 
     static class VarStrMessage extends Message {
-        public VarStrMessage(NetworkParameters params, byte[] payload) {
-            super(params, payload, 0);
+        public VarStrMessage(Net net, byte[] payload) {
+            super(net, payload, 0);
         }
 
         @Override
@@ -51,15 +52,15 @@ public class MessageTest {
     // If readBytes() is vulnerable this causes OutOfMemory
     @Test(expected = ProtocolException.class)
     public void readByteArrayOfExtremeLength() throws Exception {
-        NetworkParameters params = UnitTestParams.get();
+        Net net = Net.UNITTEST;
         VarInt length = new VarInt(Integer.MAX_VALUE);
         byte[] payload = length.encode();
-        new VarBytesMessage(params, payload);
+        new VarBytesMessage(net, payload);
     }
 
     static class VarBytesMessage extends Message {
-        public VarBytesMessage(NetworkParameters params, byte[] payload) {
-            super(params, payload, 0);
+        public VarBytesMessage(Net net, byte[] payload) {
+            super(net, payload, 0);
         }
 
         @Override

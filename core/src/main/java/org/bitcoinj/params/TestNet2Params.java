@@ -17,6 +17,7 @@
 package org.bitcoinj.params;
 
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.msg.protocol.Block;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -31,8 +32,8 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
     public static final int TESTNET_MAJORITY_REJECT_BLOCK_OUTDATED = 75;
     public static final int TESTNET_MAJORITY_ENFORCE_BLOCK_UPGRADE = 51;
 
-    public TestNet2Params(Network network) {
-        super(network);
+    public TestNet2Params(Net net) {
+        super(net);
         id = ID_TESTNET;
         packetMagic = 0xdab5bffaL;
         oldPacketMagic = 0xfabfb5daL;
@@ -44,13 +45,8 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
         targetTimespan = TARGET_TIMESPAN;
         maxTarget = Utils.decodeCompactBits(0x1d0fffffL);
         dumpedPrivateKeyHeader = 239;
-        genesisBlock.setTime(1296688602L);
-        genesisBlock.setDifficultyTarget(0x1d07fff8L);
-        genesisBlock.setNonce(384568319);
         spendableCoinbaseDepth = 100;
         subsidyDecreaseBlockCount = 210000;
-        String genesisHash = genesisBlock.getHashAsString();
-        checkState(genesisHash.equals("00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008"));
         dnsSeeds = null;
         addrSeeds = null;
         bip32HeaderPub = 0x043587CF;
@@ -63,8 +59,18 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
         daaUpdateHeight = 1188697;
     }
 
-    private static TestNet2Params instance = new TestNet2Params(Network.TESTNET2);
-    static {Network.register(instance.network, instance);}
+    @Override
+    protected void configureGenesis(Block genesisBlock) {
+        genesisBlock.setTime(1296688602L);
+        genesisBlock.setDifficultyTarget(0x1d07fff8L);
+        genesisBlock.setNonce(384568319);
+        String genesisHash = genesisBlock.getHashAsString();
+        checkState(genesisHash.equals("00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008"));
+    }
+
+    private static TestNet2Params instance = new TestNet2Params(Net.TESTNET2);
+    static {
+        Net.register(instance.net, instance);}
     public static synchronized TestNet2Params get() {
         return instance;
     }

@@ -220,7 +220,7 @@ public abstract class PaymentChannelServerState {
 
     // Create a payment transaction with valueToMe going back to us
     protected synchronized SendRequest makeUnsignedChannelContract(Coin valueToMe) {
-        Transaction tx = new Transaction(wallet.getParams());
+        Transaction tx = new Transaction(wallet.getNet());
         if (!getTotalValue().subtract(valueToMe).equals(Coin.ZERO)) {
             tx.addOutput(getTotalValue().subtract(valueToMe), getClientKey().toAddress(wallet.getParams()));
         }

@@ -22,6 +22,7 @@ import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,17 +47,17 @@ public class HeadersMessage extends Message {
 
     private List<Block> blockHeaders;
 
-    public HeadersMessage(NetworkParameters params, byte[] payload) throws ProtocolException {
-        super(params, payload, 0);
+    public HeadersMessage(Net net, byte[] payload) throws ProtocolException {
+        super(net, payload, 0);
     }
 
-    public HeadersMessage(NetworkParameters params, Block... headers) throws ProtocolException {
-        super(params);
+    public HeadersMessage(Net net, Block... headers) throws ProtocolException {
+        super(net);
         blockHeaders = Arrays.asList(headers);
     }
 
-    public HeadersMessage(NetworkParameters params, List<Block> headers) throws ProtocolException {
-        super(params);
+    public HeadersMessage(Net net, List<Block> headers) throws ProtocolException {
+        super(net);
         blockHeaders = headers;
     }
 
@@ -92,7 +93,7 @@ public class HeadersMessage extends Message {
 
         for (int i = 0; i < numHeaders; ++i) {
             //final Block newBlockHeader = serializeMode.makeBlock(payload, cursor, 81);
-            final Block newBlockHeader = new Block(params, payload, cursor, null, 81);
+            final Block newBlockHeader = new Block(net, payload, cursor, null, 81);
             if (newBlockHeader.hasTransactions()) {
                 throw new ProtocolException("Block header does not end with a null byte");
             }

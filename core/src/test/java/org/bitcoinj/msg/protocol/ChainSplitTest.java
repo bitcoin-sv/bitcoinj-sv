@@ -21,6 +21,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.msg.p2p.PeerAddress;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.testing.FakeTxBuilder;
@@ -51,6 +52,7 @@ import static org.junit.Assert.*;
 public class ChainSplitTest {
     private static final Logger log = LoggerFactory.getLogger(ChainSplitTest.class);
     private static final NetworkParameters PARAMS = UnitTestParams.get();
+    private static final Net NET = Net.UNITTEST;
     private Wallet wallet;
     private SPVBlockChain chain;
     private Address coinsTo;
@@ -526,7 +528,7 @@ public class ChainSplitTest {
         // This covers issue 468.
 
         // Receive some money to the wallet.
-        Transaction t1 = FakeTxBuilder.createFakeTx(PARAMS, COIN, coinsTo);
+        Transaction t1 = FakeTxBuilder.createFakeTx(NET, COIN, coinsTo);
         final Block b1 = FakeTxBuilder.makeSolvedTestBlock(PARAMS.getGenesisBlock(), t1);
         chain.add(b1);
 

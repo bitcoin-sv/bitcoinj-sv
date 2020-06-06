@@ -7,7 +7,7 @@
 Note: This document aims to specify Tor as implemented in 0.2.1.x.  Future
 versions of Tor may implement improved protocols, and compatibility is not
 guaranteed.  Compatibility notes are given for versions 0.1.1.15-rc and
-later; earlier versions are not compatible with the Tor network as of this
+later; earlier versions are not compatible with the Tor net as of this
 writing.
 
 This specification is not a design document; most design criteria
@@ -27,7 +27,7 @@ see tor-design.pdf.
    [A0 B1 C2] -- a three-byte sequence, containing the bytes with
    hexadecimal values A0, B1, and C2, in that order.
 
-   All numeric values are encoded in network (big-endian) order.
+   All numeric values are encoded in net (big-endian) order.
 
    H(m) -- a cryptographic hash of m.
 
@@ -114,9 +114,9 @@ see tor-design.pdf.
 
 1. System overview
 
-   Tor is a distributed overlay network designed to anonymize
+   Tor is a distributed overlay net designed to anonymize
    low-latency TCP-based applications such as web browsing, secure shell,
-   and instant messaging. Clients choose a path through the network and
+   and instant messaging. Clients choose a path through the net and
    build a ``circuit'', in which each node (or ``onion router'' or ``OR'')
    in the path knows its predecessor and successor, but no other nodes in
    the circuit.  Traffic flowing down the circuit is sent in fixed-size
@@ -491,7 +491,7 @@ see tor-design.pdf.
 
 5.3. Creating circuits
 
-   When creating a circuit through the network, the circuit creator
+   When creating a circuit through the net, the circuit creator
    (OP) performs the following steps:
 
       1. Choose an onion router as an exit node (R_N), such that the onion
@@ -545,7 +545,7 @@ see tor-design.pdf.
 
    (As an optimization, OR implementations may delay processing onions
    until a break in traffic allows time to do so without harming
-   network latency too greatly.)
+   net latency too greatly.)
 
 5.3.1. Canonical connections
 

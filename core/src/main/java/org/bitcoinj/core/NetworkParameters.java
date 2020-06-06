@@ -29,7 +29,6 @@ import org.bitcoinj.utils.MonetaryFormat;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,8 +68,8 @@ public abstract class NetworkParameters {
 
     // TODO: Seed nodes should be here as well.
 
-    protected Network network;
-    protected Block genesisBlock;
+    protected Net net;
+    private Block genesisBlock;
     protected BigInteger maxTarget;
     protected int port;
     protected long oldPacketMagic; //original BTC packet magic. Still used in native bitcoin block files
@@ -116,13 +115,37 @@ public abstract class NetworkParameters {
     protected transient MessageSerializer defaultSerializer = null;
     protected String cashAddrPrefix;
 
-    protected NetworkParameters(Network network) {
+    protected NetworkParameters(Net net) {
         alertSigningKey = SATOSHI_KEY;
-        genesisBlock = createGenesis(this);
-        this.network = network;
+        this.net = net;
     }
 
-    private static Block createGenesis(NetworkParameters n) {
+    /**
+     * <p>Genesis block for this chain.</p>
+     *
+     * <p>The first block in every chain is a well known constant shared between all Bitcoin implemenetations. For a
+     * block to be valid, it must be eventually possible to work backwards to the genesis block by following the
+     * prevBlockHash pointers in the block headers.</p>
+     *
+     * <p>The genesis blocks for both test and main networks contain the timestamp of when they were created,
+     * and a message in the coinbase transaction. It says, <i>"The Times 03/Jan/2009 Chancellor on brink of second
+     * bailout for banks"</i>.</p>
+     */
+    public Block getGenesisBlock() {
+        if (genesisBlock == null) {
+            synchronized (NetworkParameters.this) {
+                if (genesisBlock == null) {
+                    genesisBlock = createGenesis(net);
+                    configureGenesis(genesisBlock);
+                }
+            }
+        }
+        return genesisBlock;
+    }
+
+    protected abstract void configureGenesis(Block genesisBlock);
+
+    private static Block createGenesis(Net n) {
         Block genesisBlock = DefaultMsgAccessors.newBlock(n, Block.BLOCK_VERSION_GENESIS);
         Transaction t = new Transaction(n);
         try {
@@ -166,6 +189,10 @@ public abstract class NetworkParameters {
      */
     public static final Coin MAX_MONEY = COIN.multiply(MAX_COINS);
 
+
+    public Net getNet() {
+        return net;
+    }
 
     /**
      * A Java package style string acting as unique ID for these parameters
@@ -220,21 +247,6 @@ public abstract class NetworkParameters {
     /** Returns IP address of active peers. */
     public int[] getAddrSeeds() {
         return addrSeeds;
-    }
-
-    /**
-     * <p>Genesis block for this chain.</p>
-     *
-     * <p>The first block in every chain is a well known constant shared between all Bitcoin implemenetations. For a
-     * block to be valid, it must be eventually possible to work backwards to the genesis block by following the
-     * prevBlockHash pointers in the block headers.</p>
-     *
-     * <p>The genesis blocks for both test and main networks contain the timestamp of when they were created,
-     * and a message in the coinbase transaction. It says, <i>"The Times 03/Jan/2009 Chancellor on brink of second
-     * bailout for banks"</i>.</p>
-     */
-    public Block getGenesisBlock() {
-        return genesisBlock;
     }
 
     /** Default TCP port on which to connect to nodes. */

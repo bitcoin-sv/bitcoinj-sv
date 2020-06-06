@@ -19,6 +19,7 @@ package org.bitcoinj.msg.p2p;
 import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -87,17 +88,17 @@ public class VersionMessage extends Message {
     /** The value that is prepended to the subVer field of this application. */
     public static final String LIBRARY_SUBVER = "/bitcoinj.cash:" + BITCOINJ_VERSION + "/";
 
-    public VersionMessage(NetworkParameters params, byte[] payload) throws ProtocolException {
-        super(params, payload, 0);
+    public VersionMessage(Net net, byte[] payload) throws ProtocolException {
+        super(net, payload, 0);
     }
 
     // It doesn't really make sense to ever lazily parse a version message or to retain the backing bytes.
     // If you're receiving this on the wire you need to check the protocol version and it will never need to be sent
     // back down the wire.
     
-    public VersionMessage(NetworkParameters params, int newBestHeight) {
-        super(params);
-        clientVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT);
+    public VersionMessage(Net net, int newBestHeight) {
+        super(net);
+        clientVersion = net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT);
         localServices = 0;
         time = System.currentTimeMillis() / 1000;
         // Note that the Bitcoin Core doesn't do anything with these, and finding out your own external IP address
@@ -106,8 +107,8 @@ public class VersionMessage extends Message {
             // We hard-code the IPv4 localhost address here rather than use InetAddress.getLocalHost() because some
             // mobile phones have broken localhost DNS entries, also, this is faster.
             final byte[] localhost = { 127, 0, 0, 1 };
-            myAddr = new PeerAddress(InetAddress.getByAddress(localhost), params.getPort(), 0);
-            theirAddr = new PeerAddress(InetAddress.getByAddress(localhost), params.getPort(), 0);
+            myAddr = new PeerAddress(InetAddress.getByAddress(localhost), net.params().getPort(), 0);
+            theirAddr = new PeerAddress(InetAddress.getByAddress(localhost), net.params().getPort(), 0);
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);  // Cannot happen (illegal IP length).
         }
@@ -139,9 +140,9 @@ public class VersionMessage extends Message {
         clientVersion = (int) readUint32();
         localServices = readUint64().longValue();
         time = readUint64().longValue();
-        myAddr = new PeerAddress(params, payload, cursor, 0);
+        myAddr = new PeerAddress(net, payload, cursor, 0);
         cursor += myAddr.getMessageSize();
-        theirAddr = new PeerAddress(params, payload, cursor, 0);
+        theirAddr = new PeerAddress(net, payload, cursor, 0);
         cursor += theirAddr.getMessageSize();
         // uint64 localHostNonce  (random data)
         // We don't care about the localhost nonce. It's used to detect connecting back to yourself in cases where
@@ -244,7 +245,7 @@ public class VersionMessage extends Message {
     }
 
     public VersionMessage duplicate() {
-        VersionMessage v = new VersionMessage(params, (int) bestHeight);
+        VersionMessage v = new VersionMessage(net, (int) bestHeight);
         v.clientVersion = clientVersion;
         v.localServices = localServices;
         v.time = time;
@@ -295,7 +296,7 @@ public class VersionMessage extends Message {
      * Returns true if the clientVersion field is >= Pong.MIN_PROTOCOL_VERSION. If it is then ping() is usable.
      */
     public boolean isPingPongSupported() {
-        return clientVersion >= params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG);
+        return clientVersion >= net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG);
     }
 
     /**
@@ -303,7 +304,7 @@ public class VersionMessage extends Message {
      * is available and the memory pool of the remote peer will be queried when the downloadData property is true.
      */
     public boolean isBloomFilteringSupported() {
-        return clientVersion >= params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.BLOOM_FILTER);
+        return clientVersion >= net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.BLOOM_FILTER);
     }
 
     /** Returns true if the protocol version and service bits both indicate support for the getutxos message. */

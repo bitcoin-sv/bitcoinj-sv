@@ -25,6 +25,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.*;
@@ -133,8 +134,8 @@ public class Block extends Message {
     private List<Sha256Hash> txids = null;
 
     /** Special case constructor, used for the genesis node, cloneAsHeader and unit tests. */
-    Block(NetworkParameters params, long setVersion) {
-        super(params);
+    Block(Net net, long setVersion) {
+        super(net);
         // Set up a few basic things. We are not complete after this though.
         version = setVersion;
         difficultyTarget = 0x1d07fff8L;
@@ -149,27 +150,27 @@ public class Block extends Message {
      * @deprecated Use {@link BitcoinSerializer#makeBlock(byte[])} instead.
      */
     @Deprecated
-    public Block(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes, 0, null, payloadBytes.length);
+    public Block(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes, 0, null, payloadBytes.length);
     }
 
     /**
      * Construct a block object from the Bitcoin wire format.
-     * @param params NetworkParameters object.
+     * @param net Net enum.
      * @param payloadBytes the payload to extract the block from.
      * @param serializeMode the serializeMode to use for this message.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Block(NetworkParameters params, byte[] payloadBytes, SerializeMode serializeMode, int length)
+    public Block(Net net, byte[] payloadBytes, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payloadBytes, 0, serializeMode, length);
+        super(net, payloadBytes, 0, serializeMode, length);
     }
 
     /**
      * Construct a block object from the Bitcoin wire format.
-     * @param params NetworkParameters object.
+     * @param net Net enum.
      * @param payloadBytes the payload to extract the block from.
      * @param offset The location of the first payload byte within the array.
      * @param serializeMode the serializeMode to use for this message.
@@ -177,16 +178,16 @@ public class Block extends Message {
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Block(NetworkParameters params, byte[] payloadBytes, int offset, SerializeMode serializeMode, int length)
+    public Block(Net net, byte[] payloadBytes, int offset, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payloadBytes, offset, serializeMode, length);
+        super(net, payloadBytes, offset, serializeMode, length);
     }
 
     /**
      * Construct a block object from the Bitcoin wire format. Used in the case of a block
      * contained within another message (i.e. for AuxPoW header).
      *
-     * @param params NetworkParameters object.
+     * @param net Net enum.
      * @param payloadBytes Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
      * @param parent The message element which contains this block, maybe null for no parent.
@@ -195,15 +196,15 @@ public class Block extends Message {
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Block(NetworkParameters params, byte[] payloadBytes, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
+    public Block(Net net, byte[] payloadBytes, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
         // TODO: Keep the parent
-        super(params, payloadBytes, offset, serializeMode, length);
+        super(net, payloadBytes, offset, serializeMode, length);
     }
 
     /**
      * Construct a block initialized with all the given fields.
-     * @param params Which network the block is for.
+     * @param net Which network the block is for.
      * @param version This should usually be set to 1 or 2, depending on if the height is in the coinbase input.
      * @param prevBlockHash Reference to previous block in the chain or {@link Sha256Hash#ZERO_HASH} if genesis.
      * @param merkleRoot The root of the merkle tree formed by the transactions.
@@ -212,9 +213,9 @@ public class Block extends Message {
      * @param nonce Arbitrary number to make the block hash lower than the target.
      * @param transactions List of transactions including the coinbase.
      */
-    public Block(NetworkParameters params, long version, Sha256Hash prevBlockHash, Sha256Hash merkleRoot, long time,
+    public Block(Net net, long version, Sha256Hash prevBlockHash, Sha256Hash merkleRoot, long time,
                  long difficultyTarget, long nonce, List<Transaction> transactions) {
-        super(params);
+        super(net);
         this.version = version;
         this.prevBlockHash = prevBlockHash;
         this.merkleRoot = merkleRoot;
@@ -236,7 +237,7 @@ public class Block extends Message {
      * </p>
      */
     public Coin getBlockInflation(int height) {
-        return FIFTY_COINS.shiftRight(height / params.getSubsidyDecreaseBlockCount());
+        return FIFTY_COINS.shiftRight(height / net.params().getSubsidyDecreaseBlockCount());
     }
 
     protected void parseHeader() throws ProtocolException {
@@ -287,7 +288,7 @@ public class Block extends Message {
         CountDownLatch hashLatch = new CountDownLatch(numTransactions);
 
         for (int i = 0; i < numTransactions; i++) {
-            Transaction tx = new Transaction(params, payload, cursor, this, serializeMode, UNKNOWN_LENGTH);
+            Transaction tx = new Transaction(net, payload, cursor, this, serializeMode, UNKNOWN_LENGTH);
 
             transactions.add(tx);
             cursor += tx.getMessageSize();
@@ -668,12 +669,12 @@ public class Block extends Message {
     /** Returns a copy of the block, but without any transactions. */
     public Block cloneAsHeader() {
         maybeParseHeader();
-        Block block = new Block(params, BLOCK_VERSION_GENESIS);
+        Block block = new Block(net, BLOCK_VERSION_GENESIS);
         copyBitcoinHeaderTo(block);
         if (transactions != null && !transactions.isEmpty()) {
             Transaction ourCoinbase = transactions.get(0);
 
-            block.coinbase = new Transaction(params, ourCoinbase.unsafeBitcoinSerialize());
+            block.coinbase = new Transaction(net, ourCoinbase.unsafeBitcoinSerialize());
             block.coinbase.setHash(ourCoinbase.getHash());
 
             if (transactions.size() == 1) {
@@ -762,7 +763,7 @@ public class Block extends Message {
     public BigInteger getDifficultyTargetAsInteger() throws VerificationException {
         maybeParseHeader();
         BigInteger target = Utils.decodeCompactBits(difficultyTarget);
-        if (target.signum() <= 0 || target.compareTo(params.getMaxTarget()) > 0)
+        if (target.signum() <= 0 || target.compareTo(net.params().getMaxTarget()) > 0)
             throw new VerificationException("Difficulty target is bad: " + target.toString());
         return target;
     }
@@ -1149,7 +1150,7 @@ public class Block extends Message {
     void addCoinbaseTransaction(byte[] pubKeyTo, Coin value, final int height) {
         unCacheTransactions();
         transactions = new ArrayList<Transaction>();
-        Transaction coinbase = new Transaction(params);
+        Transaction coinbase = new Transaction(net);
         final ScriptBuilder inputBuilder = new ScriptBuilder();
 
         if (height >= Block.BLOCK_HEIGHT_GENESIS) {
@@ -1162,9 +1163,9 @@ public class Block extends Message {
         //
         // Here we will do things a bit differently so a new address isn't needed every time. We'll put a simple
         // counter in the scriptSig so every transaction has a different hash.
-        coinbase.addInput(new TransactionInput(params, coinbase,
+        coinbase.addInput(new TransactionInput(net, coinbase,
                 inputBuilder.build().getProgram()));
-        coinbase.addOutput(new TransactionOutput(params, coinbase, value,
+        coinbase.addOutput(new TransactionOutput(net, coinbase, value,
                 ScriptBuilder.createOutputScript(ECKey.fromPublicOnly(pubKeyTo)).getProgram()));
         transactions.add(coinbase);
         coinbase.setParent(this);
@@ -1195,18 +1196,18 @@ public class Block extends Message {
                           @Nullable TransactionOutPoint prevOut, final long time,
                           final byte[] pubKey, final Coin coinbaseValue,
                           final int height) {
-        Block b = new Block(params, version);
+        Block b = new Block(net, version);
         b.setDifficultyTarget(difficultyTarget);
         b.addCoinbaseTransaction(pubKey, coinbaseValue, height);
 
         if (to != null) {
             // Add a transaction paying 50 coins to the "to" address.
-            Transaction t = new Transaction(params);
-            t.addOutput(new TransactionOutput(params, t, FIFTY_COINS, to));
+            Transaction t = new Transaction(net);
+            t.addOutput(new TransactionOutput(net, t, FIFTY_COINS, to));
             // The input does not really need to be a valid signature, as long as it has the right general form.
             TransactionInput input;
             if (prevOut == null) {
-                input = new TransactionInput(params, t, Script.createInputScript(EMPTY_BYTES, EMPTY_BYTES));
+                input = new TransactionInput(net, t, Script.createInputScript(EMPTY_BYTES, EMPTY_BYTES));
                 // Importantly the outpoint hash cannot be zero as that's how we detect a coinbase transaction in isolation
                 // but it must be unique to avoid 'different' transactions looking the same.
                 byte[] counter = new byte[32];
@@ -1214,7 +1215,7 @@ public class Block extends Message {
                 counter[1] = (byte) (txCounter++ >> 8);
                 input.getOutpoint().setHash(Sha256Hash.wrap(counter));
             } else {
-                input = new TransactionInput(params, t, Script.createInputScript(EMPTY_BYTES, EMPTY_BYTES), prevOut);
+                input = new TransactionInput(net, t, Script.createInputScript(EMPTY_BYTES, EMPTY_BYTES), prevOut);
             }
             t.addInput(input);
             b.addTransaction(t);

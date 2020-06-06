@@ -24,6 +24,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.wallet.AllowUnconfirmedCoinSelector;
@@ -130,8 +131,8 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
      */
     @Override
     public synchronized void initiate(@Nullable KeyParameter userKey) throws ValueOutOfRangeException, InsufficientMoneyException {
-        final NetworkParameters params = wallet.getParams();
-        Transaction template = new Transaction(params);
+        final Net net = wallet.getNet();
+        Transaction template = new Transaction(net);
         // We always place the client key before the server key because, if either side wants some privacy, they can
         // use a fresh key for the the multisig contract and nowhere else
         List<ECKey> keys = Lists.newArrayList(myKey, serverKey);
@@ -155,7 +156,7 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
         // relies on the fact that since Bitcoin 0.8 time locked transactions are non-final. This will need to change
         // in future as it breaks the intended design of timelocking/tx replacement, but for now it simplifies this
         // specific protocol somewhat.
-        refundTx = new Transaction(params);
+        refundTx = new Transaction(net);
         // don't disable lock time. the sequence will be included in the server's signature and thus won't be changeable.
         // by using this sequence value, we avoid extra full replace-by-fee and relative lock time processing.
         refundTx.addInput(multisigOutput).setSequenceNumber(TransactionInput.NO_SEQUENCE - 1L);
@@ -165,10 +166,10 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
             final Coin valueAfterFee = totalValue.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
             if (Coin.MIN_NONDUST_OUTPUT.compareTo(valueAfterFee) > 0)
                 throw new ValueOutOfRangeException("totalValue too small to use");
-            refundTx.addOutput(valueAfterFee, myKey.toAddress(params));
+            refundTx.addOutput(valueAfterFee, myKey.toAddress(net.params()));
             refundFees = multisigFee.add(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
         } else {
-            refundTx.addOutput(totalValue, myKey.toAddress(params));
+            refundTx.addOutput(totalValue, myKey.toAddress(net.params()));
             refundFees = multisigFee;
         }
         refundTx.getConfidence().setSource(TransactionConfidence.Source.SELF);

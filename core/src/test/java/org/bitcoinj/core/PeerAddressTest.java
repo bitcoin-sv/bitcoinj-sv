@@ -19,6 +19,7 @@ package org.bitcoinj.core;
 
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Net;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -32,7 +33,7 @@ public class PeerAddressTest
     public void testPeerAddressRoundtrip() throws Exception {
         // copied verbatim from https://en.bitcoin.it/wiki/Protocol_specification#Network_address
         String fromSpec = "010000000000000000000000000000000000ffff0a000001208d";
-        PeerAddress pa = new PeerAddress(MainNetParams.get(),
+        PeerAddress pa = new PeerAddress(Net.MAINNET,
                 HEX.decode(fromSpec), 0, 0);
         String reserialized = Utils.HEX.encode(pa.unsafeBitcoinSerialize());
         assertEquals(reserialized,fromSpec );

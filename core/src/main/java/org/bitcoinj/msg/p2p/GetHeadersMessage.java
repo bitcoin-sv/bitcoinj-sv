@@ -20,6 +20,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.params.Net;
 
 import java.util.List;
 
@@ -32,12 +33,12 @@ import java.util.List;
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
 public class GetHeadersMessage extends GetBlocksMessage {
-    public GetHeadersMessage(NetworkParameters params, List<Sha256Hash> locator, Sha256Hash stopHash) {
-        super(params, locator, stopHash);
+    public GetHeadersMessage(Net net, List<Sha256Hash> locator, Sha256Hash stopHash) {
+        super(net, locator, stopHash);
     }
 
-    public GetHeadersMessage(NetworkParameters params, byte[] payload) throws ProtocolException {
-        super(params, payload);
+    public GetHeadersMessage(Net net, byte[] payload) throws ProtocolException {
+        super(net, payload);
     }
 
     @Override

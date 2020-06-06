@@ -24,6 +24,7 @@ import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,14 +55,14 @@ public class GetUTXOsMessage extends Message {
     private boolean includeMempool;
     private ImmutableList<TransactionOutPoint> outPoints;
 
-    public GetUTXOsMessage(NetworkParameters params, List<TransactionOutPoint> outPoints, boolean includeMempool) {
-        super(params);
+    public GetUTXOsMessage(Net net, List<TransactionOutPoint> outPoints, boolean includeMempool) {
+        super(net);
         this.outPoints = ImmutableList.copyOf(outPoints);
         this.includeMempool = includeMempool;
     }
 
-    public GetUTXOsMessage(NetworkParameters params, byte[] payloadBytes) {
-        super(params, payloadBytes, 0);
+    public GetUTXOsMessage(Net net, byte[] payloadBytes) {
+        super(net, payloadBytes, 0);
     }
 
     @Override
@@ -70,7 +71,7 @@ public class GetUTXOsMessage extends Message {
         long numOutpoints = readVarInt();
         ImmutableList.Builder<TransactionOutPoint> list = ImmutableList.builder();
         for (int i = 0; i < numOutpoints; i++) {
-            TransactionOutPoint outPoint = new TransactionOutPoint(params, payload, cursor);
+            TransactionOutPoint outPoint = new TransactionOutPoint(net, payload, cursor);
             list.add(outPoint);
             cursor += outPoint.getMessageSize();
         }

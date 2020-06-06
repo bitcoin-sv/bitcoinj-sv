@@ -72,14 +72,14 @@ Usage: wallet-tool --flags action-name
                        Options:
                           --output=pubkey:value sets the amount to lock and the recipient
                           --refund-to=pubkey sets "our" public key
-                          --fee-per-kb=value sets the network fee
+                          --fee-per-kb=value sets the net fee
                           --locktime=YYYY/MM/DD sets the expiry time for the channel
   settle-cltvpaymentchannel
                        Creates and broadcasts a transaction settling a previous micropayment channel.
                        This tool, for testing, requires the presence of both private keys.
                        Options:
                           --output=pubkey:value sets the destination for the money
-                          --fee-per-kb=value sets the network fee
+                          --fee-per-kb=value sets the net fee
                           --txhash=hash sets the transaction to spend
   refund-cltvpaymentchannel
                        Creates and broadcasts a transaction refunding a previous micropayment channel.
@@ -87,12 +87,12 @@ Usage: wallet-tool --flags action-name
                        the created transaction won't be accepted into the mempool until that point.
                        Options:
                           --output=pubkey:value sets the destination for the money
-                          --fee-per-kb=value sets the network fee
+                          --fee-per-kb=value sets the net fee
                           --txhash=hash sets the transaction to spend
 
 >>> GENERAL OPTIONS
   --debuglog           Enables logging from the core library.
-  --net=XXX            Which network to connect to, defaults to MAIN, can also be TEST or REGTEST.
+  --net=XXX            Which net to connect to, defaults to MAIN, can also be TEST or REGTEST.
   --mode=FULL/SPV      Whether to do full verification of the chain or just light mode.
   --wallet=<file>      Specifies what wallet file to load and save.
   --chain=<file>       Specifies the name of the file that stores the block chain.

@@ -22,6 +22,7 @@ import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -77,13 +78,13 @@ public class RejectMessage extends Message {
     private RejectCode code;
     private Sha256Hash messageHash;
 
-    public RejectMessage(NetworkParameters params, byte[] payload) throws ProtocolException {
-        super(params, payload, 0);
+    public RejectMessage(Net net, byte[] payload) throws ProtocolException {
+        super(net, payload, 0);
     }
 
     /** Constructs a reject message that fingers the object with the given hash as rejected for the given reason. */
-    public RejectMessage(NetworkParameters params, RejectCode code, Sha256Hash hash, String message, String reason) throws ProtocolException {
-        super(params);
+    public RejectMessage(Net net, RejectCode code, Sha256Hash hash, String message, String reason) throws ProtocolException {
+        super(net);
         this.code = code;
         this.messageHash = hash;
         this.message = message;

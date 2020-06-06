@@ -671,7 +671,7 @@ public class ChannelConnectionTest extends TestWithWallet {
                 .setType(MessageType.INITIATE).build());
         if (useRefunds()) {
             final Protos.TwoWayChannelMessage provideRefund = pair.clientRecorder.checkNextMsg(MessageType.PROVIDE_REFUND);
-            Transaction refund = new Transaction(PARAMS, provideRefund.getProvideRefund().getTx().toByteArray());
+            Transaction refund = new Transaction(NET, provideRefund.getProvideRefund().getTx().toByteArray());
             assertEquals(myValue, refund.getOutput(0).getValue());
         } else {
             assertEquals(2, client.state().getMajorVersion());
@@ -850,7 +850,7 @@ public class ChannelConnectionTest extends TestWithWallet {
             Transaction settlement1 = broadcasts.take();
             // Server sends back the settle TX it just broadcast.
             final Protos.TwoWayChannelMessage closeMsg = pair.serverRecorder.checkNextMsg(MessageType.CLOSE);
-            final Transaction settlement2 = new Transaction(PARAMS, closeMsg.getSettlement().getTx().toByteArray());
+            final Transaction settlement2 = new Transaction(NET, closeMsg.getSettlement().getTx().toByteArray());
             assertEquals(settlement1, settlement2);
             client.receiveMessage(closeMsg);
             assertNotNull(wallet.getTransaction(settlement2.getHash()));   // Close TX entered the wallet.

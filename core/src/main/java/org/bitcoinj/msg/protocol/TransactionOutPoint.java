@@ -20,8 +20,8 @@ import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 import org.bitcoinj.wallet.*;
 
@@ -50,8 +50,8 @@ public class TransactionOutPoint extends ChildMessage {
     // The connected output.
     private TransactionOutput connectedOutput;
 
-    public TransactionOutPoint(NetworkParameters params, long index, @Nullable Transaction fromTx) {
-        super(params);
+    public TransactionOutPoint(Net net, long index, @Nullable Transaction fromTx) {
+        super(net);
         this.index = index;
         if (fromTx != null) {
             this.hash = fromTx.getHash();
@@ -63,15 +63,15 @@ public class TransactionOutPoint extends ChildMessage {
         setLength(MESSAGE_LENGTH);
     }
 
-    public TransactionOutPoint(NetworkParameters params, long index, Sha256Hash hash) {
-        super(params);
+    public TransactionOutPoint(Net net, long index, Sha256Hash hash) {
+        super(net);
         this.index = index;
         this.hash = hash;
         setLength(MESSAGE_LENGTH);
     }
 
-    public TransactionOutPoint(NetworkParameters params, TransactionOutput connectedOutput) {
-        this(params, connectedOutput.getIndex(), connectedOutput.getParentTransactionHash());
+    public TransactionOutPoint(Net net, TransactionOutput connectedOutput) {
+        this(net, connectedOutput.getIndex(), connectedOutput.getParentTransactionHash());
         this.connectedOutput = connectedOutput;
     }
 
@@ -79,19 +79,19 @@ public class TransactionOutPoint extends ChildMessage {
     /**
      * Deserializes the message. This is usually part of a transaction message.
      */
-    public TransactionOutPoint(NetworkParameters params, byte[] payload, int offset) throws ProtocolException {
-        super(params, payload, offset);
+    public TransactionOutPoint(Net net, byte[] payload, int offset) throws ProtocolException {
+        super(net, payload, offset);
     }
 
     /**
      * Deserializes the message. This is usually part of a transaction message.
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param offset The location of the first payload byte within the array.
      * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public TransactionOutPoint(NetworkParameters params, byte[] payload, int offset, Message parent, SerializeMode serializeMode) throws ProtocolException {
-        super(params, payload, offset, parent, serializeMode, MESSAGE_LENGTH);
+    public TransactionOutPoint(Net net, byte[] payload, int offset, Message parent, SerializeMode serializeMode) throws ProtocolException {
+        super(net, payload, offset, parent, serializeMode, MESSAGE_LENGTH);
     }
 
     @Override

@@ -25,6 +25,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.wallet.AllowUnconfirmedCoinSelector;
@@ -105,8 +106,8 @@ public class PaymentChannelV2ClientState extends PaymentChannelClientState {
 
     @Override
     public synchronized void initiate(@Nullable KeyParameter userKey) throws ValueOutOfRangeException, InsufficientMoneyException {
-        final NetworkParameters params = wallet.getParams();
-        Transaction template = new Transaction(params);
+        final Net net = wallet.getNet();
+        Transaction template = new Transaction(net);
         // There is also probably a change output, but we don't bother shuffling them as it's obvious from the
         // format which one is the change. If we start obfuscating the change output better in future this may
         // be worth revisiting.
@@ -129,7 +130,7 @@ public class PaymentChannelV2ClientState extends PaymentChannelClientState {
         // by locking up peoples money (perhaps as a precursor to a ransom attempt). We time lock it because the
         // CheckLockTimeVerify opcode requires a lock time to be specified and the input to have a non-final sequence
         // number (so that the lock time is not disabled).
-        refundTx = new Transaction(params);
+        refundTx = new Transaction(net);
         // by using this sequence value, we avoid extra full replace-by-fee and relative lock time processing.
         refundTx.addInput(contract.getOutput(0)).setSequenceNumber(TransactionInput.NO_SEQUENCE - 1L);
         refundTx.setLockTime(expiryTime);
@@ -138,10 +139,10 @@ public class PaymentChannelV2ClientState extends PaymentChannelClientState {
             final Coin valueAfterFee = totalValue.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
             if (Coin.MIN_NONDUST_OUTPUT.compareTo(valueAfterFee) > 0)
                 throw new ValueOutOfRangeException("totalValue too small to use");
-            refundTx.addOutput(valueAfterFee, myKey.toAddress(params));
+            refundTx.addOutput(valueAfterFee, myKey.toAddress(net.params()));
             refundFees = multisigFee.add(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
         } else {
-            refundTx.addOutput(totalValue, myKey.toAddress(params));
+            refundTx.addOutput(totalValue, myKey.toAddress(net.params()));
             refundFees = multisigFee;
         }
 

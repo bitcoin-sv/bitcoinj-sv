@@ -21,8 +21,8 @@ import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,17 +43,17 @@ public abstract class ListMessage extends Message {
 
     public static final long MAX_INVENTORY_ITEMS = 50000;
 
-    public ListMessage(NetworkParameters params, byte[] bytes) throws ProtocolException {
-        super(params, bytes, 0);
+    public ListMessage(Net net, byte[] bytes) throws ProtocolException {
+        super(net, bytes, 0);
     }
 
-    public ListMessage(NetworkParameters params, byte[] payload, SerializeMode serializeMode, int length)
+    public ListMessage(Net net, byte[] payload, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, 0, serializeMode, length);
+        super(net, payload, 0, serializeMode, length);
     }
 
-    public ListMessage(NetworkParameters params) {
-        super(params);
+    public ListMessage(Net net) {
+        super(net);
         items = new ArrayList<InventoryItem>();
         setLength(1); //length of 0 varint;
     }

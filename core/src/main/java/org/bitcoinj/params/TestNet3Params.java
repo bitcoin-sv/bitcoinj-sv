@@ -18,6 +18,7 @@
 package org.bitcoinj.params;
 
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.msg.protocol.Block;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -26,8 +27,8 @@ import static com.google.common.base.Preconditions.checkState;
  * and testing of applications and new Bitcoin versions.
  */
 public class TestNet3Params extends AbstractBitcoinNetParams {
-    public TestNet3Params(Network network) {
-        super(network);
+    public TestNet3Params(Net net) {
+        super(net);
         id = ID_TESTNET;
         // Genesis hash is 000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943
         packetMagic = 0xf4e5f3f4L;
@@ -40,13 +41,8 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
         p2shHeader = 196;
         acceptableAddressCodes = new int[] { addressHeader, p2shHeader };
         dumpedPrivateKeyHeader = 239;
-        genesisBlock.setTime(1296688602L);
-        genesisBlock.setDifficultyTarget(0x1d00ffffL);
-        genesisBlock.setNonce(414098458);
         spendableCoinbaseDepth = 100;
         subsidyDecreaseBlockCount = 210000;
-        String genesisHash = genesisBlock.getHashAsString();
-        checkState(genesisHash.equals("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
         alertSigningKey = Utils.HEX.decode("04302390343f91cc401d56d68b123028bf52e5fca1939df127f63c6467cdf9c8e2c14b61104cf817d0b780da337893ecc4aaff1309e536162dabbdb45200ca2b0a");
 
         dnsSeeds = new String[] {
@@ -69,8 +65,18 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
         daaUpdateHeight = 1188697;
     }
 
-    private static TestNet3Params instance = new TestNet3Params(Network.TESTNET3);
-    static {Network.register(instance.network, instance);}
+    @Override
+    protected void configureGenesis(Block genesisBlock) {
+        genesisBlock.setTime(1296688602L);
+        genesisBlock.setDifficultyTarget(0x1d00ffffL);
+        genesisBlock.setNonce(414098458);
+        String genesisHash = genesisBlock.getHashAsString();
+        checkState(genesisHash.equals("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
+    }
+
+    private static TestNet3Params instance = new TestNet3Params(Net.TESTNET3);
+    static {
+        Net.register(instance.net, instance);}
     public static synchronized TestNet3Params get() {
         return instance;
     }

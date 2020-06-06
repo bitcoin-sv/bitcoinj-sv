@@ -34,6 +34,7 @@ import static org.junit.Assert.*;
 
 public class DefaultCoinSelectorTest extends TestWithWallet {
     private static final NetworkParameters PARAMS = UnitTestParams.get();
+    private static final Net NET = Net.UNITTEST;
 
     @Before
     @Override
@@ -51,7 +52,7 @@ public class DefaultCoinSelectorTest extends TestWithWallet {
     @Test
     public void selectable() throws Exception {
         Transaction t;
-        t = new Transaction(PARAMS);
+        t = new Transaction(NET);
         t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.PENDING);
         assertFalse(DefaultCoinSelector.isSelectable(t));
         t.getConfidence().setSource(TransactionConfidence.Source.SELF);
@@ -60,10 +61,10 @@ public class DefaultCoinSelectorTest extends TestWithWallet {
         assertFalse(DefaultCoinSelector.isSelectable(t));
         t.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("5.6.7.8")));
         assertTrue(DefaultCoinSelector.isSelectable(t));
-        t = new Transaction(PARAMS);
+        t = new Transaction(NET);
         t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.BUILDING);
         assertTrue(DefaultCoinSelector.isSelectable(t));
-        t = new Transaction(RegTestParams.get());
+        t = new Transaction(Net.REGTEST);
         t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.PENDING);
         t.getConfidence().setSource(TransactionConfidence.Source.SELF);
         assertTrue(DefaultCoinSelector.isSelectable(t));
@@ -115,12 +116,12 @@ public class DefaultCoinSelectorTest extends TestWithWallet {
     @Test
     public void identicalInputs() throws Exception {
         // Add four outputs to a transaction with same value and destination. Select them all.
-        Transaction t = new Transaction(PARAMS);
+        Transaction t = new Transaction(NET);
         java.util.List<TransactionOutput> outputs = Arrays.asList(
-            new TransactionOutput(PARAMS, t, Coin.valueOf(30302787), myAddress),
-            new TransactionOutput(PARAMS, t, Coin.valueOf(30302787), myAddress),
-            new TransactionOutput(PARAMS, t, Coin.valueOf(30302787), myAddress),
-            new TransactionOutput(PARAMS, t, Coin.valueOf(30302787), myAddress)
+            new TransactionOutput(NET, t, Coin.valueOf(30302787), myAddress),
+            new TransactionOutput(NET, t, Coin.valueOf(30302787), myAddress),
+            new TransactionOutput(NET, t, Coin.valueOf(30302787), myAddress),
+            new TransactionOutput(NET, t, Coin.valueOf(30302787), myAddress)
         );
         t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.BUILDING);
 

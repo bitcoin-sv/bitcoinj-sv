@@ -17,8 +17,8 @@
 package org.bitcoinj.msg.p2p;
 
 import org.bitcoinj.core.Address;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.msg.EmptyMessage;
+import org.bitcoinj.params.Net;
 
 /**
  * <p>Represents the "getaddr" P2P protocol message, which requests network {@link AddressMessage}s from a peer. Not to
@@ -28,7 +28,7 @@ import org.bitcoinj.msg.EmptyMessage;
  */
 public class GetAddrMessage extends EmptyMessage {
 
-    public GetAddrMessage(NetworkParameters params) {
-        super(params);
+    public GetAddrMessage(Net net) {
+        super(net);
     }
 }

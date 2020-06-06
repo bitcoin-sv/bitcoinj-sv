@@ -16,10 +16,10 @@
 
 package org.bitcoinj.msg.p2p;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,8 +30,8 @@ import java.io.OutputStream;
 public class Pong extends Message {
     private long nonce;
 
-    public Pong(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes, 0);
+    public Pong(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes, 0);
     }
     
     /**

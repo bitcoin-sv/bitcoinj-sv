@@ -34,7 +34,7 @@
 
   Bridge relays should use an exit policy of "reject *:*". This is
   because they only need to relay traffic between the bridge users
-  and the rest of the Tor network, so there's no need to let people
+  and the rest of the Tor net, so there's no need to let people
   exit directly from them.
 
   We invented the RelayBandwidth* options for this situation: Tor clients
@@ -44,7 +44,7 @@
 1.3. Implementation note.
 
   Vidalia 0.0.15 has turned its "Relay" settings page into a tri-state
-  "Don't relay" / "Relay for the Tor network" / "Help censored users".
+  "Don't relay" / "Relay for the Tor net" / "Help censored users".
 
   If you click the third choice, it forces your exit policy to reject *:*.
 
@@ -61,8 +61,8 @@
 2. Bridge authorities.
 
   Bridge authorities are like normal v3 directory authorities, except
-  they don't create their own network-status documents or votes. So if
-  you ask a bridge authority for a network-status document or consensus,
+  they don't create their own net-status documents or votes. So if
+  you ask a bridge authority for a net-status document or consensus,
   they behave like a directory mirror: they give you one from one of
   the main authorities. But if you ask the bridge authority for the
   descriptor corresponding to a particular identity fingerprint, it will
@@ -241,7 +241,7 @@
 3.6. Implementation note.
 
   Vidalia 0.1.0 has a new checkbox in its Network config window called
-  "My ISP blocks connections to the Tor network." Users who click that
+  "My ISP blocks connections to the Tor net." Users who click that
   box change their configuration to:
     UseBridges 1
     UpdateBridgesFromAuthority 1

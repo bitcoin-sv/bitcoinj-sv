@@ -37,6 +37,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.net.*;
 import org.bitcoinj.net.discovery.*;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.utils.Threading;
@@ -99,6 +100,7 @@ public class PeerGroup implements TransactionBroadcaster {
     protected final ReentrantLock lock = Threading.lock("peergroup");
 
     protected final NetworkParameters params;
+    protected final Net net;
     @Nullable protected final AbstractBlockChain chain;
 
     // This executor is used to queue up jobs: it's used when we don't want to use locks for mutual exclusion,
@@ -342,6 +344,7 @@ public class PeerGroup implements TransactionBroadcaster {
     private PeerGroup(Context context, @Nullable AbstractBlockChain chain, ClientConnectionManager connectionManager, @Nullable TorClient torClient) {
         checkNotNull(context);
         this.params = context.getParams();
+        this.net = params.getNet();
         this.chain = chain;
         fastCatchupTimeSecs = params.getGenesisBlock().getTimeSeconds();
         wallets = new CopyOnWriteArrayList<Wallet>();
@@ -356,7 +359,7 @@ public class PeerGroup implements TransactionBroadcaster {
         maxConnections = 0;
 
         int height = chain == null ? 0 : chain.getBestChainHeight();
-        versionMessage = new VersionMessage(params, height);
+        versionMessage = new VersionMessage(net, height);
         // We never request that the remote node wait for a bloom filter yet, as we have no wallets
         versionMessage.relayTxesBeforeFilter = true;
 
@@ -620,7 +623,7 @@ public class PeerGroup implements TransactionBroadcaster {
     public void setUserAgent(String name, String version, @Nullable String comments) {
         //TODO Check that height is needed here (it wasnt, but it should be, no?)
         int height = chain == null ? 0 : chain.getBestChainHeight();
-        VersionMessage ver = new VersionMessage(params, height);
+        VersionMessage ver = new VersionMessage(net, height);
         ver.relayTxesBeforeFilter = false;
         updateVersionMessageRelayTxesBeforeFilter(ver);
         ver.appendToSubVer(name, version, comments);

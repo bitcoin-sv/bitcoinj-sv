@@ -58,6 +58,7 @@ import org.bitcoinj.core.VarInt;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.crypto.*;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 import org.bitcoinj.signers.*;
 import org.bitcoinj.utils.*;
@@ -185,6 +186,7 @@ public class Wallet extends BaseTaggableObject
 
     protected final Context context;
     protected final NetworkParameters params;
+    protected final Net net;
 
     @Nullable private Sha256Hash lastBlockSeenHash;
     private int lastBlockSeenHeight;
@@ -309,6 +311,7 @@ public class Wallet extends BaseTaggableObject
     private Wallet(Context context, KeyChainGroup keyChainGroup) {
         this.context = context;
         this.params = context.getParams();
+        this.net = params.getNet();
         this.keyChainGroup = checkNotNull(keyChainGroup);
         if (params.getId().equals(NetworkParameters.ID_UNITTESTNET))
             this.keyChainGroup.setLookaheadSize(5);  // Cut down excess computation for unit tests.
@@ -1489,6 +1492,10 @@ public class Wallet extends BaseTaggableObject
     /** Returns the parameters this wallet was created with. */
     public NetworkParameters getParams() {
         return params;
+    }
+
+    public Net getNet() {
+        return net;
     }
 
     /** Returns the API context that this wallet was created with. */
@@ -4199,7 +4206,7 @@ public class Wallet extends BaseTaggableObject
                 int depth = chainHeight - output.getHeight() + 1; // the current depth of the output (1 = same as head).
                 // Do not try and spend coinbases that were mined too recently, the protocol forbids it.
                 if (!excludeImmatureCoinbases || !coinbase || depth >= params.getSpendableCoinbaseDepth()) {
-                    candidates.add(new FreeStandingTransactionOutput(params, output, chainHeight));
+                    candidates.add(new FreeStandingTransactionOutput(net, output, chainHeight));
                 }
             }
         } catch (UTXOProviderException e) {
@@ -4232,7 +4239,7 @@ public class Wallet extends BaseTaggableObject
      */
     protected List<UTXO> getStoredOutputsFromUTXOProvider() throws UTXOProviderException {
         UTXOProvider utxoProvider = checkNotNull(vUTXOProvider, "No UTXO provider has been set");
-        List<UTXO> candidates = new ArrayList<UTXO>();
+        List<UTXO> candidates = new ArrayList<>();
         List<ECKey> keys = getImportedKeys();
         keys.addAll(getActiveKeyChain().getLeafKeys());
         List<Address> addresses = new ArrayList<Address>();
@@ -4325,11 +4332,11 @@ public class Wallet extends BaseTaggableObject
 
         /**
          * Construct a free standing Transaction Output.
-         * @param params The network parameters.
+         * @param net The network parameters.
          * @param output The stored output (free standing).
          */
-        public FreeStandingTransactionOutput(NetworkParameters params, UTXO output, int chainHeight) {
-            super(params, null, output.getValue(), output.getScript().getProgram());
+        public FreeStandingTransactionOutput(Net net, UTXO output, int chainHeight) {
+            super(net, null, output.getValue(), output.getScript().getProgram());
             this.output = output;
             this.chainHeight = chainHeight;
         }
@@ -4896,7 +4903,7 @@ public class Wallet extends BaseTaggableObject
                 Address changeAddress = req.changeAddress;
                 if (changeAddress == null)
                     changeAddress = currentChangeAddress();
-                changeOutput = new TransactionOutput(params, req.tx, change, changeAddress);
+                changeOutput = new TransactionOutput(net, req.tx, change, changeAddress);
                 // If the change output would result in this transaction being rejected as dust, just drop the change and make it a fee
                 if (req.ensureMinRequiredFee && changeOutput.isDust()) {
                     // This solution definitely fits in category 3
@@ -5253,7 +5260,7 @@ public class Wallet extends BaseTaggableObject
             CoinSelection toMove = selector.select(Coin.ZERO, calculateAllSpendCandidates());
             if (toMove.valueGathered.equals(Coin.ZERO)) return null;  // Nothing to do.
             maybeUpgradeToHD(aesKey);
-            Transaction rekeyTx = new Transaction(params);
+            Transaction rekeyTx = new Transaction(net);
             for (TransactionOutput output : toMove.gathered) {
                 rekeyTx.addInput(output);
             }

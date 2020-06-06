@@ -20,8 +20,8 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.params.Net;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -38,26 +38,26 @@ public class InventoryMessage extends ListMessage {
     /** A hard coded constant in the protocol. */
     public static final int MAX_INV_SIZE = 50000;
 
-    public InventoryMessage(NetworkParameters params, byte[] bytes) throws ProtocolException {
-        super(params, bytes);
+    public InventoryMessage(Net net, byte[] bytes) throws ProtocolException {
+        super(net, bytes);
     }
 
     /**
      * Deserializes an 'inv' message.
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param serializeMode the serializeMode to use for this message.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public InventoryMessage(NetworkParameters params, byte[] payload, SerializeMode serializeMode, int length)
+    public InventoryMessage(Net net, byte[] payload, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, serializeMode, length);
+        super(net, payload, serializeMode, length);
     }
 
-    public InventoryMessage(NetworkParameters params) {
-        super(params);
+    public InventoryMessage(Net net) {
+        super(net);
     }
 
     public void addBlock(Block block) {
@@ -71,7 +71,7 @@ public class InventoryMessage extends ListMessage {
     /** Creates a new inv message for the given transactions. */
     public static InventoryMessage with(Transaction... txns) {
         checkArgument(txns.length > 0);
-        InventoryMessage result = new InventoryMessage(txns[0].getParams());
+        InventoryMessage result = new InventoryMessage(txns[0].getNet());
         for (Transaction tx : txns)
             result.addTransaction(tx);
         return result;

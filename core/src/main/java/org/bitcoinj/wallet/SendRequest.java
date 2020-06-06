@@ -157,7 +157,7 @@ public class SendRequest {
         SendRequest req = new SendRequest();
         final NetworkParameters parameters = destination.getParameters();
         checkNotNull(parameters, "Address is for an unknown network");
-        req.tx = new Transaction(parameters);
+        req.tx = new Transaction(parameters.getNet());
         req.tx.addOutput(value, destination);
         return req;
     }
@@ -172,7 +172,7 @@ public class SendRequest {
      */
     public static SendRequest to(NetworkParameters params, ECKey destination, Coin value) {
         SendRequest req = new SendRequest();
-        req.tx = new Transaction(params);
+        req.tx = new Transaction(params.getNet());
         req.tx.addOutput(value, destination);
         return req;
     }
@@ -188,7 +188,7 @@ public class SendRequest {
         SendRequest req = new SendRequest();
         final NetworkParameters parameters = destination.getParameters();
         checkNotNull(parameters, "Address is for an unknown network");
-        req.tx = new Transaction(parameters);
+        req.tx = new Transaction(parameters.getNet());
         req.tx.addOutput(Coin.ZERO, destination);
         req.emptyWallet = true;
         return req;
@@ -211,7 +211,7 @@ public class SendRequest {
         // TODO spend another confirmed output of own wallet if needed
         checkNotNull(outputToSpend, "Can't find adequately sized output that spends to us");
 
-        final Transaction tx = new Transaction(parentTransaction.getParams());
+        final Transaction tx = new Transaction(parentTransaction.getNet());
         tx.addInput(outputToSpend);
         tx.addOutput(outputToSpend.getValue().subtract(feeRaise), wallet.freshAddress(KeyPurpose.CHANGE));
         tx.setPurpose(Transaction.Purpose.RAISE_FEE);
@@ -234,7 +234,7 @@ public class SendRequest {
     public static SendRequest toCLTVPaymentChannel(NetworkParameters params, BigInteger time, ECKey from, ECKey to, Coin value) {
         SendRequest req = new SendRequest();
         Script output = ScriptBuilder.createCLTVPaymentChannelOutput(time, from, to);
-        req.tx = new Transaction(params);
+        req.tx = new Transaction(params.getNet());
         req.tx.addOutput(value, output);
         return req;
     }

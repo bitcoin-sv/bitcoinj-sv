@@ -24,6 +24,8 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.msg.Serializer;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptOpCodes;
@@ -199,8 +201,8 @@ public class Transaction extends ChildMessage {
     @Nullable
     private String memo;
 
-    public Transaction(NetworkParameters params) {
-        super(params);
+    public Transaction(Net net) {
+        super(net);
         version = 1;
         inputs = new ArrayList<TransactionInput>();
         outputs = new ArrayList<TransactionOutput>();
@@ -211,38 +213,38 @@ public class Transaction extends ChildMessage {
     /**
      * Creates a transaction from the given serialized bytes, eg, from a block or a tx network message.
      */
-    public Transaction(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes, 0);
+    public Transaction(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes, 0);
     }
 
     /**
      * Creates a transaction by reading payload starting from offset bytes in. Length of a transaction is fixed.
      */
-    public Transaction(NetworkParameters params, byte[] payload, int offset) throws ProtocolException {
-        super(params, payload, offset);
+    public Transaction(Net net, byte[] payload, int offset) throws ProtocolException {
+        super(net, payload, offset);
         // inputs/outputs will be created in parse()
     }
 
     /**
      * Creates a transaction by reading payload starting from offset bytes in. Length of a transaction is fixed.
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public Transaction(NetworkParameters params, byte[] payload, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
+    public Transaction(Net net, byte[] payload, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, offset, parent, serializeMode, length);
+        super(net, payload, offset, parent, serializeMode, length);
     }
 
     /**
      * Creates a transaction by reading payload. Length of a transaction is fixed.
      */
-    public Transaction(NetworkParameters params, byte[] payload, @Nullable Message parent, SerializeMode serializeMode, int length)
+    public Transaction(Net net, byte[] payload, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, 0, parent, serializeMode, length);
+        super(net, payload, 0, parent, serializeMode, length);
     }
 
     /**
@@ -603,7 +605,7 @@ public class Transaction extends ChildMessage {
         optimalEncodingMessageSize += VarInt.sizeOf(numInputs);
         inputs = new ArrayList<TransactionInput>((int) numInputs);
         for (long i = 0; i < numInputs; i++) {
-            TransactionInput input = new TransactionInput(params, this, payload, cursor, serializeMode);
+            TransactionInput input = new TransactionInput(net, this, payload, cursor, serializeMode);
             inputs.add(input);
             long scriptLen = readVarInt(TransactionOutPoint.MESSAGE_LENGTH);
             optimalEncodingMessageSize += TransactionOutPoint.MESSAGE_LENGTH + VarInt.sizeOf(scriptLen) + scriptLen + 4;
@@ -614,7 +616,7 @@ public class Transaction extends ChildMessage {
         optimalEncodingMessageSize += VarInt.sizeOf(numOutputs);
         outputs = new ArrayList<>((int) numOutputs);
         for (long i = 0; i < numOutputs; i++) {
-            TransactionOutput output = new TransactionOutput(params, this, payload, cursor, serializeMode);
+            TransactionOutput output = new TransactionOutput(net, this, payload, cursor, serializeMode);
             outputs.add(output);
             long scriptLen = readVarInt(8);
             optimalEncodingMessageSize += 8 + VarInt.sizeOf(scriptLen) + scriptLen;
@@ -673,7 +675,7 @@ public class Transaction extends ChildMessage {
         if (getConfidence().getConfidenceType() != ConfidenceType.BUILDING)
             return false;
 
-        return getConfidence().getDepthInBlocks() >= params.getSpendableCoinbaseDepth();
+        return getConfidence().getDepthInBlocks() >= net.params().getSpendableCoinbaseDepth();
     }
 
     @Override
@@ -812,7 +814,7 @@ public class Transaction extends ChildMessage {
      * @return the newly created input.
      */
     public TransactionInput addInput(TransactionOutput from) {
-        return addInput(new TransactionInput(params, this, from));
+        return addInput(new TransactionInput(net, this, from));
     }
 
     /**
@@ -832,7 +834,7 @@ public class Transaction extends ChildMessage {
      * @return the newly created input.
      */
     public TransactionInput addInput(Sha256Hash spendTxHash, long outputIndex, Script script) {
-        return addInput(new TransactionInput(params, this, script.getProgram(), new TransactionOutPoint(params, outputIndex, spendTxHash)));
+        return addInput(new TransactionInput(net, this, script.getProgram(), new TransactionOutPoint(net, outputIndex, spendTxHash)));
     }
 
     /**
@@ -847,7 +849,7 @@ public class Transaction extends ChildMessage {
                                            SigHash sigHash, boolean anyoneCanPay) throws ScriptException {
         // Verify the API user didn't try to do operations out of order.
         checkState(!outputs.isEmpty(), "Attempting to sign tx without outputs.");
-        TransactionInput input = new TransactionInput(params, this, new byte[]{}, prevOut);
+        TransactionInput input = new TransactionInput(net, this, new byte[]{}, prevOut);
         addInput(input);
         Sha256Hash hash = hashForSignature(inputs.size() - 1, scriptPubKey, sigHash, anyoneCanPay);
         ECKey.ECDSASignature ecSig = sigKey.sign(hash);
@@ -872,7 +874,7 @@ public class Transaction extends ChildMessage {
                                            SigHash sigHash, boolean anyoneCanPay, boolean forkId) throws ScriptException {
         // Verify the API user didn't try to do operations out of order.
         checkState(!outputs.isEmpty(), "Attempting to sign tx without outputs.");
-        TransactionInput input = new TransactionInput(params, this, new byte[]{}, prevOut);
+        TransactionInput input = new TransactionInput(net, this, new byte[]{}, prevOut);
         addInput(input);
         Sha256Hash hash = forkId ?
                 hashForSignatureWitness(inputs.size() -1, scriptPubKey, prevOut.getConnectedOutput().getValue(), sigHash, anyoneCanPay) :
@@ -901,7 +903,7 @@ public class Transaction extends ChildMessage {
                                            SigHash sigHash, boolean anyoneCanPay, boolean forkId) throws ScriptException {
         // Verify the API user didn't try to do operations out of order.
         checkState(!outputs.isEmpty(), "Attempting to sign tx without outputs.");
-        TransactionInput input = new TransactionInput(params, this, new byte[]{}, prevOut);
+        TransactionInput input = new TransactionInput(net, this, new byte[]{}, prevOut);
         addInput(input);
         Sha256Hash hash = forkId ?
                 hashForSignatureWitness(inputs.size() -1, scriptPubKey, amount, sigHash, anyoneCanPay) :
@@ -995,7 +997,7 @@ public class Transaction extends ChildMessage {
      * Creates an output based on the given address and value, adds it to this transaction, and returns the new output.
      */
     public TransactionOutput addOutput(Coin value, Address address) {
-        return addOutput(new TransactionOutput(params, this, value, address));
+        return addOutput(new TransactionOutput(net, this, value, address));
     }
 
     /**
@@ -1003,7 +1005,7 @@ public class Transaction extends ChildMessage {
      * transaction, and returns the new output.
      */
     public TransactionOutput addOutput(Coin value, ECKey pubkey) {
-        return addOutput(new TransactionOutput(params, this, value, pubkey));
+        return addOutput(new TransactionOutput(net, this, value, pubkey));
     }
 
     /**
@@ -1011,7 +1013,7 @@ public class Transaction extends ChildMessage {
      * you won't normally need to use it unless you're doing unusual things.
      */
     public TransactionOutput addOutput(Coin value, Script script) {
-        return addOutput(new TransactionOutput(params, this, value, script.getProgram()));
+        return addOutput(new TransactionOutput(net, this, value, script.getProgram()));
     }
 
 
@@ -1204,7 +1206,7 @@ public class Transaction extends ChildMessage {
         try {
             // Create a copy of this transaction to operate upon because we need make changes to the inputs and outputs.
             // It would not be thread-safe to change the attributes of the transaction object itself.
-            Transaction tx = params.getSerializer(false, false, true).makeTransaction(bitcoinSerialize());
+            Transaction tx = Serializer.defaultFor(net).makeTransaction(bitcoinSerialize());
             tx.ensureParsed();
 
             // Clear input scripts in preparation for signing. If we're signing a fresh
@@ -1253,7 +1255,7 @@ public class Transaction extends ChildMessage {
                 // that position are "nulled out". Unintuitively, the value in a "null" transaction is set to -1.
                 tx.outputs = new ArrayList<TransactionOutput>(tx.outputs.subList(0, inputIndex + 1));
                 for (int i = 0; i < inputIndex; i++)
-                    tx.outputs.set(i, new TransactionOutput(tx.params, tx, Coin.NEGATIVE_SATOSHI, new byte[] {}));
+                    tx.outputs.set(i, new TransactionOutput(tx.net, tx, Coin.NEGATIVE_SATOSHI, new byte[] {}));
                 // The signature isn't broken by new versions of the transaction issued by other parties.
                 for (int i = 0; i < tx.inputs.size(); i++)
                     if (i != inputIndex)
@@ -1601,7 +1603,7 @@ public class Transaction extends ChildMessage {
                 if (output.getValue().signum() < 0)    // getValue() can throw IllegalStateException
                     throw new VerificationException.NegativeValueOutput();
                 valueOut = valueOut.add(output.getValue());
-                if (params.hasMaxMoney() && valueOut.compareTo(params.getMaxMoney()) > 0)
+                if (net.params().hasMaxMoney() && valueOut.compareTo(net.params().getMaxMoney()) > 0)
                     throw new IllegalArgumentException();
             }
         } catch (IllegalStateException e) {

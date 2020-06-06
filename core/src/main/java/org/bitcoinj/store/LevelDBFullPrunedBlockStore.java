@@ -669,7 +669,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
                         | ((transactions[offset++] & 0xFF) << 16) | ((transactions[offset++] & 0xFF) << 24);
                 List<Transaction> transactionList = new LinkedList<Transaction>();
                 for (int i = 0; i < numTxn; i++) {
-                    Transaction tx = new Transaction(params, transactions, offset);
+                    Transaction tx = new Transaction(params.getNet(), transactions, offset);
                     transactionList.add(tx);
                     offset += tx.getMessageSize();
                 }

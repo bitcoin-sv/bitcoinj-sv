@@ -21,11 +21,11 @@ import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.SerializeMode;
 import org.bitcoinj.params.MainNetParams;
 import com.google.common.base.Objects;
 import com.google.common.net.InetAddresses;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -57,21 +57,21 @@ public class PeerAddress extends ChildMessage {
     /**
      * Construct a peer address from a serialized payload.
      */
-    public PeerAddress(NetworkParameters params, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
-        super(params, payload, offset, protocolVersion);
+    public PeerAddress(Net net, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
+        super(net, payload, offset, protocolVersion);
     }
 
     /**
      * Construct a peer address from a serialized payload.
-     * @param params NetworkParameters object.
+     * @param net Net enum.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
      * @param protocolVersion Bitcoin protocol version.
      * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public PeerAddress(NetworkParameters params, byte[] payload, int offset, int protocolVersion, Message parent, SerializeMode serializeMode) throws ProtocolException {
-        super(params, payload, offset, protocolVersion, parent, serializeMode, UNKNOWN_LENGTH);
+    public PeerAddress(Net net, byte[] payload, int offset, int protocolVersion, Message parent, SerializeMode serializeMode) throws ProtocolException {
+        super(net, payload, offset, protocolVersion, parent, serializeMode, UNKNOWN_LENGTH);
         // Message length is calculated in parseLite which is guaranteed to be called before it is ever read.
         // Even though message length is static for a PeerAddress it is safer to leave it there 
         // as it will be set regardless of which constructor was used.
@@ -152,11 +152,11 @@ public class PeerAddress extends ChildMessage {
     /**
      * Constructs a peer address from a stringified hostname+port. Use this if you want to connect to a Tor .onion address.
      */
-    public PeerAddress(NetworkParameters params, String hostname, int port) {
-        super(params);
+    public PeerAddress(Net net, String hostname, int port) {
+        super(net);
         this.hostname = hostname;
         this.port = port;
-        this.protocolVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT);
+        this.protocolVersion = net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT);
         this.services = BigInteger.ZERO;
     }
 

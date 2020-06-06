@@ -29,6 +29,7 @@ import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.TestNet3Params;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -61,6 +62,7 @@ public class ScriptTest {
     static final String pubkeyProg = "76a91433e81a941e64cda12c6a299ed322ddbdd03f8d0e88ac";
 
     private static final NetworkParameters PARAMS = TestNet3Params.get();
+    private static final Net NET = Net.TESTNET3;
 
     private static final Logger log = LoggerFactory.getLogger(ScriptTest.class);
 
@@ -139,7 +141,7 @@ public class ScriptTest {
         byte[] bytes = HEX.decode("01000000013df681ff83b43b6585fa32dd0e12b0b502e6481e04ee52ff0fdaf55a16a4ef61000000006b483045022100a84acca7906c13c5895a1314c165d33621cdcf8696145080895cbf301119b7cf0220730ff511106aa0e0a8570ff00ee57d7a6f24e30f592a10cae1deffac9e13b990012102b8d567bcd6328fd48a429f9cf4b315b859a58fd28c5088ef3cb1d98125fc4e8dffffffff02364f1c00000000001976a91439a02793b418de8ec748dd75382656453dc99bcb88ac40420f000000000017a9145780b80be32e117f675d6e0ada13ba799bf248e98700000000");
         Transaction transaction = PARAMS.getDefaultSerializer().makeTransaction(bytes);
         TransactionOutput output = transaction.getOutput(1);
-        Transaction spendTx = new Transaction(PARAMS);
+        Transaction spendTx = new Transaction(NET);
         Address address = Address.fromBase58(PARAMS, "n3CFiCmBXVt5d3HXKQ15EFZyhPz4yj5F3H");
         Script outputScript = ScriptBuilder.createOutputScript(address);
         spendTx.addOutput(output.getValue(), outputScript);
@@ -230,8 +232,8 @@ public class ScriptTest {
     @Test
     public void testOp0() {
         // Check that OP_0 doesn't NPE and pushes an empty stack frame.
-        Transaction tx = new Transaction(PARAMS);
-        tx.addInput(new TransactionInput(PARAMS, tx, new byte[] {}));
+        Transaction tx = new Transaction(NET);
+        tx.addInput(new TransactionInput(NET, tx, new byte[] {}));
         Script script = new ScriptBuilder().smallNum(0).build();
 
         ScriptStack stack = new ScriptStack();
@@ -299,7 +301,7 @@ public class ScriptTest {
             Script scriptPubKey = parseScriptString(test.get(1).asText());
             Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
             try {
-                scriptSig.correctlySpends(new Transaction(PARAMS), 0, scriptPubKey, verifyFlags);
+                scriptSig.correctlySpends(new Transaction(NET), 0, scriptPubKey, verifyFlags);
             } catch (ScriptException e) {
                 System.err.println(test);
                 System.err.flush();
@@ -317,7 +319,7 @@ public class ScriptTest {
                 Script scriptSig = parseScriptString(test.get(0).asText());
                 Script scriptPubKey = parseScriptString(test.get(1).asText());
                 Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
-                scriptSig.correctlySpends(new Transaction(PARAMS), 0, scriptPubKey, verifyFlags);
+                scriptSig.correctlySpends(new Transaction(NET), 0, scriptPubKey, verifyFlags);
                 System.err.println(test);
                 System.err.flush();
                 fail();
@@ -334,7 +336,7 @@ public class ScriptTest {
             int index = input.get(1).asInt();
             String script = input.get(2).asText();
             Sha256Hash sha256Hash = Sha256Hash.wrap(HEX.decode(hash));
-            scriptPubKeys.put(new TransactionOutPoint(PARAMS, index, sha256Hash), parseScriptString(script));
+            scriptPubKeys.put(new TransactionOutPoint(NET, index, sha256Hash), parseScriptString(script));
         }
         return scriptPubKeys;
     }
@@ -560,7 +562,7 @@ public class ScriptTest {
         ScriptStack stack = new ScriptStack();
         EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
         verifyFlags.add(ScriptVerifyFlag.MONOLITH_OPCODES);
-        Script.executeScript(new Transaction(PARAMS), 0, script, stack, Coin.ZERO, verifyFlags);
+        Script.executeScript(new Transaction(NET), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
         return stack.peekLast().bytes();
     }

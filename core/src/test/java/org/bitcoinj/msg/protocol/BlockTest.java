@@ -22,10 +22,7 @@ import com.google.common.io.ByteStreams;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.AbstractBlockChain.NewBlockType;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.TestNet2Params;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.params.UnitTestParams;
+import org.bitcoinj.params.*;
 import org.bitcoinj.script.ScriptOpCodes;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.Wallet.BalanceType;
@@ -42,6 +39,7 @@ import static org.junit.Assert.*;
 
 public class BlockTest {
     private static final NetworkParameters PARAMS = TestNet2Params.get();
+    private static final Net NET = Net.TESTNET2;
 
     public static final byte[] blockBytes;
 
@@ -146,18 +144,18 @@ public class BlockTest {
     
     @Test
     public void testUpdateLength() {
-        NetworkParameters params = UnitTestParams.get();
-        Block block = params.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, new ECKey().getPubKey(), Block.BLOCK_HEIGHT_GENESIS);
+        Net net = Net.UNITTEST;
+        Block block = net.params().getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, new ECKey().getPubKey(), Block.BLOCK_HEIGHT_GENESIS);
         assertEquals(block.bitcoinSerialize().length, block.length());
         final int origBlockLen = block.length();
-        Transaction tx = new Transaction(params);
+        Transaction tx = new Transaction(net);
         // this is broken until the transaction has > 1 input + output (which is required anyway...)
         //assertTrue(tx.length == tx.bitcoinSerialize().length && tx.length == 8);
         byte[] outputScript = new byte[10];
         Arrays.fill(outputScript, (byte) ScriptOpCodes.OP_FALSE);
-        tx.addOutput(new TransactionOutput(params, null, Coin.SATOSHI, outputScript));
-        tx.addInput(new TransactionInput(params, null, new byte[] {(byte) ScriptOpCodes.OP_FALSE},
-                new TransactionOutPoint(params, 0, Sha256Hash.of(new byte[] { 1 }))));
+        tx.addOutput(new TransactionOutput(net, null, Coin.SATOSHI, outputScript));
+        tx.addInput(new TransactionInput(net, null, new byte[] {(byte) ScriptOpCodes.OP_FALSE},
+                new TransactionOutPoint(net, 0, Sha256Hash.of(new byte[] { 1 }))));
         int origTxLength = 8 + 2 + 8 + 1 + 10 + 40 + 1 + 1;
         assertEquals(tx.unsafeBitcoinSerialize().length, tx.length());
         assertEquals(origTxLength, tx.length());
@@ -171,8 +169,8 @@ public class BlockTest {
         assertEquals(block.length(), block.unsafeBitcoinSerialize().length);
         assertEquals(block.length(), origBlockLen + tx.length());
         assertEquals(tx.length(), origTxLength - 1);
-        block.getTransactions().get(1).addInput(new TransactionInput(params, null, new byte[] {(byte) ScriptOpCodes.OP_FALSE},
-                new TransactionOutPoint(params, 0, Sha256Hash.of(new byte[] { 1 }))));
+        block.getTransactions().get(1).addInput(new TransactionInput(net, null, new byte[] {(byte) ScriptOpCodes.OP_FALSE},
+                new TransactionOutPoint(net, 0, Sha256Hash.of(new byte[] { 1 }))));
         assertEquals(block.length(), origBlockLen + tx.length());
         assertEquals(tx.length(), origTxLength + 41); // - 1 + 40 + 1 + 1
     }

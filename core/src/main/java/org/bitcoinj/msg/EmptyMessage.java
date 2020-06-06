@@ -17,6 +17,7 @@ package org.bitcoinj.msg;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,13 +34,13 @@ public abstract class EmptyMessage extends Message {
         setLength(0);
     }
 
-    public EmptyMessage(NetworkParameters params) {
-        super(params);
+    public EmptyMessage(Net net) {
+        super(net);
         setLength(0);
     }
 
-    public EmptyMessage(NetworkParameters params, byte[] payload, int offset) throws ProtocolException {
-        super(params, payload, offset);
+    public EmptyMessage(Net net, byte[] payload, int offset) throws ProtocolException {
+        super(net, payload, offset);
         setLength(0);
     }
 

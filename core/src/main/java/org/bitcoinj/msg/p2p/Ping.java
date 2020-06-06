@@ -16,10 +16,10 @@
 
 package org.bitcoinj.msg.p2p;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,8 +31,8 @@ public class Ping extends Message {
     private long nonce;
     private boolean hasNonce;
     
-    public Ping(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes, 0);
+    public Ping(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes, 0);
     }
     
     /**

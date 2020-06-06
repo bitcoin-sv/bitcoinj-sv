@@ -21,6 +21,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.wallet.DefaultRiskAnalysis;
@@ -74,18 +75,18 @@ public class TransactionInput extends ChildMessage {
     /**
      * Creates an input that connects to nothing - used only in creation of coinbase transactions.
      */
-    public TransactionInput(NetworkParameters params, @Nullable Transaction parentTransaction, byte[] scriptBytes) {
-        this(params, parentTransaction, scriptBytes, new TransactionOutPoint(params, UNCONNECTED, (Transaction) null));
+    public TransactionInput(Net net, @Nullable Transaction parentTransaction, byte[] scriptBytes) {
+        this(net, parentTransaction, scriptBytes, new TransactionOutPoint(net, UNCONNECTED, (Transaction) null));
     }
 
-    public TransactionInput(NetworkParameters params, @Nullable Transaction parentTransaction, byte[] scriptBytes,
+    public TransactionInput(Net net, @Nullable Transaction parentTransaction, byte[] scriptBytes,
                             TransactionOutPoint outpoint) {
-        this(params, parentTransaction, scriptBytes, outpoint, null);
+        this(net, parentTransaction, scriptBytes, outpoint, null);
     }
 
-    public TransactionInput(NetworkParameters params, @Nullable Transaction parentTransaction, byte[] scriptBytes,
+    public TransactionInput(Net net, @Nullable Transaction parentTransaction, byte[] scriptBytes,
             TransactionOutPoint outpoint, @Nullable Coin value) {
-        super(params);
+        super(net);
         this.scriptBytes = scriptBytes;
         this.outpoint = outpoint;
         this.sequence = NO_SEQUENCE;
@@ -97,13 +98,13 @@ public class TransactionInput extends ChildMessage {
     /**
      * Creates an UNSIGNED input that links to the given output
      */
-    TransactionInput(NetworkParameters params, Transaction parentTransaction, TransactionOutput output) {
-        super(params);
+    TransactionInput(Net net, Transaction parentTransaction, TransactionOutput output) {
+        super(net);
         long outputIndex = output.getIndex();
         if(output.getParentTransaction() != null ) {
-            outpoint = new TransactionOutPoint(params, outputIndex, output.getParentTransaction());
+            outpoint = new TransactionOutPoint(net, outputIndex, output.getParentTransaction());
         } else {
-            outpoint = new TransactionOutPoint(params, output);
+            outpoint = new TransactionOutPoint(net, output);
         }
         scriptBytes = EMPTY_ARRAY;
         sequence = NO_SEQUENCE;
@@ -115,23 +116,23 @@ public class TransactionInput extends ChildMessage {
     /**
      * Deserializes an input message. This is usually part of a transaction message.
      */
-    public TransactionInput(NetworkParameters params, @Nullable Transaction parentTransaction, byte[] payload, int offset) throws ProtocolException {
-        super(params, payload, offset);
+    public TransactionInput(Net net, @Nullable Transaction parentTransaction, byte[] payload, int offset) throws ProtocolException {
+        super(net, payload, offset);
         setParent(parentTransaction);
         this.value = null;
     }
 
     /**
      * Deserializes an input message. This is usually part of a transaction message.
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
      * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public TransactionInput(NetworkParameters params, Transaction parentTransaction, byte[] payload, int offset, SerializeMode serializeMode)
+    public TransactionInput(Net net, Transaction parentTransaction, byte[] payload, int offset, SerializeMode serializeMode)
             throws ProtocolException {
-        super(params, payload, offset, parentTransaction, serializeMode, UNKNOWN_LENGTH);
+        super(net, payload, offset, parentTransaction, serializeMode, UNKNOWN_LENGTH);
         this.value = null;
     }
 
@@ -145,7 +146,7 @@ public class TransactionInput extends ChildMessage {
 
     @Override
     protected void parse() throws ProtocolException {
-        outpoint = new TransactionOutPoint(params, payload, cursor, this, serializeMode);
+        outpoint = new TransactionOutPoint(net, payload, cursor, this, serializeMode);
         cursor += outpoint.getMessageSize();
         int scriptLen = (int) readVarInt();
         scriptBytes = readBytes(scriptLen);
@@ -203,7 +204,7 @@ public class TransactionInput extends ChildMessage {
             throw new ScriptException(
                     "This is a coinbase transaction which generates new coins. It does not have a from address.");
         }
-        return getScriptSig().getFromAddress(params);
+        return getScriptSig().getFromAddress(net.params());
     }
 
     /**
@@ -475,7 +476,7 @@ public class TransactionInput extends ChildMessage {
 
     /** Returns a copy of the input detached from its containing transaction, if need be. */
     public TransactionInput duplicateDetached() {
-        return new TransactionInput(params, null, bitcoinSerialize(), 0);
+        return new TransactionInput(net, null, bitcoinSerialize(), 0);
     }
 
     /**

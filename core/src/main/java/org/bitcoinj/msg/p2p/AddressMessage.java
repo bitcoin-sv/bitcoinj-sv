@@ -3,7 +3,9 @@ package org.bitcoinj.msg.p2p;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.Net;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -24,7 +26,7 @@ public class AddressMessage extends Message {
 
     /**
      * Contruct a new 'addr' message.
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param offset The location of the first payload byte within the array.
      * If true and the backing byte array is invalidated due to modification of a field then
      * the cached bytes may be repopulated and retained if the message is serialized again in the future.
@@ -32,28 +34,28 @@ public class AddressMessage extends Message {
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    AddressMessage(NetworkParameters params, byte[] payload, int offset, SerializeMode serializeMode, int length) throws ProtocolException {
-        super(params, payload, offset, serializeMode, length);
+    AddressMessage(Net net, byte[] payload, int offset, SerializeMode serializeMode, int length) throws ProtocolException {
+        super(net, payload, offset, serializeMode, length);
     }
 
     /**
      * Contruct a new 'addr' message.
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param serializeMode the serializeMode to use for this block.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public AddressMessage(NetworkParameters params, byte[] payload, SerializeMode serializeMode, int length) throws ProtocolException {
-        super(params, payload, 0, serializeMode, length);
+    public AddressMessage(Net net, byte[] payload, SerializeMode serializeMode, int length) throws ProtocolException {
+        super(net, payload, 0, serializeMode, length);
     }
 
-    AddressMessage(NetworkParameters params, byte[] payload, int offset) throws ProtocolException {
-        super(params, payload, offset, null, UNKNOWN_LENGTH);
+    AddressMessage(Net net, byte[] payload, int offset) throws ProtocolException {
+        super(net, payload, offset, null, UNKNOWN_LENGTH);
     }
 
-    AddressMessage(NetworkParameters params, byte[] payload) throws ProtocolException {
-        super(params, payload, 0, null, UNKNOWN_LENGTH);
+    AddressMessage(Net net, byte[] payload) throws ProtocolException {
+        super(net, payload, 0, null, UNKNOWN_LENGTH);
     }
 
     @Override
@@ -68,7 +70,7 @@ public class AddressMessage extends Message {
             throw new ProtocolException("Address message too large.");
         addresses = new ArrayList<PeerAddress>((int) numAddresses);
         for (int i = 0; i < numAddresses; i++) {
-            PeerAddress addr = new PeerAddress(params, payload, cursor, protocolVersion, this, serializeMode);
+            PeerAddress addr = new PeerAddress(net, payload, cursor, protocolVersion, this, serializeMode);
             addresses.add(addr);
             cursor += addr.getMessageSize();
         }

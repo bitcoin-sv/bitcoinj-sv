@@ -34,7 +34,7 @@ import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.Network;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
@@ -56,7 +56,8 @@ public class GenerateLowSTests {
     public static final BigInteger HIGH_S_DIFFERENCE = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16);
 
     public static void main(final String[] argv) throws NoSuchAlgorithmException, IOException {
-        final NetworkParameters params = new MainNetParams(Network.MAINNET);
+        final NetworkParameters params = new MainNetParams(Net.MAINNET);
+        final Net net = Net.MAINNET;
         final LocalTransactionSigner signer = new LocalTransactionSigner();
         final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
         final ECKey key = new ECKey(secureRandom);
@@ -81,9 +82,9 @@ public class GenerateLowSTests {
         // Generate a fictional output transaction we take values from, and
         // an input transaction for the test case
 
-        final Transaction outputTransaction = new Transaction(params);
-        final Transaction inputTransaction = new Transaction(params);
-        final TransactionOutput output = new TransactionOutput(params, inputTransaction, Coin.ZERO, key.toAddress(params));
+        final Transaction outputTransaction = new Transaction(net);
+        final Transaction inputTransaction = new Transaction(net);
+        final TransactionOutput output = new TransactionOutput(net, inputTransaction, Coin.ZERO, key.toAddress(params));
 
         inputTransaction.addOutput(output);
         outputTransaction.addInput(output);

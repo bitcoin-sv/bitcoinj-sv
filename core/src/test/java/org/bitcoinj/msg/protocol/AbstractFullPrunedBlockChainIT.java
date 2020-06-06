@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.Network;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.exception.BlockStoreException;
@@ -55,11 +55,13 @@ public abstract class AbstractFullPrunedBlockChainIT {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractFullPrunedBlockChainIT.class);
 
-    protected static final NetworkParameters PARAMS = new UnitTestParams(Network.UNITTEST) {
+    protected static final NetworkParameters PARAMS = new UnitTestParams(Net.UNITTEST) {
         @Override public int getInterval() {
             return 10000;
         }
     };
+    protected static final Net NET = Net.UNITTEST;
+
     protected FullPrunedBlockChain chain;
     protected FullPrunedBlockStore store;
 
@@ -144,8 +146,8 @@ public abstract class AbstractFullPrunedBlockChainIT {
         }
 
         rollingBlock = rollingBlock.createNextBlock(null);
-        Transaction t = new Transaction(PARAMS);
-        t.addOutput(new TransactionOutput(PARAMS, t, FIFTY_COINS, new byte[] {}));
+        Transaction t = new Transaction(NET);
+        t.addOutput(new TransactionOutput(NET, t, FIFTY_COINS, new byte[] {}));
         TransactionInput input = t.addInput(spendableOutput);
         // Invalid script.
         input.clearScriptBytes();
@@ -177,7 +179,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         // Build some blocks on genesis block to create a spendable output
         Block rollingBlock = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
-        TransactionOutPoint spendableOutput = new TransactionOutPoint(PARAMS, 0, rollingBlock.getTransactions().get(0).getHash());
+        TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, rollingBlock.getTransactions().get(0).getHash());
         byte[] spendableOutputScriptPubKey = rollingBlock.getTransactions().get(0).getOutputs().get(0).getScriptBytes();
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
             rollingBlock = rollingBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
@@ -188,9 +190,9 @@ public abstract class AbstractFullPrunedBlockChainIT {
                                        (store.getTransactionOutput(spendableOutput.getHash(), spendableOutput.getIndex()));
         rollingBlock = rollingBlock.createNextBlock(null);
         
-        Transaction t = new Transaction(PARAMS);
+        Transaction t = new Transaction(NET);
         // Entirely invalid scriptPubKey
-        t.addOutput(new TransactionOutput(PARAMS, t, FIFTY_COINS, new byte[]{}));
+        t.addOutput(new TransactionOutput(NET, t, FIFTY_COINS, new byte[]{}));
         t.addSignedInput(spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
         rollingBlock.addTransaction(t);
         rollingBlock.solve();
@@ -252,7 +254,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         Block rollingBlock = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
-        TransactionOutPoint spendableOutput = new TransactionOutPoint(PARAMS, 0, transaction.getHash());
+        TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
         byte[] spendableOutputScriptPubKey = transaction.getOutputs().get(0).getScriptBytes();
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
             rollingBlock = rollingBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
@@ -266,8 +268,8 @@ public abstract class AbstractFullPrunedBlockChainIT {
         Address address = new Address(PARAMS, toKey.getPubKeyHash());
         Coin totalAmount = Coin.ZERO;
 
-        Transaction t = new Transaction(PARAMS);
-        t.addOutput(new TransactionOutput(PARAMS, t, amount, toKey));
+        Transaction t = new Transaction(NET);
+        t.addOutput(new TransactionOutput(NET, t, amount, toKey));
         t.addSignedInput(spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
         rollingBlock.addTransaction(t);
         rollingBlock.solve();
@@ -303,7 +305,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         Block rollingBlock = PARAMS.getGenesisBlock().createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
-        TransactionOutPoint spendableOutput = new TransactionOutPoint(PARAMS, 0, transaction.getHash());
+        TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
         byte[] spendableOutputScriptPubKey = transaction.getOutputs().get(0).getScriptBytes();
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
             rollingBlock = rollingBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
@@ -320,8 +322,8 @@ public abstract class AbstractFullPrunedBlockChainIT {
         ECKey toKey = wallet.freshReceiveKey();
         Coin amount = Coin.valueOf(100000000);
 
-        Transaction t = new Transaction(PARAMS);
-        t.addOutput(new TransactionOutput(PARAMS, t, amount, toKey));
+        Transaction t = new Transaction(NET);
+        t.addOutput(new TransactionOutput(NET, t, amount, toKey));
         t.addSignedInput(spendableOutput, new Script(spendableOutputScriptPubKey), outKey);
         rollingBlock.addTransaction(t);
         rollingBlock.solve();

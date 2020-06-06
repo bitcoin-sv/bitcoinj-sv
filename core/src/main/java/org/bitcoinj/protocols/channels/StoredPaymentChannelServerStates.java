@@ -19,7 +19,9 @@ package org.bitcoinj.protocols.channels;
 import com.google.common.collect.ImmutableMap;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.WalletExtension;
@@ -269,19 +271,19 @@ public class StoredPaymentChannelServerStates implements WalletExtension {
         try {
             this.wallet = containingWallet;
             ServerState.StoredServerPaymentChannels states = ServerState.StoredServerPaymentChannels.parseFrom(data);
-            NetworkParameters params = containingWallet.getParams();
+            Net net = containingWallet.getNet();
             for (ServerState.StoredServerPaymentChannel storedState : states.getChannelsList()) {
                 final int majorVersion = storedState.getMajorVersion();
                 TransactionOutput clientOutput = null;
                 ECKey clientKey = null;
                 if (majorVersion == 1) {
-                    clientOutput = new TransactionOutput(params, null, storedState.getClientOutput().toByteArray(), 0);
+                    clientOutput = new TransactionOutput(net, null, storedState.getClientOutput().toByteArray(), 0);
                 } else {
                     clientKey = ECKey.fromPublicOnly(storedState.getClientKey().toByteArray());
                 }
                 StoredServerChannel channel = new StoredServerChannel(null,
                         majorVersion,
-                        params.getDefaultSerializer().makeTransaction(storedState.getContractTransaction().toByteArray()),
+                        Serializer.defaultFor(net).makeTransaction(storedState.getContractTransaction().toByteArray()),
                         clientOutput,
                         storedState.getRefundTransactionUnlockTimeSecs(),
                         ECKey.fromPrivate(storedState.getMyKey().toByteArray()),

@@ -22,6 +22,7 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptChunk;
 import com.google.common.base.Objects;
@@ -72,8 +73,8 @@ public class BloomFilter extends Message {
     /**
      * Construct a BloomFilter by deserializing payloadBytes
      */
-    public BloomFilter(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes, 0);
+    public BloomFilter(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes, 0);
     }
     
     /**
@@ -322,8 +323,8 @@ public class BloomFilter extends Message {
                 matched.add(tx);
             }
         }
-        PartialMerkleTree pmt = PartialMerkleTree.buildFromLeaves(block.getParams(), bits, txHashes);
-        FilteredBlock filteredBlock = new FilteredBlock(block.getParams(), block.cloneAsHeader(), pmt);
+        PartialMerkleTree pmt = PartialMerkleTree.buildFromLeaves(block.getNet(), bits, txHashes);
+        FilteredBlock filteredBlock = new FilteredBlock(block.getNet(), block.cloneAsHeader(), pmt);
         for (Transaction transaction : matched)
             filteredBlock.provideTransaction(transaction);
         return filteredBlock;

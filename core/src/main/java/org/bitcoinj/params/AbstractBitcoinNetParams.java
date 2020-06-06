@@ -39,8 +39,8 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
     // Aug, 1 hard fork
     int uahfHeight = 478559;
 
-    public AbstractBitcoinNetParams(Network network) {
-        super(network);
+    public AbstractBitcoinNetParams(Net net) {
+        super(net);
     }
 
     ///**

@@ -20,8 +20,8 @@ package org.bitcoinj.msg.protocol;
 import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
-import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 import org.bitcoinj.wallet.Wallet;
 import org.slf4j.*;
@@ -63,9 +63,9 @@ public class TransactionOutput extends ChildMessage {
     /**
      * Deserializes a transaction output message. This is usually part of a transaction message.
      */
-    public TransactionOutput(NetworkParameters params, @Nullable Transaction parent, byte[] payload,
+    public TransactionOutput(Net net, @Nullable Transaction parent, byte[] payload,
                              int offset) throws ProtocolException {
-        super(params, payload, offset);
+        super(net, payload, offset);
         setParent(parent);
         availableForSpending = true;
     }
@@ -73,14 +73,14 @@ public class TransactionOutput extends ChildMessage {
     /**
      * Deserializes a transaction output message. This is usually part of a transaction message.
      *
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
      * @param serializeMode the serializeMode to use for this message.
      * @throws ProtocolException
      */
-    public TransactionOutput(NetworkParameters params, @Nullable Transaction parent, byte[] payload, int offset, SerializeMode serializeMode) throws ProtocolException {
-        super(params, payload, offset, parent, serializeMode, UNKNOWN_LENGTH);
+    public TransactionOutput(Net net, @Nullable Transaction parent, byte[] payload, int offset, SerializeMode serializeMode) throws ProtocolException {
+        super(net, payload, offset, parent, serializeMode, UNKNOWN_LENGTH);
         availableForSpending = true;
     }
 
@@ -89,8 +89,8 @@ public class TransactionOutput extends ChildMessage {
      * something like {@link Coin#valueOf(int, int)}. Typically you would use
      * {@link Transaction#addOutput(Coin, Address)} instead of creating a TransactionOutput directly.
      */
-    public TransactionOutput(NetworkParameters params, @Nullable Transaction parent, Coin value, Address to) {
-        this(params, parent, value, ScriptBuilder.createOutputScript(to).getProgram());
+    public TransactionOutput(Net net, @Nullable Transaction parent, Coin value, Address to) {
+        this(net, parent, value, ScriptBuilder.createOutputScript(to).getProgram());
     }
 
     /**
@@ -98,16 +98,16 @@ public class TransactionOutput extends ChildMessage {
      * amount should be created with something like {@link Coin#valueOf(int, int)}. Typically you would use
      * {@link Transaction#addOutput(Coin, ECKey)} instead of creating an output directly.
      */
-    public TransactionOutput(NetworkParameters params, @Nullable Transaction parent, Coin value, ECKey to) {
-        this(params, parent, value, ScriptBuilder.createOutputScript(to).getProgram());
+    public TransactionOutput(Net net, @Nullable Transaction parent, Coin value, ECKey to) {
+        this(net, parent, value, ScriptBuilder.createOutputScript(to).getProgram());
     }
 
-    public TransactionOutput(NetworkParameters params, @Nullable Transaction parent, Coin value, byte[] scriptBytes) {
-        super(params);
+    public TransactionOutput(Net net, @Nullable Transaction parent, Coin value, byte[] scriptBytes) {
+        super(net);
         // Negative values obviously make no sense, except for -1 which is used as a sentinel value when calculating
         // SIGHASH_SINGLE signatures, so unfortunately we have to allow that here.
         checkArgument(value.signum() >= 0 || value.equals(Coin.NEGATIVE_SATOSHI), "Negative values not allowed");
-        checkArgument(!params.hasMaxMoney() || value.compareTo(params.getMaxMoney()) <= 0, "Values larger than MAX_MONEY not allowed");
+        checkArgument(!net.params().hasMaxMoney() || value.compareTo(net.params().getMaxMoney()) <= 0, "Values larger than MAX_MONEY not allowed");
         this.value = value.value;
         this.scriptBytes = scriptBytes;
         setParent(parent);
@@ -358,7 +358,7 @@ public class TransactionOutput extends ChildMessage {
             StringBuilder buf = new StringBuilder("TxOut of ");
             buf.append(Coin.valueOf(value).toFriendlyString());
             if (script.isSentToAddress() || script.isPayToScriptHash())
-                buf.append(" to ").append(script.getToAddress(params));
+                buf.append(" to ").append(script.getToAddress(net.params()));
             else if (script.isSentToRawPubKey())
                 buf.append(" to pubkey ").append(Utils.HEX.encode(script.getPubKey()));
             else if (script.isSentToMultiSig())
@@ -418,12 +418,12 @@ public class TransactionOutput extends ChildMessage {
      * Requires that this output is not detached.
      */
     public TransactionOutPoint getOutPointFor() {
-        return new TransactionOutPoint(params, getIndex(), getParentTransaction());
+        return new TransactionOutPoint(net, getIndex(), getParentTransaction());
     }
 
     /** Returns a copy of the output detached from its containing transaction, if need be. */
     public TransactionOutput duplicateDetached() {
-        return new TransactionOutput(params, null, Coin.valueOf(value), org.spongycastle.util.Arrays.clone(scriptBytes));
+        return new TransactionOutput(net, null, Coin.valueOf(value), org.spongycastle.util.Arrays.clone(scriptBytes));
     }
 
     @Override

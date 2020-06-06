@@ -19,8 +19,8 @@ package org.bitcoinj.msg.p2p;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.msg.SerializeMode;
+import org.bitcoinj.params.Net;
 
 /**
  * <p>Represents the "getdata" P2P network message, which requests the contents of blocks or transactions given their
@@ -30,26 +30,26 @@ import org.bitcoinj.msg.SerializeMode;
  */
 public class GetDataMessage extends ListMessage {
 
-    public GetDataMessage(NetworkParameters params, byte[] payloadBytes) throws ProtocolException {
-        super(params, payloadBytes);
+    public GetDataMessage(Net net, byte[] payloadBytes) throws ProtocolException {
+        super(net, payloadBytes);
     }
 
     /**
      * Deserializes a 'getdata' message.
-     * @param params NetworkParameters object.
+     * @param net NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param serializeMode the serializeMode to use for this message.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
      * as the length will be provided as part of the header.  If unknown then set to Message.UNKNOWN_LENGTH
      * @throws ProtocolException
      */
-    public GetDataMessage(NetworkParameters params, byte[] payload, SerializeMode serializeMode, int length)
+    public GetDataMessage(Net net, byte[] payload, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, serializeMode, length);
+        super(net, payload, serializeMode, length);
     }
 
-    public GetDataMessage(NetworkParameters params) {
-        super(params);
+    public GetDataMessage(Net net) {
+        super(net);
     }
 
     public void addTransaction(Sha256Hash hash) {

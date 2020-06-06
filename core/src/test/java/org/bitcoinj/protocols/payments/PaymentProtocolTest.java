@@ -19,6 +19,7 @@ package org.bitcoinj.protocols.payments;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.X509Utils;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.protocols.payments.PaymentProtocol.Output;
@@ -45,6 +46,7 @@ public class PaymentProtocolTest {
 
     // static test data
     private static final NetworkParameters NETWORK_PARAMS = UnitTestParams.get();
+    private static final Net NET = Net.UNITTEST;
     private static final Coin AMOUNT = Coin.SATOSHI;
     private static final Address TO_ADDRESS = new ECKey().toAddress(NETWORK_PARAMS);
     private static final String MEMO = "memo";
@@ -123,7 +125,7 @@ public class PaymentProtocolTest {
     public void testPaymentMessage() throws Exception {
         // Create
         List<Transaction> transactions = new LinkedList<Transaction>();
-        transactions.add(FakeTxBuilder.createFakeTx(NETWORK_PARAMS, AMOUNT, TO_ADDRESS));
+        transactions.add(FakeTxBuilder.createFakeTx(NET, AMOUNT, TO_ADDRESS));
         Coin refundAmount = Coin.SATOSHI;
         Address refundAddress = new ECKey().toAddress(NETWORK_PARAMS);
         Payment payment = PaymentProtocol.createPaymentMessage(transactions, refundAmount, refundAddress, MEMO,

@@ -29,6 +29,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.MemoryBlockStore;
@@ -78,7 +79,8 @@ public class LazyParseByteCacheTest {
 
     private BlockStore blockStore;
     private static final NetworkParameters PARAMS = UnitTestParams.get();
-    
+    private static final Net NET = Net.UNITTEST;
+
     private byte[] b1Bytes;
     private byte[] b1BytesWithHeader;
     
@@ -100,18 +102,18 @@ public class LazyParseByteCacheTest {
 
         resetBlockStore();
         
-        Transaction tx1 = createFakeTx(PARAMS,
+        Transaction tx1 = createFakeTx(NET,
                 valueOf(2, 0),
                 wallet.currentReceiveKey().toAddress(PARAMS));
         
         // add a second input so can test granularity of byte cache.
-        Transaction prevTx = new Transaction(PARAMS);
-        TransactionOutput prevOut = new TransactionOutput(PARAMS, prevTx, COIN, wallet.currentReceiveKey().toAddress(PARAMS));
+        Transaction prevTx = new Transaction(NET);
+        TransactionOutput prevOut = new TransactionOutput(NET, prevTx, COIN, wallet.currentReceiveKey().toAddress(PARAMS));
         prevTx.addOutput(prevOut);
         // Connect it.
         tx1.addInput(prevOut);
         
-        Transaction tx2 = FakeTxBuilder.createFakeTx(PARAMS, COIN,
+        Transaction tx2 = FakeTxBuilder.createFakeTx(NET, COIN,
                 new ECKey().toAddress(PARAMS));
 
         Block b1 = createFakeBlock(blockStore, BLOCK_HEIGHT_GENESIS, tx1, tx2).block;

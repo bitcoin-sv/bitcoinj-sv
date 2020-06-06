@@ -3,6 +3,7 @@ package org.bitcoinj.tools;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 
 import java.util.*;
@@ -24,7 +25,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
     public static void main(String[] args) {
 
 
-        NetworkParameters params = MainNetParams.get();
+        Net net = Net.MAINNET;
 
         // https://blockchain.info/tx/ed27cf72886af7c830faeff136b3859185310334330a4856f60c768ab46b9c1c
         String rawTx1 = "010000000193e3073ecc1d27f17e3d287ccefdfdba5f7d8c160242dbcd547b18baef12f9b31a0000006b483045022100af501dc9ef2907247d28a5169b8362ca494e1993f833928b77264e604329eec40220313594f38f97c255bcea6d5a4a68e920508ef93fd788bcf5b0ad2fa5d34940180121034bb555cc39ba30561793cf39a35c403fe8cf4a89403b02b51e058960520bd1e3ffffffff02b3bb0200000000001976a914f7d52018971f4ab9b56f0036958f84ae0325ccdc88ac98100700000000001976a914f230f0a16a98433eca0fa70487b85fb83f7b61cd88ac00000000";
@@ -33,10 +34,10 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
 
         byte[] tx1Bytes = HEX.decode(rawTx1);
-        Transaction tx1 = new Transaction(params, tx1Bytes);
+        Transaction tx1 = new Transaction(net, tx1Bytes);
 
         byte[] tx2Bytes = HEX.decode(rawtx2);
-        Transaction tx2 = new Transaction(params, tx2Bytes);
+        Transaction tx2 = new Transaction(net, tx2Bytes);
 
         Script scriptPubKey = tx1.getOutput(0).getScriptPubKey();
         Script scriptSig = tx2.getInput(0).getScriptSig();

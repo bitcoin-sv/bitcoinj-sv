@@ -1,24 +1,24 @@
 package org.bitcoinj.msg;
 
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.params.Network;
+import org.bitcoinj.params.Net;
 
 import java.util.EnumMap;
 
 public class Serializer {
 
-    private static final EnumMap<Network, MessageSerializer> SERIALIZERS = new EnumMap(Network.class);
+    private static final EnumMap<Net, MessageSerializer> SERIALIZERS = new EnumMap(Net.class);
 
-    public static MessageSerializer defaultFor(Network network) {
-        MessageSerializer serializer = SERIALIZERS.get(network);
+    public static MessageSerializer defaultFor(Net net) {
+        MessageSerializer serializer = SERIALIZERS.get(net);
         if (serializer == null) {
-            NetworkParameters params = Network.of(network);
+            NetworkParameters params = Net.of(net);
             serializer = new BitcoinSerializer(params);
-            register(network, serializer);
+            register(net, serializer);
         }
         return serializer;
     }
-    static void register(Network network, MessageSerializer instance) {
-        SERIALIZERS.put(network, instance);
+    static void register(Net net, MessageSerializer instance) {
+        SERIALIZERS.put(net, instance);
     }
 }

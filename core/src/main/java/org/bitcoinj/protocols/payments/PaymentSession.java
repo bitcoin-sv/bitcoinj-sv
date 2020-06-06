@@ -299,9 +299,9 @@ public class PaymentSession {
      * Returns a {@link SendRequest} suitable for broadcasting to the network.
      */
     public SendRequest getSendRequest() {
-        Transaction tx = new Transaction(params);
+        Transaction tx = new Transaction(params.getNet());
         for (Protos.Output output : paymentDetails.getOutputsList())
-            tx.addOutput(new TransactionOutput(params, tx, Coin.valueOf(output.getAmount()), output.getScript().toByteArray()));
+            tx.addOutput(new TransactionOutput(params.getNet(), tx, Coin.valueOf(output.getAmount()), output.getScript().toByteArray()));
         return SendRequest.forTx(tx).fromPaymentDetails(paymentDetails);
     }
 

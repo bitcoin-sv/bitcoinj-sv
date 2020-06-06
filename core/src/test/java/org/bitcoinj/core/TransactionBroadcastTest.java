@@ -72,7 +72,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
     @Test
     public void fourPeers() throws Exception {
         InboundMessageQueuer[] channels = { connectPeer(1), connectPeer(2), connectPeer(3), connectPeer(4) };
-        Transaction tx = new Transaction(PARAMS);
+        Transaction tx = new Transaction(NET);
         tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
         TransactionBroadcast broadcast = new TransactionBroadcast(peerGroup, tx);
         final AtomicDouble lastProgress = new AtomicDouble();
@@ -115,7 +115,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         // immediately with the latest state. This avoids API users writing accidentally racy code when they use
         // a convenience method like peerGroup.broadcastTransaction.
         InboundMessageQueuer[] channels = { connectPeer(1), connectPeer(2), connectPeer(3), connectPeer(4) };
-        Transaction tx = FakeTxBuilder.createFakeTx(PARAMS, CENT, address);
+        Transaction tx = FakeTxBuilder.createFakeTx(NET, CENT, address);
         tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
         TransactionBroadcast broadcast = peerGroup.broadcastTransaction(tx);
         inbound(channels[1], InventoryMessage.with(tx));
@@ -133,14 +133,14 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
     @Test
     public void rejectHandling() throws Exception {
         InboundMessageQueuer[] channels = { connectPeer(0), connectPeer(1), connectPeer(2), connectPeer(3), connectPeer(4) };
-        Transaction tx = new Transaction(PARAMS);
+        Transaction tx = new Transaction(NET);
         TransactionBroadcast broadcast = new TransactionBroadcast(peerGroup, tx);
         ListenableFuture<Transaction> future = broadcast.broadcast();
         // 0 and 3 are randomly selected to receive the broadcast.
         assertEquals(tx, outbound(channels[1]));
         assertEquals(tx, outbound(channels[2]));
         assertEquals(tx, outbound(channels[4]));
-        RejectMessage reject = new RejectMessage(PARAMS, RejectMessage.RejectCode.DUST, tx.getHash(), "tx", "dust");
+        RejectMessage reject = new RejectMessage(NET, RejectMessage.RejectCode.DUST, tx.getHash(), "tx", "dust");
         inbound(channels[1], reject);
         inbound(channels[4], reject);
         try {
@@ -192,7 +192,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         // Make sure we can create spends, and that they are announced. Then do the same with offline mode.
 
         // Set up connections and block chain.
-        VersionMessage ver = new VersionMessage(PARAMS, 2);
+        VersionMessage ver = new VersionMessage(NET, 2);
         ver.localServices = VersionMessage.NODE_NETWORK | VersionMessage.NODE_BITCOIN_CASH;
         InboundMessageQueuer p1 = connectPeer(1, ver);
         InboundMessageQueuer p2 = connectPeer(2);
@@ -235,7 +235,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         // 49 BTC in change.
         assertEquals(valueOf(49, 0), t1.getValueSentToMe(wallet));
         // The future won't complete until it's heard back from the network on p2.
-        InventoryMessage inv = new InventoryMessage(PARAMS);
+        InventoryMessage inv = new InventoryMessage(NET);
         inv.addTransaction(t1);
         inbound(p2, inv);
         pingAndWait(p2);

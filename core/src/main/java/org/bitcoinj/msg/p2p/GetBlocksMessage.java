@@ -18,6 +18,7 @@ package org.bitcoinj.msg.p2p;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.params.Net;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,15 +37,15 @@ public class GetBlocksMessage extends Message {
     protected List<Sha256Hash> locator;
     protected Sha256Hash stopHash;
 
-    public GetBlocksMessage(NetworkParameters params, List<Sha256Hash> locator, Sha256Hash stopHash) {
-        super(params);
+    public GetBlocksMessage(Net net, List<Sha256Hash> locator, Sha256Hash stopHash) {
+        super(net);
         this.version = protocolVersion;
         this.locator = locator;
         this.stopHash = stopHash;
     }
 
-    public GetBlocksMessage(NetworkParameters params, byte[] payload) throws ProtocolException {
-        super(params, payload, 0);
+    public GetBlocksMessage(Net net, byte[] payload) throws ProtocolException {
+        super(net, payload, 0);
     }
 
     @Override
@@ -87,7 +88,7 @@ public class GetBlocksMessage extends Message {
     @Override
     protected void bitcoinSerializeToStream(OutputStream stream) throws IOException {
         // Version, for some reason.
-        Utils.uint32ToByteStreamLE(params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT), stream);
+        Utils.uint32ToByteStreamLE(net.params().getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT), stream);
         // Then a vector of block hashes. This is actually a "block locator", a set of block
         // identifiers that spans the entire chain with exponentially increasing gaps between
         // them, until we end up at the genesis block. See CBlockLocator::Set()

@@ -20,7 +20,7 @@ package org.bitcoinj.msg.protocol;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.Network;
+import org.bitcoinj.params.Net;
 import org.bitcoinj.params.TestNet2Params;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
@@ -31,6 +31,7 @@ import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.Wallet.BalanceType;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.junit.After;
 import org.junit.rules.ExpectedException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -59,18 +60,22 @@ public class SPVBlockChainTest {
     private BlockStore blockStore;
     private Address coinbaseTo;
     private static final NetworkParameters PARAMS = UnitTestParams.get();
+    private static final Net NET = Net.UNITTEST;
     private final StoredBlock[] block = new StoredBlock[1];
     private Transaction coinbaseTransaction;
 
     private static class TweakableTestNet2Params extends TestNet2Params {
         public TweakableTestNet2Params() {
-            super(Network.TESTNET2);
+            super(Net.TESTNET2);
         }
         public void setMaxTarget(BigInteger limit) {
             maxTarget = limit;
         }
     }
     private static final TweakableTestNet2Params testNet = new TweakableTestNet2Params();
+    private static final Net net = Net.TESTNET2;
+    private static NetworkParameters originalTestnetParams;
+
 
     private void resetBlockStore() {
         blockStore = new MemoryBlockStore(PARAMS);
@@ -78,6 +83,7 @@ public class SPVBlockChainTest {
 
     @Before
     public void setUp() throws Exception {
+        originalTestnetParams = Net.replaceForTesting(net, testNet);
         BriefLogFormatter.initVerbose();
         Context.propagate(new Context(testNet, 100, Coin.ZERO, false));
         testNetChain = new SPVBlockChain(testNet, new Wallet(testNet), new MemoryBlockStore(testNet));
@@ -99,6 +105,11 @@ public class SPVBlockChainTest {
         chain = new SPVBlockChain(PARAMS, wallet, blockStore);
 
         coinbaseTo = wallet.currentReceiveKey().toAddress(PARAMS);
+    }
+
+    @After
+    public void restoreTestnet() {
+        Net.replaceForTesting(net, originalTestnetParams);
     }
 
     @Test
@@ -132,7 +143,7 @@ public class SPVBlockChainTest {
     public void receiveCoins() throws Exception {
         int height = 1;
         // Quick check that we can actually receive coins.
-        Transaction tx1 = createFakeTx(PARAMS,
+        Transaction tx1 = createFakeTx(NET,
                                        COIN,
                                        wallet.currentReceiveKey().toAddress(PARAMS));
         Block b1 = createFakeBlock(blockStore, height, tx1).block;
@@ -188,7 +199,7 @@ public class SPVBlockChainTest {
         assertTrue(testNetChain.add(getBlock1()));
         Block b2 = getBlock2();
         assertTrue(testNetChain.add(b2));
-        Block bad = DefaultMsgAccessors.newBlock(testNet, Block.BLOCK_VERSION_GENESIS);
+        Block bad = DefaultMsgAccessors.newBlock(net, Block.BLOCK_VERSION_GENESIS);
         // Merkle root can be anything here, doesn't matter.
         bad.setMerkleRoot(Sha256Hash.wrap("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
         // Nonce was just some number that made the hash < difficulty limit set below, it can be anything.
@@ -303,8 +314,8 @@ public class SPVBlockChainTest {
         ECKey key = wallet.freshReceiveKey();
         Address addr = key.toAddress(PARAMS);
         // Create a tx that gives us some coins, and another that spends it to someone else in the same block.
-        Transaction t1 = FakeTxBuilder.createFakeTx(PARAMS, COIN, addr);
-        Transaction t2 = new Transaction(PARAMS);
+        Transaction t1 = FakeTxBuilder.createFakeTx(NET, COIN, addr);
+        Transaction t2 = new Transaction(net);
         t2.addInput(t1.getOutputs().get(0));
         t2.addOutput(valueOf(2, 0), somebodyElse);
         b1.addTransaction(t1);
@@ -348,7 +359,7 @@ public class SPVBlockChainTest {
         // Check that the coinbase is unavailable to spend for the next spendableCoinbaseDepth - 2 blocks.
         for (int i = 0; i < PARAMS.getSpendableCoinbaseDepth() - 2; i++) {
             // Non relevant tx - just for fake block creation.
-            Transaction tx2 = createFakeTx(PARAMS, COIN,
+            Transaction tx2 = createFakeTx(NET, COIN,
                 new ECKey().toAddress(PARAMS));
 
             Block b2 = createFakeBlock(blockStore, height++, tx2).block;
@@ -370,7 +381,7 @@ public class SPVBlockChainTest {
         }
 
         // Give it one more block - should now be able to spend coinbase transaction. Non relevant tx.
-        Transaction tx3 = createFakeTx(PARAMS, COIN, new ECKey().toAddress(PARAMS));
+        Transaction tx3 = createFakeTx(NET, COIN, new ECKey().toAddress(PARAMS));
         Block b3 = createFakeBlock(blockStore, height++, tx3).block;
         chain.add(b3);
 
@@ -401,7 +412,7 @@ public class SPVBlockChainTest {
 
     // Some blocks from the test net.
     private static Block getBlock2() throws Exception {
-        Block b2 = new Block(testNet, Block.BLOCK_VERSION_GENESIS);
+        Block b2 = new Block(net, Block.BLOCK_VERSION_GENESIS);
         b2.setMerkleRoot(Sha256Hash.wrap("addc858a17e21e68350f968ccd384d6439b64aafa6c193c8b9dd66320470838b"));
         b2.setNonce(2642058077L);
         b2.setTime(1296734343L);
@@ -412,7 +423,7 @@ public class SPVBlockChainTest {
     }
 
     private static Block getBlock1() throws Exception {
-        Block b1 = new Block(testNet, Block.BLOCK_VERSION_GENESIS);
+        Block b1 = new Block(net, Block.BLOCK_VERSION_GENESIS);
         b1.setMerkleRoot(Sha256Hash.wrap("0e8e58ecdacaa7b3c6304a35ae4ffff964816d2b80b62b58558866ce4e648c10"));
         b1.setNonce(236038445);
         b1.setTime(1296734340);

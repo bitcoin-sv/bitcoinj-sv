@@ -38,7 +38,7 @@
    that served signed "directory" documents containing a list of signed
    "router descriptors", along with short summary of the status of each
    router.  Thus, clients could get up-to-date information on the state of
-   the network automatically, and be certain that the list they were getting
+   the net automatically, and be certain that the list they were getting
    was attested by a trusted directory authority.
 
    Later versions (0.0.8) added directory caches, which download
@@ -48,7 +48,7 @@
 
    Also added during the version 1 directory protocol were "router status"
    documents: short documents that listed only the up/down status of the
-   routers on the network, rather than a complete list of all the
+   routers on the net, rather than a complete list of all the
    descriptors.  Clients and caches would fetch these documents far more
    frequently than they would fetch full directories.
 
@@ -64,17 +64,17 @@
 
       * Every directory authority was a trust bottleneck: if a single
         directory authority lied, it could make clients believe for a time
-        an arbitrarily distorted view of the Tor network.  (Clients
+        an arbitrarily distorted view of the Tor net.  (Clients
         trusted the most recent signed document they downloaded.) Thus,
         adding more authorities would make the system less secure, not
         more.
 
    To address these, we extended the directory protocol so that
-   authorities now published signed "network status" documents.  Each
-   network status listed, for every router in the network: a hash of its
+   authorities now published signed "net status" documents.  Each
+   net status listed, for every router in the net: a hash of its
    identity key, a hash of its most recent descriptor, and a summary of
    what the authority believed about its status.  Clients would download
-   the authorities' network status documents in turn, and believe
+   the authorities' net status documents in turn, and believe
    statements about routers iff they were attested to by more than half of
    the authorities.
 
@@ -100,18 +100,18 @@
         fetch or use.
 
       * It was possible under certain perverse circumstances for clients
-        to download an unusual set of network status documents, thus
+        to download an unusual set of net status documents, thus
         partitioning themselves from clients who have a more recent and/or
         typical set of documents.  Even under the best of circumstances,
-        clients were sensitive to the ages of the network status documents
+        clients were sensitive to the ages of the net status documents
         they downloaded.  Therefore, instead of having the clients
-        correlate multiple network status documents, we have the
-        authorities collectively vote on a single consensus network status
+        correlate multiple net status documents, we have the
+        authorities collectively vote on a single consensus net status
         document.
 
-      * The most sensitive data in the entire network (the identity keys
+      * The most sensitive data in the entire net (the identity keys
         of the directory authorities) needed to be stored unencrypted so
-        that the authorities can sign network-status documents on the fly.
+        that the authorities can sign net-status documents on the fly.
         Now, the authorities' identity keys are stored offline, and used
         to certify medium-term signing keys that can be rotated.
 
@@ -186,7 +186,7 @@
 
 1.1. What's different from version 2?
 
-   Clients used to download multiple network status documents,
+   Clients used to download multiple net status documents,
    corresponding roughly to "status votes" above.  They would compute the
    result of the vote on the client side.
 
@@ -658,7 +658,7 @@
 
         List of mappings from two-letter country codes to the number of
         unique IP addresses that have connected from that country to
-        request a v2/v3 network status, rounded up to the nearest multiple
+        request a v2/v3 net status, rounded up to the nearest multiple
         of 8. Only those IP addresses are counted that the directory can
         answer with a 200 OK status code.
 
@@ -668,7 +668,7 @@
         [At most once.]
 
         List of mappings from two-letter country codes to the number of
-        requests for v2/v3 network statuses from that country, rounded up
+        requests for v2/v3 net statuses from that country, rounded up
         to the nearest multiple of 8. Only those requests are counted that
         the directory can answer with a 200 OK status code.
 
@@ -677,9 +677,9 @@
     "dirreq-v3-share" num% NL
         [At most once.]
 
-        The share of v2/v3 network status requests that the directory
+        The share of v2/v3 net status requests that the directory
         expects to receive from clients based on its advertised bandwidth
-        compared to the overall network bandwidth capacity. Shares are
+        compared to the overall net bandwidth capacity. Shares are
         formatted in percent with two decimal places. Shares are
         calculated as means over the whole 24-hour interval.
 
@@ -689,21 +689,21 @@
         [At most once.]
 
         List of mappings from response statuses to the number of requests
-        for v2/v3 network statuses that were answered with that response
+        for v2/v3 net statuses that were answered with that response
         status, rounded up to the nearest multiple of 4. Only response
         statuses with at least 1 response are reported. New response
         statuses can be added at any time. The current list of response
         statuses is as follows:
 
-        "ok": a network status request is answered; this number
+        "ok": a net status request is answered; this number
            corresponds to the sum of all requests as reported in
            "dirreq-v2-reqs" or "dirreq-v3-reqs", respectively, before
            rounding up.
-        "not-enough-sigs: a version 3 network status is not signed by a
+        "not-enough-sigs: a version 3 net status is not signed by a
            sufficient number of requested authorities.
-        "unavailable": a requested network status object is unavailable.
-        "not-found": a requested network status is not found.
-        "not-modified": a network status has not been modified since the
+        "unavailable": a requested net status object is unavailable.
+        "not-found": a requested net status is not found.
+        "not-modified": a net status has not been modified since the
            If-Modified-Since time that is included in the request.
         "busy": the directory is busy.
 
@@ -717,7 +717,7 @@
         [At most once.]
 
         List of statistics about possible failures in the download process
-        of v2/v3 network statuses. Requests are either "direct"
+        of v2/v3 net statuses. Requests are either "direct"
         HTTP-encoded requests over the relay's directory port, or
         "tunneled" requests using a BEGIN_DIR cell over the relay's OR
         port. The list of possible statistics can change, and statistics
@@ -1002,7 +1002,7 @@
    The preamble contains the following items.  They MUST occur in the
    order given here:
 
-    "network-status-version" SP version NL.
+    "net-status-version" SP version NL.
 
         [At start, exactly once.]
 
@@ -1271,7 +1271,7 @@
     "directory-signature" SP identity SP signing-key-digest NL Signature
 
         This is a signature of the status document, with the initial item
-        "network-status-version", and the signature item
+        "net-status-version", and the signature item
         "directory-signature", using the signing key.  (In this case, we take
         the hash through the _space_ after directory-signature, not the
         newline: this ensures that all authorities sign the same thing.)
@@ -1302,7 +1302,7 @@
    binds X to some other Y'.)  A router is called 'Named' if the router
    believes the given name should be bound to the given key.
 
-        Two strategies exist on the current network for deciding on
+        Two strategies exist on the current net for deciding on
         values for the Named flag.  In the original version, server
         operators were asked to send nickname-identity pairs to a
         mailing list of Naming directory authorities operators.  The
@@ -1359,7 +1359,7 @@
         recently than it, OR it has been around for a few weeks.
 
    "Authority" -- A router is called an 'Authority' if the authority
-   generating the network-status document believes it is an authority.
+   generating the net-status document believes it is an authority.
 
    "V2Dir" -- A router supports the v2 directory protocol if it has an open
    directory port, and it is running a version of the directory protocol that
@@ -1376,7 +1376,7 @@
    to it successfully within the last 24 hours.
 
    Directory server administrators may label some servers or IPs as
-   blacklisted, and elect not to include them in their network-status lists.
+   blacklisted, and elect not to include them in their net-status lists.
 
    Authorities SHOULD 'disable' any servers in excess of 3 on any single IP.
    When there are more than 3 to choose from, authorities should first prefer
@@ -1384,7 +1384,7 @@
    then prefer high-bandwidth to low-bandwidth.  To 'disable' a server, the
    authority *should* advertise it without the Running or Valid flag.
 
-   Thus, the network-status vote includes all non-blacklisted,
+   Thus, the net-status vote includes all non-blacklisted,
    non-expired, non-superseded descriptors.
 
    The bandwidth in a "w" line should be taken as the best estimate
@@ -1395,7 +1395,7 @@
 
    The Measured= keyword on a "w" line vote is currently computed
    by multiplying the previous published consensus bandwidth by the 
-   ratio of the measured average node stream capacity to the network 
+   ratio of the measured average node stream capacity to the net
    average. If 3 or more authorities provide a Measured= keyword for 
    a router, the authorites produce a consensus containing a "w" 
    Bandwidth= keyword equal to the median of the Measured= votes.
@@ -1672,7 +1672,7 @@
      http://<hostname>/tor/status-vote/current/d/<d>.z
    once the consensus is complete.
 
-   Once an authority has computed and signed a consensus network status, it
+   Once an authority has computed and signed a consensus net status, it
    should send its detached signature to each other authority in an HTTP POST
    request to the URL:
       http://<hostname>/tor/post/consensus-signature
@@ -1685,8 +1685,8 @@
 4.3. Downloading consensus status documents (caches only)
 
    All directory servers (authorities and caches) try to keep a recent
-   network-status consensus document to serve to clients.  A cache ALWAYS
-   downloads a network-status consensus if any of the following are true:
+   net-status consensus document to serve to clients.  A cache ALWAYS
+   downloads a net-status consensus if any of the following are true:
      - The cache has no consensus document.
      - The cache's consensus document is no longer valid.
    Otherwise, the cache downloads a new consensus document at a randomly
@@ -1705,7 +1705,7 @@
    Periodically (currently, every 10 seconds), directory servers check
    whether there are any specific descriptors that they do not have and that
    they are not currently trying to download.  Caches identify these
-   descriptors by hash in the recent network-status consensus documents;
+   descriptors by hash in the recent net-status consensus documents;
    authorities identify them by hash in vote (if publication date is more
    recent than the descriptor we currently have).
 
@@ -1720,7 +1720,7 @@
 
    If one of these downloads fails, we do not try to download that descriptor
    from the authority that failed to serve it again unless we receive a newer
-   network-status (consensus or vote) from that authority that lists the same
+   net-status (consensus or vote) from that authority that lists the same
    descriptor.
 
    Directory servers must potentially cache multiple descriptors for each
@@ -1810,7 +1810,7 @@
    (NOTE: Implementations SHOULD NOT download descriptors by identity key
    fingerprint. This allows a corrupted server (in collusion with a cache) to
    provide a unique descriptor to a client, and thereby partition that client
-   from the rest of the network.)
+   from the rest of the net.)
 
    The server descriptor with (descriptor) digest <D> (in hex) should be
    available at:
@@ -1862,24 +1862,24 @@
    Every Tor that is not a directory server (that is, those that do
    not have a DirPort set) implements this section.
 
-5.1. Downloading network-status documents
+5.1. Downloading net-status documents
 
    Each client maintains a list of directory authorities.  Insofar as
    possible, clients SHOULD all use the same list.
 
-   Clients try to have a live consensus network-status document at all times.
-   A network-status document is "live" if the time in its valid-until field
+   Clients try to have a live consensus net-status document at all times.
+   A net-status document is "live" if the time in its valid-until field
    has not passed.
 
-   If a client is missing a live network-status document, it tries to fetch
+   If a client is missing a live net-status document, it tries to fetch
    it from a directory cache (or from an authority if it knows no caches).
-   On failure, the client waits briefly, then tries that network-status
+   On failure, the client waits briefly, then tries that net-status
    document again from another cache.  The client does not build circuits
-   until it has a live network-status consensus document, and it has
+   until it has a live net-status consensus document, and it has
    descriptors for more than 1/4 of the routers that it believes are running.
 
-   (Note: clients can and should pick caches based on the network-status
-   information they have: once they have first fetched network-status info
+   (Note: clients can and should pick caches based on the net-status
+   information they have: once they have first fetched net-status info
    from an authority, they should not need to go to the authority directly
    again.)
 
@@ -1901,7 +1901,7 @@
 
    Clients try to have the best descriptor for each router.  A descriptor is
    "best" if:
-      * It is listed in the consensus network-status document.
+      * It is listed in the consensus net-status document.
 
    Periodically (currently every 10 seconds) clients check whether there are
    any "downloadable" descriptors.  A descriptor is downloadable if:
@@ -1936,10 +1936,10 @@
 
 5.3. Managing downloads
 
-   When a client has no consensus network-status document, it downloads it
+   When a client has no consensus net-status document, it downloads it
    from a randomly chosen authority.  In all other cases, the client
    downloads from caches randomly chosen from among those believed to be V2
-   directory servers.  (This information comes from the network-status
+   directory servers.  (This information comes from the net-status
    documents; see 6 below.)
 
    When downloading multiple router descriptors, the client chooses multiple
@@ -1951,7 +1951,7 @@
    After choosing mirrors, the client divides the descriptors among them
    randomly.
 
-   After receiving any response client MUST discard any network-status
+   After receiving any response client MUST discard any net-status
    documents and descriptors that it did not request.
 
 6. Using directory information
@@ -1963,10 +1963,10 @@
 6.1. Choosing routers for circuits.
 
    Circuits SHOULD NOT be built until the client has enough directory
-   information: a live consensus network status [XXXX fallback?]  and
+   information: a live consensus net status [XXXX fallback?]  and
    descriptors for at least 1/4 of the servers believed to be running.
 
-   A server is "listed" if it is included by the consensus network-status
+   A server is "listed" if it is included by the consensus net-status
    document.  Clients SHOULD NOT use unlisted servers.
 
    These flags are used as follows:
@@ -2020,7 +2020,7 @@
 6.3. Software versions
 
    An implementation of Tor SHOULD warn when it has fetched a consensus
-   network-status, and it is running a software version not listed.
+   net-status, and it is running a software version not listed.
 
 6.4. Warning about a router's status.
 
@@ -2069,9 +2069,9 @@
   them.  [Servers before version 0.1.2.5-alpha reported 127.0.0.1 for all
   BEGIN_DIR-tunneled connections.]
 
-  Servers SHOULD disable caching of multiple network statuses or multiple
+  Servers SHOULD disable caching of multiple net statuses or multiple
   router descriptors.  Servers MAY enable caching of single descriptors,
-  single network statuses, the list of all router descriptors, a v1
+  single net statuses, the list of all router descriptors, a v1
   directory, or a v1 running routers document.  XXX mention times.
 
 7.2. HTTP status codes
@@ -2110,9 +2110,9 @@
 
   Until Tor versions before 0.2.0.x are completely obsolete, directory
   authorities should generate, mirrors should download and cache, v2
-  network-status documents, and allow old clients to download them.
+  net-status documents, and allow old clients to download them.
   Additionally, all directory servers and caches should download, store, and
-  serve any router descriptor that is required because of v2 network-status
+  serve any router descriptor that is required because of v2 net-status
   documents. These documents and the rules for retrieving, serving, and
   caching them are described in dir-spec-v1.txt.
 

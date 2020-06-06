@@ -16,8 +16,8 @@
 
 package org.bitcoinj.msg.p2p;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.msg.EmptyMessage;
+import org.bitcoinj.params.Net;
 
 /**
  * <p>The verack message, sent by a client accepting the version message they
@@ -30,6 +30,6 @@ public class VersionAck extends EmptyMessage {
     }
 
     // this is needed by the BitcoinSerializer
-    public VersionAck(NetworkParameters params, byte[] payload) {
+    public VersionAck(Net net, byte[] payload) {
     }
 }

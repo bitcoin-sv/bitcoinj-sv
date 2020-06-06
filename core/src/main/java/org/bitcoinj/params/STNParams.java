@@ -31,8 +31,8 @@ public class STNParams extends TestNet3Params {
 
     public static final String ID_GBTN = "org.bitcoin.stn";
 
-    public STNParams(Network network) {
-        super(network);
+    public STNParams(Net net) {
+        super(net);
         id = ID_GBTN;
         packetMagic = 0xfbcec4f9L;
         port = 9333;
@@ -43,8 +43,9 @@ public class STNParams extends TestNet3Params {
 
     }
 
-    private static STNParams instance = new STNParams(Network.STN);
-    static {Network.register(instance.network, instance);}
+    private static STNParams instance = new STNParams(Net.STN);
+    static {
+        Net.register(instance.net, instance);}
     public static synchronized STNParams get() {
         return instance;
     }

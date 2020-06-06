@@ -18,6 +18,7 @@ package org.bitcoinj.msg;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
+import org.bitcoinj.params.Net;
 
 import javax.annotation.Nullable;
 
@@ -32,32 +33,32 @@ public abstract class ChildMessage extends Message {
     @Nullable protected Message parent;
 
     /**
-     * @deprecated Use {@link #ChildMessage(NetworkParameters)} instead.
+     * @deprecated Use {@link #ChildMessage(Net)} instead.
      */
     @Deprecated
     protected ChildMessage() {
     }
 
-    public ChildMessage(NetworkParameters params) {
-        super(params);
+    public ChildMessage(Net net) {
+        super(net);
     }
 
-    public ChildMessage(NetworkParameters params, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
-        super(params, payload, offset, protocolVersion);
+    public ChildMessage(Net net, byte[] payload, int offset, int protocolVersion) throws ProtocolException {
+        super(net, payload, offset, protocolVersion);
     }
 
-    public ChildMessage(NetworkParameters params, byte[] payload, int offset, int protocolVersion, Message parent, SerializeMode serializeMode, int length) throws ProtocolException {
-        super(params, payload, offset, protocolVersion, serializeMode, length);
+    public ChildMessage(Net net, byte[] payload, int offset, int protocolVersion, Message parent, SerializeMode serializeMode, int length) throws ProtocolException {
+        super(net, payload, offset, protocolVersion, serializeMode, length);
         this.parent = parent;
     }
 
-    public ChildMessage(NetworkParameters params, byte[] payload, int offset) throws ProtocolException {
-        super(params, payload, offset);
+    public ChildMessage(Net net, byte[] payload, int offset) throws ProtocolException {
+        super(net, payload, offset);
     }
 
-    public ChildMessage(NetworkParameters params, byte[] payload, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
+    public ChildMessage(Net net, byte[] payload, int offset, @Nullable Message parent, SerializeMode serializeMode, int length)
             throws ProtocolException {
-        super(params, payload, offset, serializeMode, length);
+        super(net, payload, offset, serializeMode, length);
         this.parent = parent;
     }
 
