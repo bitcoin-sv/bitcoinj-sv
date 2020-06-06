@@ -16,9 +16,9 @@
 
 package org.bitcoinj.msg.p2p;
 
-import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.Net;
 
@@ -120,7 +120,7 @@ public class AlertMessage extends Message {
      * doesn't verify, because that would allow arbitrary attackers to spam your users.
      */
     public boolean isSignatureValid() {
-        return ECKey.verify(Sha256Hash.hashTwice(content), signature, net.params().getAlertSigningKey());
+        return ECDSA.verify(Sha256Hash.hashTwice(content), signature, net.params().getAlertSigningKey());
     }
 
     @Override

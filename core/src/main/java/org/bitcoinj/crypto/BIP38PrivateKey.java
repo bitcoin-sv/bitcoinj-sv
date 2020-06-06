@@ -21,6 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Bytes;
 import com.lambdaworks.crypto.SCrypt;
+import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.params.NetworkParameters;
 
@@ -175,7 +176,7 @@ public class BIP38PrivateKey extends VersionedChecksummedBytes {
             BigInteger seedFactor = new BigInteger(1, Sha256Hash.hashTwice(seed));
             checkState(passFactor.signum() >= 0);
             checkState(seedFactor.signum() >= 0);
-            BigInteger priv = passFactor.multiply(seedFactor).mod(ECKey.CURVE.getN());
+            BigInteger priv = passFactor.multiply(seedFactor).mod(ECDSA.CURVE.getN());
 
             return ECKey.fromPrivate(priv, compressed);
         } catch (GeneralSecurityException x) {

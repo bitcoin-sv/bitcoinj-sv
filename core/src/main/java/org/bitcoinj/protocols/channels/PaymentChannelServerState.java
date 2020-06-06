@@ -17,6 +17,7 @@
 package org.bitcoinj.protocols.channels;
 
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.wallet.SendRequest;
@@ -29,7 +30,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.script.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,12 +273,12 @@ public abstract class PaymentChannelServerState {
             throw new VerificationException("Multisig contract was double-spent");
         }
 
-        Transaction.SigHash mode;
+        SigHash mode;
         // If the client doesn't want anything back, they shouldn't sign any outputs at all.
         if (fullyUsedUp)
-            mode = Transaction.SigHash.NONE;
+            mode = SigHash.NONE;
         else
-            mode = Transaction.SigHash.SINGLE;
+            mode = SigHash.SINGLE;
 
         if (signature.sigHashMode() != mode || !signature.anyoneCanPay())
             throw new VerificationException("New payment signature was not signed with the right SIGHASH flags.");

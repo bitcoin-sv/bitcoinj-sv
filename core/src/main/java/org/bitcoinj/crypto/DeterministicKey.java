@@ -22,6 +22,8 @@ import org.bitcoinj.core.*;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import org.bitcoinj.ecc.ECDSA;
+import org.bitcoinj.ecc.ECDSASignature;
 import org.bitcoinj.params.NetworkParameters;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.math.ec.ECPoint;
@@ -365,7 +367,7 @@ public class DeterministicKey extends ECKey {
                 // This key is a part of a public-key only heirarchy and cannot be used for signing
                 throw new MissingPrivateKeyException();
             }
-            return super.doSign(input, privateKey);
+            return ECDSA.doSign(input, privateKey);
         }
     }
 
@@ -553,7 +555,7 @@ public class DeterministicKey extends ECKey {
         buffer.get(data);
         checkArgument(!buffer.hasRemaining(), "Found unexpected data in key");
         if (pub) {
-            return new DeterministicKey(path, chainCode, new LazyECPoint(ECKey.CURVE.getCurve(), data), parent, depth, parentFingerprint);
+            return new DeterministicKey(path, chainCode, new LazyECPoint(ECDSA.CURVE.getCurve(), data), parent, depth, parentFingerprint);
         } else {
             return new DeterministicKey(path, chainCode, new BigInteger(1, data), parent, depth, parentFingerprint);
         }

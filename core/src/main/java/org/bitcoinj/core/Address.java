@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -45,7 +46,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * should be interpreted. Whilst almost all addresses today are hashes of public keys, another (currently unsupported
  * type) can contain a hash of a script instead.</p>
  */
-public class Address extends VersionedChecksummedBytes {
+public class Address extends VersionedChecksummedBytes implements Addressable {
     /**
      * An address is a RIPEMD160 hash of a public key, therefore is always 160 bits or 20 bytes.
      */
@@ -65,6 +66,10 @@ public class Address extends VersionedChecksummedBytes {
         if (!isAcceptableVersion(params, version))
             throw new WrongNetworkException(version, params.getAcceptableAddressCodes());
         this.params = params;
+    }
+
+    public Address(Addressable address) {
+        this(address.getParams(), address.getVersion(), address.getHash160());
     }
 
     /** Returns an Address that represents the given P2SH script hash. */
@@ -132,7 +137,13 @@ public class Address extends VersionedChecksummedBytes {
         }
     }
 
+    @Override
+    public NetworkParameters getParams() {
+        return params;
+    }
+
     /** The (big endian) 20 byte hash that is the core of a Bitcoin address. */
+    @Override
     public byte[] getHash160() {
         return bytes;
     }
@@ -141,6 +152,7 @@ public class Address extends VersionedChecksummedBytes {
      * Returns true if this address is a Pay-To-Script-Hash (P2SH) address.
      * See also https://github.com/bitcoin/bips/blob/master/bip-0013.mediawiki: Address Format for pay-to-script-hash
      */
+    @Override
     public boolean isP2SHAddress() {
         final NetworkParameters parameters = getParameters();
         return parameters != null && this.version == parameters.getP2SHHeader();
@@ -204,4 +216,13 @@ public class Address extends VersionedChecksummedBytes {
         in.defaultReadObject();
         params = Verification.fromID(in.readUTF());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Addressable other = (Addressable) o;
+        return this.getVersion() == other.getVersion() && Arrays.equals(this.getHash160(), other.getHash160());
+    }
+
 }

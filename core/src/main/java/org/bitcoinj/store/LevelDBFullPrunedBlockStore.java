@@ -36,6 +36,7 @@ import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.ScriptUtils;
 import org.iq80.leveldb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -454,7 +455,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
                 }
                 if (txout != null) {
                     Script sc = txout.getScript();
-                    Address address = sc.getToAddress(params, true);
+                    Addressable address = ScriptUtils.getToAddress(sc, params, true);
                     UTXO output = new UTXO(txout.getHash(), txout.getIndex(), txout.getValue(), txout.getHeight(),
                             txout.isCoinbase(), txout.getScript(), address.toString());
                     results.add(output);
@@ -878,13 +879,13 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
         // TODO storing as byte[] hash to save space. But think should just
         // store as String of address. Might be faster. Need to test.
         ByteBuffer bb = ByteBuffer.allocate(57);
-        Address a;
+        Addressable a;
         byte[] hashBytes = null;
         try {
             String address = out.getAddress();
             if (address == null || address.equals("")) {
                 Script sc = out.getScript();
-                a = sc.getToAddress(params);
+                a = ScriptUtils.getToAddress(sc, params);
                 hashBytes = a.getHash160();
             } else {
                 a = Address.fromBase58(params, out.getAddress());

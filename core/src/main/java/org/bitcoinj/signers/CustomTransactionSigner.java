@@ -18,11 +18,14 @@ package org.bitcoinj.signers;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.ChildNumber;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
+import org.bitcoinj.ecc.ECDSASignature;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.wallet.KeyBag;
 import org.bitcoinj.wallet.RedeemData;
 import org.slf4j.Logger;
@@ -85,11 +88,11 @@ public abstract class CustomTransactionSigner extends StatelessTransactionSigner
             }
 
             Sha256Hash sighash = propTx.useForkId ?
-                    tx.hashForSignatureWitness(i, redeemData.redeemScript, tx.getInput(i).getConnectedOutput().getValue(), Transaction.SigHash.ALL, false) :
-                    tx.hashForSignature(i, redeemData.redeemScript, Transaction.SigHash.ALL, false);
+                    tx.hashForSignatureWitness(i, redeemData.redeemScript, tx.getInput(i).getConnectedOutput().getValue(), SigHash.ALL, false) :
+                    tx.hashForSignature(i, redeemData.redeemScript, SigHash.ALL, false);
             SignatureAndKey sigKey = getSignature(sighash, propTx.keyPaths.get(scriptPubKey));
-            TransactionSignature txSig = new TransactionSignature(sigKey.sig, Transaction.SigHash.ALL, false, propTx.useForkId);
-            int sigIndex = inputScript.getSigInsertionIndex(sighash, sigKey.pubKey);
+            TransactionSignature txSig = new TransactionSignature(sigKey.sig, SigHash.ALL, false, propTx.useForkId);
+            int sigIndex = ScriptUtils.getSigInsertionIndex(inputScript, sighash, sigKey.pubKey.getPubKey());
             inputScript = scriptPubKey.getScriptSigWithSignature(inputScript, txSig.encodeToBitcoin(), sigIndex);
             txIn.setScriptSig(inputScript);
         }
@@ -99,10 +102,10 @@ public abstract class CustomTransactionSigner extends StatelessTransactionSigner
     protected abstract SignatureAndKey getSignature(Sha256Hash sighash, List<ChildNumber> derivationPath);
 
     public class SignatureAndKey {
-        public final ECKey.ECDSASignature sig;
+        public final ECDSASignature sig;
         public final ECKey pubKey;
 
-        public SignatureAndKey(ECKey.ECDSASignature sig, ECKey pubKey) {
+        public SignatureAndKey(ECDSASignature sig, ECKey pubKey) {
             this.sig = sig;
             this.pubKey = pubKey;
         }

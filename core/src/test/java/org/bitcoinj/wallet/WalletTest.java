@@ -19,6 +19,7 @@ package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.*;
@@ -27,6 +28,7 @@ import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.signers.StatelessTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.exception.BlockStoreException;
@@ -399,8 +401,8 @@ public class WalletTest extends TestWithWallet {
     private void basicSanityChecks(Wallet wallet, Transaction t, Address destination) throws VerificationException {
         assertEquals("Wrong number of tx inputs", 1, t.getInputs().size());
         assertEquals("Wrong number of tx outputs",2, t.getOutputs().size());
-        assertEquals(destination, t.getOutput(0).getScriptPubKey().getToAddress(PARAMS));
-        assertEquals(wallet.currentChangeAddress(), t.getOutputs().get(1).getScriptPubKey().getToAddress(PARAMS));
+        assertEquals(destination, ScriptUtils.getToAddress(t.getOutput(0).getScriptPubKey(), PARAMS));
+        assertEquals(wallet.currentChangeAddress(), ScriptUtils.getToAddress(t.getOutputs().get(1).getScriptPubKey(), PARAMS));
         assertEquals(valueOf(0, 50), t.getOutputs().get(1).getValue());
         // Check the script runs and signatures verify.
         t.getInputs().get(0).verify();
@@ -436,8 +438,8 @@ public class WalletTest extends TestWithWallet {
         req.shuffleOutputs = false;
         wallet.completeTx(req);
         Transaction t3 = req.tx;
-        assertNotEquals(t2.getOutput(1).getScriptPubKey().getToAddress(PARAMS),
-                        t3.getOutput(1).getScriptPubKey().getToAddress(PARAMS));
+        assertNotEquals(ScriptUtils.getToAddress(t2.getOutput(1).getScriptPubKey(), PARAMS),
+                        ScriptUtils.getToAddress(t3.getOutput(1).getScriptPubKey(), PARAMS));
         assertNotNull(t3);
         wallet.commitTx(t3);
         assertTrue(wallet.isConsistent());
@@ -471,7 +473,6 @@ public class WalletTest extends TestWithWallet {
 
         // Do some basic sanity checks.
         assertEquals(1, t2.getInputs().size());
-        assertEquals(myAddress, t2.getInput(0).getScriptSig().getFromAddress(PARAMS));
         assertEquals(TransactionConfidence.ConfidenceType.UNKNOWN, t2.getConfidence().getConfidenceType());
 
         // We have NOT proven that the signature is correct!
@@ -2262,7 +2263,7 @@ public class WalletTest extends TestWithWallet {
     @Test
     public void sendRequestP2PKHTest() {
         SendRequest req = SendRequest.to(OTHER_ADDRESS, SATOSHI.multiply(12));
-        assertEquals(OTHER_ADDRESS, req.tx.getOutputs().get(0).getScriptPubKey().getToAddress(PARAMS));
+        assertEquals(OTHER_ADDRESS, ScriptUtils.getToAddress(req.tx.getOutputs().get(0).getScriptPubKey(), PARAMS));
     }
 
     @Test
@@ -2973,7 +2974,7 @@ public class WalletTest extends TestWithWallet {
         assertEquals(THREE_CENTS, tx.getValueSentFromMe(wallet));
         assertEquals(THREE_CENTS.subtract(tx.getFee()), tx.getValueSentToMe(wallet));
         // TX sends to one of our addresses (for now we ignore married wallets).
-        final Address toAddress = tx.getOutput(0).getScriptPubKey().getToAddress(PARAMS);
+        final Address toAddress = new Address(ScriptUtils.getToAddress(tx.getOutput(0).getScriptPubKey(), PARAMS));
         final ECKey rotatingToKey = wallet.findKeyFromPubHash(toAddress.getHash160());
         assertNotNull(rotatingToKey);
         assertFalse(wallet.isKeyRotating(rotatingToKey));
@@ -3080,7 +3081,7 @@ public class WalletTest extends TestWithWallet {
         wallet.setKeyRotationTime(goodKey.getCreationTimeSeconds());
         List<Transaction> txns = wallet.doMaintenance(null, false).get();
         assertEquals(1, txns.size());
-        Address output = txns.get(0).getOutput(0).getAddressFromP2PKHScript(PARAMS);
+        Addressable output = txns.get(0).getOutput(0).getAddressFromP2PKHScript(PARAMS);
         ECKey usedKey = wallet.findKeyFromPubHash(output.getHash160());
         assertEquals(goodKey.getCreationTimeSeconds(), usedKey.getCreationTimeSeconds());
         assertEquals(goodKey.getCreationTimeSeconds(), wallet.freshReceiveKey().getCreationTimeSeconds());

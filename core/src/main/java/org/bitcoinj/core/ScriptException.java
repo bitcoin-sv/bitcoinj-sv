@@ -17,28 +17,28 @@
 package org.bitcoinj.core;
 
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.script.Script;
+import org.bitcoinj.script.Interpreter;
 
 @SuppressWarnings("serial")
 public class ScriptException extends VerificationException {
 
-    private Script.ScriptExecutionState state;
+    private Interpreter.ScriptExecutionState state;
 
-    public ScriptException(Script.ScriptExecutionState state, String msg) {
+    public ScriptException(Interpreter.ScriptExecutionState state, String msg) {
         super(msg);
         this.state = state;
     }
 
     public ScriptException(String msg) {
         super(msg);
-        state = (Script.ScriptExecutionState) Script.SCRIPT_STATE_THREADLOCAL.get();
+        state = (Interpreter.ScriptExecutionState) Interpreter.SCRIPT_STATE_THREADLOCAL.get();
     }
 
 //    public ScriptException(String msg, Exception e) {
 //        super(msg, e);
 //    }
 
-    public Script.ScriptExecutionState getState() {
+    public Interpreter.ScriptExecutionState getState() {
         return state;
     }
 }

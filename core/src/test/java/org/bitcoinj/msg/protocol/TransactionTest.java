@@ -19,7 +19,8 @@ package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Message;
@@ -182,11 +183,11 @@ public class TransactionTest {
         tx.getInput(0).setSequenceNumber(0);
         tx.setLockTime(time.subtract(BigInteger.ONE).longValue());
         TransactionSignature fromSig =
-                tx.calculateSignature(0, from, outputScript, Transaction.SigHash.SINGLE, false);
+                tx.calculateSignature(0, from, outputScript, SigHash.SINGLE, false);
         TransactionSignature toSig =
-                tx.calculateSignature(0, to, outputScript, Transaction.SigHash.SINGLE, false);
+                tx.calculateSignature(0, to, outputScript, SigHash.SINGLE, false);
         TransactionSignature incorrectSig =
-                tx.calculateSignature(0, incorrect, outputScript, Transaction.SigHash.SINGLE, false);
+                tx.calculateSignature(0, incorrect, outputScript, SigHash.SINGLE, false);
         Script scriptSig =
                 ScriptBuilder.createCLTVPaymentChannelInput(fromSig, toSig);
         Script refundSig =
@@ -197,22 +198,22 @@ public class TransactionTest {
                 ScriptBuilder.createCLTVPaymentChannelInput(incorrectSig, toSig);
 
         try {
-            scriptSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            scriptSig.correctlySpends(tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
         } catch (ScriptException e) {
             e.printStackTrace();
             fail("Settle transaction failed to correctly spend the payment channel");
         }
 
         try {
-            refundSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            refundSig.correctlySpends(tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Refund passed before expiry");
         } catch (ScriptException e) { }
         try {
-            invalidScriptSig1.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            invalidScriptSig1.correctlySpends(tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Invalid sig 1 passed");
         } catch (ScriptException e) { }
         try {
-            invalidScriptSig2.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            invalidScriptSig2.correctlySpends(tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Invalid sig 2 passed");
         } catch (ScriptException e) { }
     }
@@ -229,23 +230,23 @@ public class TransactionTest {
         tx.getInput(0).setSequenceNumber(0);
         tx.setLockTime(time.add(BigInteger.ONE).longValue());
         TransactionSignature fromSig =
-                tx.calculateSignature(0, from, outputScript, Transaction.SigHash.SINGLE, false);
+                tx.calculateSignature(0, from, outputScript, SigHash.SINGLE, false);
         TransactionSignature incorrectSig =
-                tx.calculateSignature(0, incorrect, outputScript, Transaction.SigHash.SINGLE, false);
+                tx.calculateSignature(0, incorrect, outputScript, SigHash.SINGLE, false);
         Script scriptSig =
                 ScriptBuilder.createCLTVPaymentChannelRefund(fromSig);
         Script invalidScriptSig =
                 ScriptBuilder.createCLTVPaymentChannelRefund(incorrectSig);
 
         try {
-            scriptSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS_PRE_GENESIS);
+            scriptSig.correctlySpends(tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS_PRE_GENESIS);
         } catch (ScriptException e) {
             e.printStackTrace();
             fail("Refund failed to correctly spend the payment channel");
         }
 
         try {
-            invalidScriptSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            invalidScriptSig.correctlySpends(tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Invalid sig passed");
         } catch (ScriptException e) { }
     }
@@ -398,14 +399,14 @@ public class TransactionTest {
 
         final Transaction tx = block1.getTransactions().get(1);
         final String txHash = tx.getHashAsString();
-        final String txNormalizedHash = tx.hashForSignature(0, new byte[0], Transaction.SigHash.ALL.byteValue()).toString();
+        final String txNormalizedHash = tx.hashForSignature(0, new byte[0], SigHash.ALL.byteValue()).toString();
 
         for (int i = 0; i < 100; i++) {
             // ensure the transaction object itself was not modified; if it was, the hash will change
             assertEquals(txHash, tx.getHashAsString());
             new Thread(){
                 public void run() {
-                    assertEquals(txNormalizedHash, tx.hashForSignature(0, new byte[0], Transaction.SigHash.ALL.byteValue()).toString());
+                    assertEquals(txNormalizedHash, tx.hashForSignature(0, new byte[0], SigHash.ALL.byteValue()).toString());
                 }
             };
         }
@@ -426,7 +427,7 @@ public class TransactionTest {
 
         Script sig = tx.getInput(0).getScriptSig();
 
-        sig.correctlySpends(tx, 0, txConnected.getOutput(1).getScriptPubKey(), txConnected.getOutput(1).getValue(), Script.ALL_VERIFY_FLAGS);
+        sig.correctlySpends(tx, 0, txConnected.getOutput(1).getScriptPubKey(), txConnected.getOutput(1).getValue(), ScriptVerifyFlag.ALL_VERIFY_FLAGS);
 
 
     }

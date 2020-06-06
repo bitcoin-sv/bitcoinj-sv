@@ -18,6 +18,7 @@
 package org.bitcoinj.crypto;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.ecc.ECDSASignature;
 import org.bitcoinj.params.*;
 import org.junit.*;
 import org.spongycastle.crypto.params.*;
@@ -160,7 +161,7 @@ public class ChildKeyDerivationTest {
         } catch (ECKey.KeyIsEncryptedException e) {
             // Ignored.
         }
-        ECKey.ECDSASignature signature = derivedKey2.sign(hash, aesKey);
+        ECDSASignature signature = derivedKey2.sign(hash, aesKey);
         assertTrue(derivedKey2.verify(hash, signature));
     }
 

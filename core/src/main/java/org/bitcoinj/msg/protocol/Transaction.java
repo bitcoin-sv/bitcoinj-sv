@@ -19,16 +19,16 @@ package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
+import org.bitcoinj.ecc.ECDSASignature;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.params.Net;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.ScriptOpCodes;
+import org.bitcoinj.script.*;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.wallet.Wallet;
@@ -479,38 +479,6 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * These constants are a part of a scriptSig signature on the inputs. They define the details of how a
-     * transaction can be redeemed, specifically, they control how the hash of the transaction is calculated.
-     */
-    public enum SigHash {
-        ALL(1),
-        NONE(2),
-        SINGLE(3),
-        FORKID(0x40),
-        ANYONECANPAY(0x80), // Caution: Using this type in isolation is non-standard. Treated similar to ANYONECANPAY_ALL.
-        ANYONECANPAY_ALL(0x81),
-        ANYONECANPAY_NONE(0x82),
-        ANYONECANPAY_SINGLE(0x83),
-        UNSET(0); // Caution: Using this type in isolation is non-standard. Treated similar to ALL.
-
-        public final int value;
-
-        /**
-         * @param value
-         */
-        private SigHash(final int value) {
-            this.value = value;
-        }
-
-        /**
-         * @return the value as a byte
-         */
-        public byte byteValue() {
-            return (byte) this.value;
-        }
-    }
-
-    /**
      * @deprecated Instead use SigHash.ANYONECANPAY.value or SigHash.ANYONECANPAY.byteValue() as appropriate.
      */
     public static final byte SIGHASH_ANYONECANPAY_VALUE = (byte) 0x80;
@@ -852,7 +820,7 @@ public class Transaction extends ChildMessage {
         TransactionInput input = new TransactionInput(net, this, new byte[]{}, prevOut);
         addInput(input);
         Sha256Hash hash = hashForSignature(inputs.size() - 1, scriptPubKey, sigHash, anyoneCanPay);
-        ECKey.ECDSASignature ecSig = sigKey.sign(hash);
+        ECDSASignature ecSig = sigKey.sign(hash);
         TransactionSignature txSig = new TransactionSignature(ecSig, sigHash, anyoneCanPay, false);
         if (scriptPubKey.isSentToRawPubKey())
             input.setScriptSig(ScriptBuilder.createInputScript(txSig));
@@ -880,7 +848,7 @@ public class Transaction extends ChildMessage {
                 hashForSignatureWitness(inputs.size() -1, scriptPubKey, prevOut.getConnectedOutput().getValue(), sigHash, anyoneCanPay) :
                 hashForSignature(inputs.size() - 1, scriptPubKey, sigHash, anyoneCanPay);
 
-        ECKey.ECDSASignature ecSig = sigKey.sign(hash);
+        ECDSASignature ecSig = sigKey.sign(hash);
         TransactionSignature txSig = new TransactionSignature(ecSig, sigHash, anyoneCanPay, forkId);
         if (scriptPubKey.isSentToRawPubKey())
             input.setScriptSig(ScriptBuilder.createInputScript(txSig));
@@ -909,7 +877,7 @@ public class Transaction extends ChildMessage {
                 hashForSignatureWitness(inputs.size() -1, scriptPubKey, amount, sigHash, anyoneCanPay) :
                 hashForSignature(inputs.size() - 1, scriptPubKey, sigHash, anyoneCanPay);
 
-        ECKey.ECDSASignature ecSig = sigKey.sign(hash);
+        ECDSASignature ecSig = sigKey.sign(hash);
         TransactionSignature txSig = new TransactionSignature(ecSig, sigHash, anyoneCanPay, forkId);
         if (scriptPubKey.isSentToRawPubKey())
             input.setScriptSig(ScriptBuilder.createInputScript(txSig));
@@ -921,7 +889,7 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * Same as {@link #addSignedInput(TransactionOutPoint, org.bitcoinj.script.Script, ECKey, Transaction.SigHash, boolean)}
+     * Same as {@link #addSignedInput(TransactionOutPoint, org.bitcoinj.script.Script, ECKey, SigHash, boolean)}
      * but defaults to {@link SigHash#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
      */
     public TransactionInput addSignedInput(TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey) throws ScriptException {
@@ -929,7 +897,7 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * Same as {@link #addSignedInput(TransactionOutPoint, Coin, org.bitcoinj.script.Script, ECKey, Transaction.SigHash, boolean, boolean)}
+     * Same as {@link #addSignedInput(TransactionOutPoint, Coin, org.bitcoinj.script.Script, ECKey, SigHash, boolean, boolean)}
      * but defaults to {@link SigHash#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
      */
     public TransactionInput addSignedInput(TransactionOutPoint prevOut, Coin amount, Script scriptPubKey, ECKey sigKey) throws ScriptException {
@@ -1019,7 +987,7 @@ public class Transaction extends ChildMessage {
 
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], Transaction.SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], SigHash, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}. The key
      * must be usable for signing as-is: if the key is encrypted it must be decrypted first external to this method.
      *
@@ -1049,7 +1017,7 @@ public class Transaction extends ChildMessage {
     }
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], Transaction.SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], SigHash, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}.
      *
      * @param inputIndex Which input to calculate the signature for, as an index.
@@ -1079,7 +1047,7 @@ public class Transaction extends ChildMessage {
 
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], Transaction.SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], SigHash, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}. The key
      * must be usable for signing as-is: if the key is encrypted it must be decrypted first external to this method.
      *
@@ -1118,7 +1086,7 @@ public class Transaction extends ChildMessage {
 
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], Transaction.SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], SigHash, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}.
      *
      * @param inputIndex Which input to calculate the signature for, as an index.
@@ -1223,7 +1191,7 @@ public class Transaction extends ChildMessage {
             // OP_CODESEPARATOR instruction having no purpose as it was only meant to be used internally, not actually
             // ever put into scripts. Deleting OP_CODESEPARATOR is a step that should never be required but if we don't
             // do it, we could split off the main chain.
-            connectedScript = Script.removeAllInstancesOfOp(connectedScript, ScriptOpCodes.OP_CODESEPARATOR);
+            connectedScript = Interpreter.removeAllInstancesOfOp(connectedScript, ScriptOpCodes.OP_CODESEPARATOR);
 
             // Set the input to the script of its output. Bitcoin Core does this but the step has no obvious purpose as
             // the signature covers the hash of the prevout transaction which obviously includes the output script
@@ -1537,9 +1505,9 @@ public class Transaction extends ChildMessage {
         maybeParse();
         int sigOps = 0;
         for (TransactionInput input : inputs)
-            sigOps += Script.getSigOpCount(input.getScriptBytes());
+            sigOps += ScriptUtils.getSigOpCount(input.getScriptBytes());
         for (TransactionOutput output : outputs)
-            sigOps += Script.getSigOpCount(output.getScriptBytes());
+            sigOps += ScriptUtils.getSigOpCount(output.getScriptBytes());
         return sigOps;
     }
 

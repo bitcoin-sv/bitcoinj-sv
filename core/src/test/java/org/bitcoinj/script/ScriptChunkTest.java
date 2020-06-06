@@ -36,7 +36,7 @@ public class ScriptChunkTest {
                     .get(0).isShortestPossiblePushData());
 
         //This limit is enough to get us into the range of PUSHDATA4
-        long limit = Short.MAX_VALUE * 2 + Script.MAX_SCRIPT_ELEMENT_SIZE;
+        long limit = Short.MAX_VALUE * 2 + Interpreter.MAX_SCRIPT_ELEMENT_SIZE;
         for (int len = 2; len < limit; len++)
             assertTrue("push of " + len + " bytes", new ScriptBuilder().data(new byte[len]).build().getChunks().get(0)
                     .isShortestPossiblePushData());

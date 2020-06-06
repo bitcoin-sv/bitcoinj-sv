@@ -18,8 +18,9 @@ package org.bitcoinj.protocols.channels;
 
 import com.google.common.collect.*;
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -152,8 +153,8 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
         // We are really only signing the fact that the transaction has a proper lock time and don't care about anything
         // else, so we sign SIGHASH_NONE and SIGHASH_ANYONECANPAY.
         TransactionSignature sig = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
-                refundTx.calculateWitnessSignature(0, serverKey, multisigPubKey, refundTx.getInput(0).getConnectedOutput().getValue(), Transaction.SigHash.NONE, true):
-                refundTx.calculateSignature(0, serverKey, multisigPubKey, Transaction.SigHash.NONE, true);
+                refundTx.calculateWitnessSignature(0, serverKey, multisigPubKey, refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.NONE, true):
+                refundTx.calculateSignature(0, serverKey, multisigPubKey, SigHash.NONE, true);
         log.info("Signed refund transaction.");
         this.clientOutput = refundTx.getOutput(0);
         stateMachine.transition(State.WAITING_FOR_MULTISIG_CONTRACT);
@@ -169,10 +170,10 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
     }
 
     // Signs the first input of the transaction which must spend the multisig contract.
-    private void signMultisigInput(Transaction tx, Transaction.SigHash hashType, boolean anyoneCanPay) {
+    private void signMultisigInput(Transaction tx, SigHash hashType, boolean anyoneCanPay) {
         //TransactionSignature signature = tx.calculateSignature(0, serverKey, getContractScript(), hashType, anyoneCanPay, true);
         TransactionSignature signature = tx.getVersion() >= Transaction.FORKID_VERSION ?
-                tx.calculateWitnessSignature(0, serverKey, getContractScript(), tx.getInput(0).getConnectedOutput().getValue(), Transaction.SigHash.NONE, true):
+                tx.calculateWitnessSignature(0, serverKey, getContractScript(), tx.getInput(0).getConnectedOutput().getValue(), SigHash.NONE, true):
                 tx.calculateSignature(0, serverKey, getContractScript(), hashType, true);
         byte[] mySig = signature.encodeToBitcoin();
         Script scriptSig = ScriptBuilder.createMultiSigInputScriptBytes(ImmutableList.of(bestValueSignature, mySig));
@@ -227,7 +228,7 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
             // know how to sign. Note that this signature does actually have to be valid, so we can't use a dummy
             // signature to save time, because otherwise completeTx will try to re-sign it to make it valid and then
             // die. We could probably add features to the SendRequest API to make this a bit more efficient.
-            signMultisigInput(tx, Transaction.SigHash.NONE, true);
+            signMultisigInput(tx, SigHash.NONE, true);
             // Let wallet handle adding additional inputs/fee as necessary.
             req.shuffleOutputs = false;
             req.missingSigsMode = Wallet.MissingSigsMode.USE_DUMMY_SIG;
@@ -240,7 +241,7 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
                 throw new InsufficientMoneyException(feePaidForPayment.subtract(bestValueToMe), msg);
             }
             // Now really sign the multisig input.
-            signMultisigInput(tx, Transaction.SigHash.ALL, false);
+            signMultisigInput(tx, SigHash.ALL, false);
             // Some checks that shouldn't be necessary but it can't hurt to check.
             tx.verify();  // Sanity check syntax.
             for (TransactionInput input : tx.getInputs())

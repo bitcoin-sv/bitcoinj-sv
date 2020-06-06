@@ -18,7 +18,7 @@
 package org.bitcoinj.testing;
 
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.*;
 import org.bitcoinj.msg.protocol.*;

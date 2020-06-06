@@ -19,8 +19,9 @@ package org.bitcoinj.protocols.channels;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -234,7 +235,7 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
         checkNotNull(theirSignature);
         stateMachine.checkState(State.WAITING_FOR_SIGNED_REFUND);
         TransactionSignature theirSig = TransactionSignature.decodeFromBitcoin(theirSignature, true);
-        if (theirSig.sigHashMode() != Transaction.SigHash.NONE || !theirSig.anyoneCanPay())
+        if (theirSig.sigHashMode() != SigHash.NONE || !theirSig.anyoneCanPay())
             throw new VerificationException("Refund signature was not SIGHASH_NONE|SIGHASH_ANYONECANPAY");
         // Sign the refund transaction ourselves.
         final TransactionOutput multisigContractOutput = multisigContract.getOutput(0);
@@ -245,9 +246,9 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
         }
         TransactionSignature ourSignature = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
                 refundTx.calculateWitnessSignature(0, myKey.maybeDecrypt(userKey),
-                        multisigScript, refundTx.getInput(0).getConnectedOutput().getValue(), Transaction.SigHash.ALL, false) :
+                        multisigScript, refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.ALL, false) :
                 refundTx.calculateSignature(0, myKey.maybeDecrypt(userKey),
-                        multisigScript, Transaction.SigHash.ALL, false);
+                        multisigScript, SigHash.ALL, false);
         // Insert the signatures.
         Script scriptSig = ScriptBuilder.createMultiSigInputScript(ourSignature, theirSig);
         log.info("Refund scriptSig: {}", scriptSig);

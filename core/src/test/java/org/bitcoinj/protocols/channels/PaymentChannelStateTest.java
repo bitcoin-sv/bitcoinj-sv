@@ -17,14 +17,13 @@
 package org.bitcoinj.protocols.channels;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutPoint;
-import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.testing.TestWithWallet;
 import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
@@ -440,7 +439,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
             // If the multisig output is connected, the wallet will fail to deserialize
             if (input.getOutpoint().getHash().equals(clientBroadcastedMultiSig.tx.getHash()))
                 assertNull(input.getConnectedOutput().getSpentBy());
-            input.verify(clientBroadcastedMultiSig.tx.getOutput(0), Script.ALL_VERIFY_FLAGS_PRE_GENESIS);
+            input.verify(clientBroadcastedMultiSig.tx.getOutput(0), ScriptVerifyFlag.ALL_VERIFY_FLAGS_PRE_GENESIS);
         }
         broadcastRefund.future.set(clientBroadcastedRefund);
 
@@ -519,7 +518,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
             assertEquals(PaymentChannelServerState.State.WAITING_FOR_MULTISIG_CONTRACT, serverState.getState());
 
             byte[] refundSigCopy = Arrays.copyOf(refundSig, refundSig.length);
-            refundSigCopy[refundSigCopy.length - 1] = Transaction.SigHash.NONE.byteValue();
+            refundSigCopy[refundSigCopy.length - 1] = SigHash.NONE.byteValue();
             try {
                 clientV1State().provideRefundSignature(refundSigCopy, null);
                 fail();
@@ -633,7 +632,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         totalPayment = totalPayment.add(size);
 
         byte[] signatureCopy = Arrays.copyOf(signature, signature.length);
-        signatureCopy[signatureCopy.length - 1] = Transaction.SigHash.ANYONECANPAY_NONE.byteValue();
+        signatureCopy[signatureCopy.length - 1] = SigHash.ANYONECANPAY_NONE.byteValue();
         try {
             serverState.incrementPayment(HALF_COIN.subtract(totalPayment), signatureCopy);
             fail();
@@ -665,7 +664,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         assertEquals(totalPayment, HALF_COIN);
 
         signatureCopy = Arrays.copyOf(signature, signature.length);
-        signatureCopy[signatureCopy.length - 1] = Transaction.SigHash.ANYONECANPAY_SINGLE.byteValue();
+        signatureCopy[signatureCopy.length - 1] = SigHash.ANYONECANPAY_SINGLE.byteValue();
         try {
             serverState.incrementPayment(HALF_COIN.subtract(totalPayment), signatureCopy);
             fail();

@@ -23,8 +23,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -135,7 +136,7 @@ public class PaymentChannelV2ServerState extends PaymentChannelServerState {
     }
 
     // Signs the first input of the transaction which must spend the multisig contract.
-    private void signP2SHInput(Transaction tx, Transaction.SigHash hashType, boolean anyoneCanPay) {
+    private void signP2SHInput(Transaction tx, SigHash hashType, boolean anyoneCanPay) {
         TransactionSignature signature = tx.getVersion() >= Transaction.FORKID_VERSION ?
                 tx.calculateWitnessSignature(0, serverKey, createP2SHRedeemScript(), tx.getInput(0).getConnectedOutput().getValue(), hashType, anyoneCanPay):
                 tx.calculateSignature(0, serverKey, createP2SHRedeemScript(), hashType, anyoneCanPay);
@@ -178,7 +179,7 @@ public class PaymentChannelV2ServerState extends PaymentChannelServerState {
             // know how to sign. Note that this signature does actually have to be valid, so we can't use a dummy
             // signature to save time, because otherwise completeTx will try to re-sign it to make it valid and then
             // die. We could probably add features to the SendRequest API to make this a bit more efficient.
-            signP2SHInput(tx, Transaction.SigHash.NONE, true);
+            signP2SHInput(tx, SigHash.NONE, true);
             // Let wallet handle adding additional inputs/fee as necessary.
             req.shuffleOutputs = false;
             req.missingSigsMode = Wallet.MissingSigsMode.USE_DUMMY_SIG;
@@ -191,7 +192,7 @@ public class PaymentChannelV2ServerState extends PaymentChannelServerState {
                 throw new InsufficientMoneyException(feePaidForPayment.subtract(bestValueToMe), msg);
             }
             // Now really sign the multisig input.
-            signP2SHInput(tx, Transaction.SigHash.ALL, false);
+            signP2SHInput(tx, SigHash.ALL, false);
             // Some checks that shouldn't be necessary but it can't hurt to check.
             tx.verify();  // Sanity check syntax.
             for (TransactionInput input : tx.getInputs())

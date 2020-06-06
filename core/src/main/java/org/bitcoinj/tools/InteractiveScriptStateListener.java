@@ -2,7 +2,6 @@ package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 
@@ -50,11 +49,11 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
         System.out.println("\n***Executing scriptSig***\n");
         script = new SimpleScriptStream(scriptSig);
-        Script.executeDebugScript(null, 0, script, stack, Coin.ZERO, Script.ALL_VERIFY_FLAGS, listener);
+        Interpreter.executeDebugScript(null, 0, script, stack, Coin.ZERO, ScriptVerifyFlag.ALL_VERIFY_FLAGS, listener);
 
         System.out.println("\n***Executing scriptPubKey***\n");
         script = new SimpleScriptStream(scriptPubKey);
-        Script.executeDebugScript(tx1, 0, script, stack, Coin.ZERO, Script.ALL_VERIFY_FLAGS, listener);
+        Interpreter.executeDebugScript(tx1, 0, script, stack, Coin.ZERO, ScriptVerifyFlag.ALL_VERIFY_FLAGS, listener);
 
 //        TextScriptParser parser = new TextScriptParser(false, null);
 //        parser.addVariable("barry", "0x00112233");
@@ -154,7 +153,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
     @Override
     public void onScriptComplete() {
         List<StackItem> stack = getStack();
-        if (stack.isEmpty() || !Script.castToBool(stack.get(stack.size() - 1))) {
+        if (stack.isEmpty() || !Interpreter.castToBool(stack.get(stack.size() - 1))) {
             System.out.println("Script failed.");
         } else {
             System.out.println("Script success.");

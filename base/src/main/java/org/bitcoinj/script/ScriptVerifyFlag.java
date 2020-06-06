@@ -2,6 +2,7 @@ package org.bitcoinj.script;
 
 import org.bitcoinj.core.Coin;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -23,5 +24,12 @@ public enum ScriptVerifyFlag {
     MONOLITH_OPCODES, // May 15, 2018 Hard fork
     MAGNETIC_OPCODES, //Nov 15 2018 Hard fork
     GENESIS_OPCODES, // Feb 4th, 2020 Hard fork
-    CHRONICLE_OPCODES, // Future Chronicle hard fork
+    CHRONICLE_OPCODES,
+    ;
+    public static final EnumSet<ScriptVerifyFlag> CHRONICLE_SET = EnumSet.of(MONOLITH_OPCODES, GENESIS_OPCODES, CHRONICLE_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> GENESIS_SET = EnumSet.of(MONOLITH_OPCODES, MAGNETIC_OPCODES, GENESIS_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> MAGNETIC_SET = EnumSet.of(MONOLITH_OPCODES, MAGNETIC_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> MONOLITH_SET = EnumSet.of(MONOLITH_OPCODES);
+    public static final EnumSet<ScriptVerifyFlag> ALL_VERIFY_FLAGS_PRE_GENESIS = EnumSet.complementOf(EnumSet.of(GENESIS_OPCODES)); // Future Chronicle hard fork
+    public static final EnumSet<ScriptVerifyFlag> ALL_VERIFY_FLAGS = EnumSet.allOf(ScriptVerifyFlag.class);
 }

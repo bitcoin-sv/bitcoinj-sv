@@ -17,6 +17,7 @@
 package org.bitcoinj.protocols.channels;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.testing.TestWithWallet;
@@ -136,14 +137,14 @@ public class ChannelConnectionTest extends TestWithWallet {
         // client+server running in the same thread.
         Threading.warnOnLockCycles();
 
-        ECKey.FAKE_SIGNATURES = true;
+        ECDSA.FAKE_SIGNATURES = true;
     }
 
     @After
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        ECKey.FAKE_SIGNATURES = false;
+        ECDSA.FAKE_SIGNATURES = false;
     }
 
     @After

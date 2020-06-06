@@ -20,7 +20,8 @@ import java.util.EnumSet;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.script.Script;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * {@link TransactionSigner.ProposedTransaction} object that will be also passed then to the next signer in chain. This allows other
  * signers to use correct signing key for P2SH inputs, because all the keys involved in a single P2SH address have
  * the same derivation path.</p>
- * <p>This signer always uses {@link Transaction.SigHash#ALL} signing mode.</p>
+ * <p>This signer always uses {@link SigHash#ALL} signing mode.</p>
  */
 public class LocalTransactionSigner extends StatelessTransactionSigner {
     private static final Logger log = LoggerFactory.getLogger(LocalTransactionSigner.class);
@@ -105,8 +106,8 @@ public class LocalTransactionSigner extends StatelessTransactionSigner {
             byte[] script = redeemData.redeemScript.getProgram();
             try {
                 TransactionSignature signature = propTx.useForkId ?
-                        tx.calculateWitnessSignature(i, key, script, tx.getInput(i).getConnectedOutput().getValue(), Transaction.SigHash.ALL, false) :
-                        tx.calculateSignature(i, key, script, Transaction.SigHash.ALL, false);
+                        tx.calculateWitnessSignature(i, key, script, tx.getInput(i).getConnectedOutput().getValue(), SigHash.ALL, false) :
+                        tx.calculateSignature(i, key, script, SigHash.ALL, false);
 
                 // at this point we have incomplete inputScript with OP_0 in place of one or more signatures. We already
                 // have calculated the signature using the local key and now need to insert it in the correct place

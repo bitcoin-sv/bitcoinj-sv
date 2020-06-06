@@ -17,6 +17,7 @@
 
 package org.bitcoinj.wallet;
 
+import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.params.NetworkParameters;
@@ -830,7 +831,7 @@ public class DeterministicKeyChain implements EncryptableKeyChain {
                 for (int i : key.getDeterministicKey().getPathList())
                     path.add(new ChildNumber(i));
                 // Deserialize the public key and path.
-                LazyECPoint pubkey = new LazyECPoint(ECKey.CURVE.getCurve(), key.getPublicKey().toByteArray());
+                LazyECPoint pubkey = new LazyECPoint(ECDSA.CURVE.getCurve(), key.getPublicKey().toByteArray());
                 final ImmutableList<ChildNumber> immutablePath = ImmutableList.copyOf(path);
                 // Possibly create the chain, if we didn't already do so yet.
                 boolean isWatchingAccountKey = false;

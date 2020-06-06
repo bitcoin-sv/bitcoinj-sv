@@ -32,7 +32,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
@@ -145,7 +145,7 @@ public class GenerateLowSTests {
             Script scriptPubKey = txIn.getConnectedOutput().getScriptPubKey();
             RedeemData redeemData = txIn.getConnectedRedeemData(bag);
             checkNotNull(redeemData, "Transaction exists in wallet that we cannot redeem: %s", txIn.getOutpoint().getHash());
-            txIn.setScriptSig(scriptPubKey.createEmptyInputScript(redeemData.keys.get(0), redeemData.redeemScript));
+            txIn.setScriptSig(scriptPubKey.createEmptyInputScript(redeemData.keys.get(0).getPubKey(), redeemData.redeemScript));
         }
     }
 

@@ -28,6 +28,7 @@ import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.KeyCrypter;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.script.ScriptUtils;
 
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
@@ -245,7 +246,7 @@ public class MarriedKeyChain extends DeterministicKeyChain {
 
     private void formatScript(Script script, StringBuilder builder, NetworkParameters params) {
         builder.append("  addr:");
-        builder.append(script.getToAddress(params));
+        builder.append(ScriptUtils.getToAddress(script, params));
         builder.append("  hash160:");
         builder.append(Utils.HEX.encode(script.getPubKeyHash()));
         if (script.getCreationTimeSeconds() > 0)

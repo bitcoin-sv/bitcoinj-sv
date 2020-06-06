@@ -17,12 +17,13 @@
 
 package org.bitcoinj.core;
 
-import org.bitcoinj.core.ECKey.ECDSASignature;
 import org.bitcoinj.crypto.EncryptedData;
 import org.bitcoinj.crypto.KeyCrypter;
 import org.bitcoinj.crypto.KeyCrypterScrypt;
-import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.ecc.TransactionSignature;
+import org.bitcoinj.ecc.ECDSA;
+import org.bitcoinj.ecc.ECDSASignature;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
@@ -79,27 +80,27 @@ public class ECKeyTest {
         // issue that can allow someone to change a transaction [hash] without invalidating the signature.
         final int ITERATIONS = 10;
         ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(ITERATIONS));
-        List<ListenableFuture<ECKey.ECDSASignature>> sigFutures = Lists.newArrayList();
+        List<ListenableFuture<ECDSASignature>> sigFutures = Lists.newArrayList();
         final ECKey key = new ECKey();
         for (byte i = 0; i < ITERATIONS; i++) {
             final Sha256Hash hash = Sha256Hash.of(new byte[]{i});
-            sigFutures.add(executor.submit(new Callable<ECKey.ECDSASignature>() {
+            sigFutures.add(executor.submit(new Callable<ECDSASignature>() {
                 @Override
-                public ECKey.ECDSASignature call() throws Exception {
+                public ECDSASignature call() throws Exception {
                     return key.sign(hash);
                 }
             }));
         }
-        List<ECKey.ECDSASignature> sigs = Futures.allAsList(sigFutures).get();
-        for (ECKey.ECDSASignature signature : sigs) {
+        List<ECDSASignature> sigs = Futures.allAsList(sigFutures).get();
+        for (ECDSASignature signature : sigs) {
             assertTrue(signature.isCanonical());
         }
         final ECDSASignature first = sigs.get(0);
-        final ECKey.ECDSASignature duplicate = new ECKey.ECDSASignature(first.r, first.s);
+        final ECDSASignature duplicate = new ECDSASignature(first.r, first.s);
         assertEquals(first, duplicate);
         assertEquals(first.hashCode(), duplicate.hashCode());
 
-        final ECKey.ECDSASignature highS = new ECKey.ECDSASignature(first.r, ECKey.CURVE.getN().subtract(first.s));
+        final ECDSASignature highS = new ECDSASignature(first.r, ECDSA.CURVE.getN().subtract(first.s));
         assertFalse(highS.isCanonical());
     }
 
@@ -243,7 +244,7 @@ public class ECKeyTest {
         ECKey key = new ECKey();
         String message = "Hello World!";
         Sha256Hash hash = Sha256Hash.of(message.getBytes());
-        ECKey.ECDSASignature sig = key.sign(hash);
+        ECDSASignature sig = key.sign(hash);
         key = ECKey.fromPublicOnly(key.getPubKeyPoint());
         boolean found = false;
         for (int i = 0; i < 4; i++) {
@@ -342,7 +343,7 @@ public class ECKeyTest {
 
         String message = "Goodbye Jupiter!";
         Sha256Hash hash = Sha256Hash.of(message.getBytes());
-        ECKey.ECDSASignature sig = encryptedKey.sign(hash, aesKey);
+        ECDSASignature sig = encryptedKey.sign(hash, aesKey);
         unencryptedKey = ECKey.fromPublicOnly(unencryptedKey.getPubKeyPoint());
         boolean found = false;
         for (int i = 0; i < 4; i++) {
@@ -444,7 +445,7 @@ public class ECKeyTest {
         new Random().nextBytes(hash);
         byte[] sigBytes = key.sign(Sha256Hash.wrap(hash)).encodeToDER();
         byte[] encodedSig = Arrays.copyOf(sigBytes, sigBytes.length + 1);
-        encodedSig[sigBytes.length] = Transaction.SigHash.ALL.byteValue();
+        encodedSig[sigBytes.length] = SigHash.ALL.byteValue();
         if (!TransactionSignature.isEncodingCanonical(encodedSig)) {
             log.error(Utils.HEX.encode(sigBytes));
             fail();

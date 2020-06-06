@@ -24,6 +24,7 @@ import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.FullPrunedBlockStore;
@@ -204,7 +205,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
         String address = "";
         try {
             if (script != null) {
-                address = script.getToAddress(params, true).toString();
+                address = ScriptUtils.getToAddress(script, params, true).toString();
             }
         } catch (Exception e) {
         }
@@ -275,7 +276,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                         valueIn = valueIn.add(prevOut.getValue());
                         if (verifyFlags.contains(ScriptVerifyFlag.P2SH)) {
                             if (prevOut.getScript().isPayToScriptHash())
-                                sigOps += Script.getP2SHSigOpCount(in.getScriptBytes());
+                                sigOps += ScriptUtils.getP2SHSigOpCount(in.getScriptBytes());
                             if (sigOps > Block.MAX_BLOCK_SIGOPS)
                                 throw new VerificationException("Too many P2SH SigOps in block");
                         }
@@ -403,7 +404,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                             valueIn = valueIn.add(prevOut.getValue());
                             if (verifyFlags.contains(ScriptVerifyFlag.P2SH)) {
                                 if (prevOut.getScript().isPayToScriptHash())
-                                    sigOps += Script.getP2SHSigOpCount(in.getScriptBytes());
+                                    sigOps += ScriptUtils.getP2SHSigOpCount(in.getScriptBytes());
                                 if (sigOps > Block.MAX_BLOCK_SIGOPS)
                                     throw new VerificationException("Too many P2SH SigOps in block");
                             }

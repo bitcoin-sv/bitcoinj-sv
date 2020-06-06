@@ -21,11 +21,13 @@ package org.bitcoinj.script;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bitcoinj.core.*;
+import org.bitcoinj.ecc.ECDSASignature;
+import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.Transaction.SigHash;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.SigHash;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -100,20 +102,22 @@ public class ScriptTest {
         assertTrue(ScriptBuilder.createMultiSigOutputScript(2, keys).isSentToMultiSig());
         Script script = ScriptBuilder.createMultiSigOutputScript(3, keys);
         assertTrue(script.isSentToMultiSig());
-        List<ECKey> pubkeys = new ArrayList<ECKey>(3);
-        for (ECKey key : keys) pubkeys.add(ECKey.fromPublicOnly(key.getPubKeyPoint()));
-        assertEquals(script.getPubKeys(), pubkeys);
+        List<ECKeyBytes> pubkeys = new ArrayList<>(3);
+        for (ECKey key : keys) {
+            pubkeys.add(new BasicECKeyBytes(ECKey.fromPublicOnly(key.getPubKeyPoint()).getPubKey()));
+        }
+        assertEquals(ScriptUtils.getPubKeys(script), pubkeys);
         assertFalse(ScriptBuilder.createOutputScript(new ECKey()).isSentToMultiSig());
         try {
             // Fail if we ask for more signatures than keys.
-            Script.createMultiSigOutputScript(4, keys);
+            ScriptUtils.createMultiSigOutputScript(4, keys);
             fail();
         } catch (Throwable e) {
             // Expected.
         }
         try {
             // Must have at least one signature required.
-            Script.createMultiSigOutputScript(0, keys);
+            ScriptUtils.createMultiSigOutputScript(0, keys);
         } catch (Throwable e) {
             // Expected.
         }
@@ -149,8 +153,8 @@ public class ScriptTest {
         spendTx.addOutput(output.getValue(), outputScript);
         spendTx.addInput(output);
         Sha256Hash sighash = spendTx.hashForSignature(0, multisigScript, SigHash.ALL, false);
-        ECKey.ECDSASignature party1Signature = key1.sign(sighash);
-        ECKey.ECDSASignature party2Signature = key2.sign(sighash);
+        ECDSASignature party1Signature = key1.sign(sighash);
+        ECDSASignature party2Signature = key2.sign(sighash);
         TransactionSignature party1TransactionSignature = new TransactionSignature(party1Signature, SigHash.ALL, false);
         TransactionSignature party2TransactionSignature = new TransactionSignature(party2Signature, SigHash.ALL, false);
 
@@ -239,7 +243,7 @@ public class ScriptTest {
         Script script = new ScriptBuilder().smallNum(0).build();
 
         ScriptStack stack = new ScriptStack();
-        Script.executeScript(tx, 0, script, stack, Script.ALL_VERIFY_FLAGS);
+        Interpreter.executeScript(tx, 0, script, stack, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
         assertEquals("OP_0 push length", 0, stack.get(0).length());
     }
 
@@ -256,7 +260,7 @@ public class ScriptTest {
                 // Number
                 long val = Long.parseLong(w);
                 if (val >= -1 && val <= 16)
-                    out.write(Script.encodeToOpN((int)val));
+                    out.write(Interpreter.encodeToOpN((int)val));
                 else
                     ScriptUtil.writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(val), false)));
             } else if (w.matches("^0x[0-9a-fA-F]*$")) {
@@ -428,18 +432,18 @@ public class ScriptTest {
         // pay to pubkey
         ECKey toKey = new ECKey();
         Address toAddress = toKey.toAddress(PARAMS);
-        assertEquals(toAddress, ScriptBuilder.createOutputScript(toKey).getToAddress(PARAMS, true));
+        assertEquals(toAddress.toBase58(), ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(toKey), PARAMS, true).toBase58());
         // pay to pubkey hash
-        assertEquals(toAddress, ScriptBuilder.createOutputScript(toAddress).getToAddress(PARAMS, true));
+        assertEquals(toAddress.toBase58(), ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(toAddress), PARAMS, true).toBase58());
         // pay to script hash
         Script p2shScript = ScriptBuilder.createP2SHOutputScript(new byte[20]);
         Address scriptAddress = Address.fromP2SHScript(PARAMS, p2shScript);
-        assertEquals(scriptAddress, p2shScript.getToAddress(PARAMS, true));
+        assertEquals(scriptAddress.toBase58(), ScriptUtils.getToAddress(p2shScript, PARAMS, true).toBase58());
     }
 
     @Test(expected = ScriptException.class)
     public void getToAddressNoPubKey() throws Exception {
-        ScriptBuilder.createOutputScript(new ECKey()).getToAddress(PARAMS, false);
+        ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(new ECKey()), PARAMS, false);
     }
 
     /** Test encoding of zero, which should result in an opcode */
@@ -564,7 +568,7 @@ public class ScriptTest {
         ScriptStack stack = new ScriptStack();
         EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
         verifyFlags.add(ScriptVerifyFlag.MONOLITH_OPCODES);
-        Script.executeScript(new Transaction(NET), 0, script, stack, Coin.ZERO, verifyFlags);
+        Interpreter.executeScript(new Transaction(NET), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
         return stack.peekLast().bytes();
     }
@@ -590,11 +594,11 @@ public class ScriptTest {
             UnsafeByteArrayOutputStream negZero = new UnsafeByteArrayOutputStream();
 
             //This limit is enough to get us into the range of PUSHDATA4
-            long limit = Short.MAX_VALUE * 2 + Script.MAX_SCRIPT_ELEMENT_SIZE;
+            long limit = Short.MAX_VALUE * 2 + Interpreter.MAX_SCRIPT_ELEMENT_SIZE;
 
             for (int i = 0; i < limit; i++) {
                 //speed up tests a bit since we don't need to test every number in range
-                if (i > Script.MAX_SCRIPT_ELEMENT_SIZE)
+                if (i > Interpreter.MAX_SCRIPT_ELEMENT_SIZE)
                     i = i + 10;
 
                 zero.write(0x00);
@@ -620,7 +624,7 @@ public class ScriptTest {
 
             for (int i = 0; i < limit; i++) {
                 //speed up tests a bit since we don't need to test every number in range
-                if (i > Script.MAX_SCRIPT_ELEMENT_SIZE)
+                if (i > Interpreter.MAX_SCRIPT_ELEMENT_SIZE)
                     i = i + 10;
 
                 checkMinimallyEncoded(nPadded.toByteArray(), n);
@@ -646,7 +650,7 @@ public class ScriptTest {
 
             for (int i = 0; i < limit; i++) {
                 //speed up tests a bit since we don't need to test every number in range
-                if (i > Script.MAX_SCRIPT_ELEMENT_SIZE)
+                if (i > Interpreter.MAX_SCRIPT_ELEMENT_SIZE)
                     i = i + 100;
 
                 checkMinimallyEncoded(kPadded.toByteArray(), k);

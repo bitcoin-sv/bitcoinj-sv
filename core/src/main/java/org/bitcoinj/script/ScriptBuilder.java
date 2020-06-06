@@ -17,10 +17,10 @@
 package org.bitcoinj.script;
 
 import com.google.common.collect.Lists;
-import org.bitcoinj.core.Address;
-import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.Addressable;
+import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.msg.protocol.Transaction;
 
 import javax.annotation.Nullable;
@@ -127,7 +127,7 @@ public class ScriptBuilder {
         } else if (data.length() == 1) {
             byte b = data.data()[0];
             if (b >= 1 && b <= 16)
-                return addChunk(index, new ScriptChunk(Script.encodeToOpN(b), (ScriptBytes) null,context));
+                return addChunk(index, new ScriptChunk(Interpreter.encodeToOpN(b), (ScriptBytes) null,context));
             else
                 opcode = 1;
         } else if (data.length() < OP_PUSHDATA1) {
@@ -182,7 +182,7 @@ public class ScriptBuilder {
          */
     public ScriptBuilder number(int index, long num, Object context) {
         if (num >= 0 && num <= 16) {
-            return addChunk(index, new ScriptChunk(Script.encodeToOpN((int) num), (ScriptBytes) null, context));
+            return addChunk(index, new ScriptChunk(Interpreter.encodeToOpN((int) num), (ScriptBytes) null, context));
         } else {
             return bigNum(index, num, context);
         }
@@ -249,7 +249,7 @@ public class ScriptBuilder {
     public ScriptBuilder smallNum(int index, int num, Object context) {
         checkArgument(num >= 0, "Cannot encode negative numbers with smallNum");
         checkArgument(num <= 16, "Cannot encode numbers larger than 16 with smallNum");
-        return addChunk(index, new ScriptChunk(Script.encodeToOpN(num), (ScriptBytes) null, context));
+        return addChunk(index, new ScriptChunk(Interpreter.encodeToOpN(num), (ScriptBytes) null, context));
     }
 
     /**
@@ -303,7 +303,7 @@ public class ScriptBuilder {
     }
 
     /** Creates a scriptPubKey that encodes payment to the given address. */
-    public static Script createOutputScript(Address to) {
+    public static Script createOutputScript(Addressable to) {
         if (to.isP2SHAddress()) {
             // OP_HASH160 <scriptHash> OP_EQUAL
             return new ScriptBuilder()
@@ -324,16 +324,19 @@ public class ScriptBuilder {
     }
 
     /** Creates a scriptPubKey that encodes payment to the given raw public key. */
-    public static Script createOutputScript(ECKey key) {
+    public static Script createOutputScript(ECKeyBytes key) {
         return new ScriptBuilder().data(key.getPubKey()).op(OP_CHECKSIG).build();
+    }
+
+    public static Script createInputScript(@Nullable TransactionSignature signature, ECKeyBytes pubKey) {
+        return createInputScript(signature, pubKey.getPubKey());
     }
 
     /**
      * Creates a scriptSig that can redeem a pay-to-address output.
      * If given signature is null, incomplete scriptSig will be created with OP_0 instead of signature
      */
-    public static Script createInputScript(@Nullable TransactionSignature signature, ECKey pubKey) {
-        byte[] pubkeyBytes = pubKey.getPubKey();
+    public static Script createInputScript(@Nullable TransactionSignature signature, byte[] pubkeyBytes) {
         byte[] sigBytes = signature != null ? signature.encodeToBitcoin() : new byte[]{};
         return new ScriptBuilder().data(sigBytes).data(pubkeyBytes).build();
     }
@@ -348,13 +351,13 @@ public class ScriptBuilder {
     }
 
     /** Creates a program that requires at least N of the given keys to sign, using OP_CHECKMULTISIG. */
-    public static Script createMultiSigOutputScript(int threshold, List<ECKey> pubkeys) {
+    public static Script createMultiSigOutputScript(int threshold, List<? extends ECKeyBytes> pubkeys) {
         checkArgument(threshold > 0);
         checkArgument(threshold <= pubkeys.size());
         checkArgument(pubkeys.size() <= 16);  // That's the max we can represent with a single opcode.
         ScriptBuilder builder = new ScriptBuilder();
         builder.smallNum(threshold);
-        for (ECKey key : pubkeys) {
+        for (ECKeyBytes key : pubkeys) {
             builder.data(key.getPubKey());
         }
         builder.smallNum(pubkeys.size());
@@ -500,7 +503,7 @@ public class ScriptBuilder {
      * Creates a P2SH output script with given public keys and threshold. Given public keys will be placed in
      * redeem script in the lexicographical sorting order.
      */
-    public static Script createP2SHOutputScript(int threshold, List<ECKey> pubkeys) {
+    public static Script createP2SHOutputScript(int threshold, List<? extends ECKeyBytes> pubkeys) {
         Script redeemScript = createRedeemScript(threshold, pubkeys);
         return createP2SHOutputScript(redeemScript);
     }
@@ -509,9 +512,9 @@ public class ScriptBuilder {
      * Creates redeem script with given public keys and threshold. Given public keys will be placed in
      * redeem script in the lexicographical sorting order.
      */
-    public static Script createRedeemScript(int threshold, List<ECKey> pubkeys) {
-        pubkeys = new ArrayList<ECKey>(pubkeys);
-        Collections.sort(pubkeys, ECKey.PUBKEY_COMPARATOR);
+    public static Script createRedeemScript(int threshold, List<? extends ECKeyBytes> pubkeys) {
+        pubkeys = new ArrayList<ECKeyBytes>(pubkeys);
+        Collections.sort(pubkeys, ECKeyBytes.PUBKEY_COMPARATOR);
         return ScriptBuilder.createMultiSigOutputScript(threshold, pubkeys);
     }
 
@@ -525,7 +528,7 @@ public class ScriptBuilder {
         return new ScriptBuilder().op(OP_RETURN).data(data).build();
     }
 
-    public static Script createCLTVPaymentChannelOutput(BigInteger time, ECKey from, ECKey to) {
+    public static Script createCLTVPaymentChannelOutput(BigInteger time, ECKeyBytes from, ECKeyBytes to) {
         byte[] timeBytes = Utils.reverseBytes(Utils.encodeMPI(time, false));
         if (timeBytes.length > 5) {
             throw new RuntimeException("Time too large to encode as 5-byte int");

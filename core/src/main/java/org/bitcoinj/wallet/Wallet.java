@@ -24,37 +24,17 @@ import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.*;
 import net.jcip.annotations.*;
+import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.core.AbstractBlockChain;
-import org.bitcoinj.core.Address;
-import org.bitcoinj.core.SPVBlockChain;
+import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.msg.p2p.BloomFilter;
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.Context;
-import org.bitcoinj.core.ECKey;
 import org.bitcoinj.msg.p2p.FilteredBlock;
-import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.Peer;
-import org.bitcoinj.core.PeerFilterProvider;
-import org.bitcoinj.core.PeerGroup;
-import org.bitcoinj.core.ScriptException;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.StoredBlock;
 import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.core.TransactionBag;
-import org.bitcoinj.core.TransactionBroadcast;
-import org.bitcoinj.core.TransactionBroadcaster;
-import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.core.UTXO;
-import org.bitcoinj.core.UTXOProvider;
-import org.bitcoinj.core.UTXOProviderException;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.core.VarInt;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.crypto.*;
@@ -965,8 +945,10 @@ public class Wallet extends BaseTaggableObject
         try {
             List<Address> addresses = new LinkedList<Address>();
             for (Script script : watchedScripts)
-                if (script.isSentToAddress())
-                    addresses.add(script.getToAddress(params));
+                if (script.isSentToAddress()) {
+                    Addressable add = ScriptUtils.getToAddress(script, params);
+                    addresses.add(new Address(params, add.getVersion(), add.getHash160()));
+                }
             return addresses;
         } finally {
             keyChainGroupLock.unlock();
@@ -4081,7 +4063,7 @@ public class Wallet extends BaseTaggableObject
                 Script scriptPubKey = txIn.getConnectedOutput().getScriptPubKey();
                 RedeemData redeemData = txIn.getConnectedRedeemData(maybeDecryptingKeyBag);
                 checkNotNull(redeemData, "Transaction exists in wallet that we cannot redeem: %s", txIn.getOutpoint().getHash());
-                txIn.setScriptSig(scriptPubKey.createEmptyInputScript(redeemData.keys.get(0), redeemData.redeemScript));
+                txIn.setScriptSig(scriptPubKey.createEmptyInputScript(redeemData.keys.get(0).getPubKey(), redeemData.redeemScript));
             }
 
             TransactionSigner.ProposedTransaction proposal = new TransactionSigner.ProposedTransaction(tx, req.getUseForkId());
@@ -4169,7 +4151,7 @@ public class Wallet extends BaseTaggableObject
             ECKey key = findKeyFromPubHash(script.getPubKeyHash());
             return key != null && (key.isEncrypted() || key.hasPrivKey());
         } else if (script.isSentToMultiSig()) {
-            for (ECKey pubkey : script.getPubKeys()) {
+            for (ECKeyBytes pubkey : ScriptUtils.getPubKeys(script)) {
                 ECKey key = findKeyFromPubKey(pubkey.getPubKey());
                 if (key != null && (key.isEncrypted() || key.hasPrivKey()))
                     return true;

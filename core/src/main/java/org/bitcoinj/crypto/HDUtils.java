@@ -17,7 +17,7 @@
 
 package org.bitcoinj.crypto;
 
-import org.bitcoinj.core.ECKey;
+import org.bitcoinj.ecc.ECDSA;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -58,7 +58,7 @@ public final class HDUtils {
     }
 
     static byte[] toCompressed(byte[] uncompressedPoint) {
-        return ECKey.CURVE.getCurve().decodePoint(uncompressedPoint).getEncoded(true);
+        return ECDSA.CURVE.getCurve().decodePoint(uncompressedPoint).getEncoded(true);
     }
 
     static byte[] longTo4ByteArray(long n) {

@@ -18,6 +18,7 @@ package org.bitcoinj.crypto;
 
 import com.google.common.collect.*;
 import org.bitcoinj.core.*;
+import org.bitcoinj.ecc.ECDSA;
 import org.spongycastle.math.ec.*;
 
 import java.math.*;
@@ -89,7 +90,7 @@ public final class HDKeyDerivation {
     }
 
     public static DeterministicKey createMasterPubKeyFromBytes(byte[] pubKeyBytes, byte[] chainCode) {
-        return new DeterministicKey(ImmutableList.<ChildNumber>of(), chainCode, new LazyECPoint(ECKey.CURVE.getCurve(), pubKeyBytes), null, null);
+        return new DeterministicKey(ImmutableList.<ChildNumber>of(), chainCode, new LazyECPoint(ECDSA.CURVE.getCurve(), pubKeyBytes), null, null);
     }
 
     /**
@@ -133,7 +134,7 @@ public final class HDKeyDerivation {
             return new DeterministicKey(
                     HDUtils.append(parent.getPath(), childNumber),
                     rawKey.chainCode,
-                    new LazyECPoint(ECKey.CURVE.getCurve(), rawKey.keyBytes),
+                    new LazyECPoint(ECDSA.CURVE.getCurve(), rawKey.keyBytes),
                     null,
                     parent);
         } else {
@@ -165,7 +166,7 @@ public final class HDKeyDerivation {
         BigInteger ilInt = new BigInteger(1, il);
         assertLessThanN(ilInt, "Illegal derived key: I_L >= n");
         final BigInteger priv = parent.getPrivKey();
-        BigInteger ki = priv.add(ilInt).mod(ECKey.CURVE.getN());
+        BigInteger ki = priv.add(ilInt).mod(ECDSA.CURVE.getN());
         assertNonZero(ki, "Illegal derived key: derived private key equals 0.");
         return new RawKeyBytes(ki.toByteArray(), chainCode);
     }
@@ -189,7 +190,7 @@ public final class HDKeyDerivation {
         BigInteger ilInt = new BigInteger(1, il);
         assertLessThanN(ilInt, "Illegal derived key: I_L >= n");
 
-        final BigInteger N = ECKey.CURVE.getN();
+        final BigInteger N = ECDSA.CURVE.getN();
         ECPoint Ki;
         switch (mode) {
             case NORMAL:
@@ -218,12 +219,12 @@ public final class HDKeyDerivation {
     }
 
     private static void assertNonInfinity(ECPoint point, String errorMessage) {
-        if (point.equals(ECKey.CURVE.getCurve().getInfinity()))
+        if (point.equals(ECDSA.CURVE.getCurve().getInfinity()))
             throw new HDDerivationException(errorMessage);
     }
 
     private static void assertLessThanN(BigInteger integer, String errorMessage) {
-        if (integer.compareTo(ECKey.CURVE.getN()) > 0)
+        if (integer.compareTo(ECDSA.CURVE.getN()) > 0)
             throw new HDDerivationException(errorMessage);
     }
 

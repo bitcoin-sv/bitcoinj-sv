@@ -134,9 +134,9 @@ public class TransactionOutput extends ChildMessage {
      * @return an address made out of the public key hash
      */
     @Nullable
-    public Address getAddressFromP2PKHScript(NetworkParameters networkParameters) throws ScriptException{
+    public Addressable getAddressFromP2PKHScript(NetworkParameters networkParameters) throws ScriptException{
         if (getScriptPubKey().isSentToAddress())
-            return getScriptPubKey().getToAddress(networkParameters);
+            return ScriptUtils.getToAddress(getScriptPubKey(), networkParameters);
 
         return null;
     }
@@ -154,9 +154,9 @@ public class TransactionOutput extends ChildMessage {
      * @return an address that belongs to the redeem script
      */
     @Nullable
-    public Address getAddressFromP2SH(NetworkParameters networkParameters) throws ScriptException{
+    public Addressable getAddressFromP2SH(NetworkParameters networkParameters) throws ScriptException{
         if (getScriptPubKey().isPayToScriptHash())
-            return getScriptPubKey().getToAddress(networkParameters);
+            return ScriptUtils.getToAddress(getScriptPubKey(), networkParameters);
 
         return null;
     }
@@ -359,7 +359,7 @@ public class TransactionOutput extends ChildMessage {
             StringBuilder buf = new StringBuilder("TxOut of ");
             buf.append(Coin.valueOf(value).toFriendlyString());
             if (script.isSentToAddress() || script.isPayToScriptHash())
-                buf.append(" to ").append(script.getToAddress(net.params()));
+                buf.append(" to ").append(ScriptUtils.getToAddress(script, net.params()));
             else if (script.isSentToRawPubKey())
                 buf.append(" to pubkey ").append(Utils.HEX.encode(script.getPubKey()));
             else if (script.isSentToMultiSig())

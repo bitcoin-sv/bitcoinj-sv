@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.bitcoinj.ecc;
 
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Transaction.SigHash;
 import com.google.common.base.Preconditions;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 
 /**
- * A TransactionSignature wraps an {@link org.bitcoinj.core.ECKey.ECDSASignature} and adds methods for handling
+ * A TransactionSignature wraps an {@link ECDSASignature} and adds methods for handling
  * the additional SIGHASH mode byte that is used.
  */
-public class TransactionSignature extends ECKey.ECDSASignature {
+public class TransactionSignature extends ECDSASignature {
     /**
      * A byte that controls which parts of a transaction are signed. This is exposed because signatures
      * parsed off the wire may have sighash flags that aren't "normal" serializations of the enum values.
@@ -40,7 +37,7 @@ public class TransactionSignature extends ECKey.ECDSASignature {
 
     /** Constructs a signature with the given components and SIGHASH_ALL. */
     public TransactionSignature(BigInteger r, BigInteger s) {
-        this(r, s, Transaction.SigHash.ALL.value);
+        this(r, s, SigHash.ALL.value);
     }
 
     /** Constructs a signature with the given components and raw sighash flag bytes (needed for rule compatibility). */
@@ -50,11 +47,11 @@ public class TransactionSignature extends ECKey.ECDSASignature {
     }
 
     /** Constructs a transaction signature based on the ECDSA signature. */
-    public TransactionSignature(ECKey.ECDSASignature signature, Transaction.SigHash mode, boolean anyoneCanPay) {
+    public TransactionSignature(ECDSASignature signature, SigHash mode, boolean anyoneCanPay) {
         super(signature.r, signature.s);
         sighashFlags = calcSigHashValue(mode, anyoneCanPay);
     }
-    public TransactionSignature(ECKey.ECDSASignature signature, Transaction.SigHash mode, boolean anyoneCanPay, boolean useForkId) {
+    public TransactionSignature(ECDSASignature signature, SigHash mode, boolean anyoneCanPay, boolean useForkId) {
         super(signature.r, signature.s);
         sighashFlags = calcSigHashValue(mode, anyoneCanPay, useForkId);
     }
@@ -66,24 +63,24 @@ public class TransactionSignature extends ECKey.ECDSASignature {
      * real signature later.
      */
     public static TransactionSignature dummy() {
-        BigInteger val = ECKey.HALF_CURVE_ORDER;
+        BigInteger val = ECDSA.HALF_CURVE_ORDER;
         return new TransactionSignature(val, val);
     }
 
     /** Calculates the byte used in the protocol to represent the combination of mode and anyoneCanPay. */
-    public static int calcSigHashValue(Transaction.SigHash mode, boolean anyoneCanPay) {
+    public static int calcSigHashValue(SigHash mode, boolean anyoneCanPay) {
         Preconditions.checkArgument(SigHash.ALL == mode || SigHash.NONE == mode || SigHash.SINGLE == mode); // enforce compatibility since this code was made before the SigHash enum was updated
         int sighashFlags = mode.value;
         if (anyoneCanPay)
-            sighashFlags |= Transaction.SigHash.ANYONECANPAY.value;
+            sighashFlags |= SigHash.ANYONECANPAY.value;
         return sighashFlags;
     }
 
-    public static int calcSigHashValue(Transaction.SigHash mode, boolean anyoneCanPay, boolean useForkId) {
+    public static int calcSigHashValue(SigHash mode, boolean anyoneCanPay, boolean useForkId) {
         Preconditions.checkArgument(SigHash.ALL == mode || SigHash.NONE == mode || SigHash.SINGLE == mode); // enforce compatibility since this code was made before the SigHash enum was updated
         int sighashFlags = mode.value;
         if (anyoneCanPay)
-            sighashFlags |= Transaction.SigHash.ANYONECANPAY.value;
+            sighashFlags |= SigHash.ANYONECANPAY.value;
         if(useForkId)
             sighashFlags |= SigHash.FORKID.value;
         return sighashFlags;
@@ -106,8 +103,8 @@ public class TransactionSignature extends ECKey.ECDSASignature {
         if (signature.length < 9 || signature.length > 73)
             return false;
 
-        int hashType = (signature[signature.length-1] & 0xff) & ~(Transaction.SigHash.ANYONECANPAY.value| SigHash.FORKID.value); // mask the byte to prevent sign-extension hurting us
-        if (hashType < Transaction.SigHash.ALL.value || hashType > Transaction.SigHash.SINGLE.value)
+        int hashType = (signature[signature.length-1] & 0xff) & ~(SigHash.ANYONECANPAY.value| SigHash.FORKID.value); // mask the byte to prevent sign-extension hurting us
+        if (hashType < SigHash.ALL.value || hashType > SigHash.SINGLE.value)
             return false;
 
         //                   "wrong type"                  "wrong length marker"
@@ -144,20 +141,20 @@ public class TransactionSignature extends ECKey.ECDSASignature {
     }
 
     public boolean anyoneCanPay() {
-        return (sighashFlags & Transaction.SigHash.ANYONECANPAY.value) != 0;
+        return (sighashFlags & SigHash.ANYONECANPAY.value) != 0;
     }
     public boolean useForkId() {
         return (sighashFlags & SigHash.FORKID.value) != 0;
     }
 
-    public Transaction.SigHash sigHashMode() {
+    public SigHash sigHashMode() {
         final int mode = sighashFlags & 0x1f;
-        if (mode == Transaction.SigHash.NONE.value)
-            return Transaction.SigHash.NONE;
-        else if (mode == Transaction.SigHash.SINGLE.value)
-            return Transaction.SigHash.SINGLE;
+        if (mode == SigHash.NONE.value)
+            return SigHash.NONE;
+        else if (mode == SigHash.SINGLE.value)
+            return SigHash.SINGLE;
         else
-            return Transaction.SigHash.ALL;
+            return SigHash.ALL;
     }
 
     /**
@@ -176,7 +173,7 @@ public class TransactionSignature extends ECKey.ECDSASignature {
     }
 
     @Override
-    public ECKey.ECDSASignature toCanonicalised() {
+    public ECDSASignature toCanonicalised() {
         return new TransactionSignature(super.toCanonicalised(), sigHashMode(), anyoneCanPay(), useForkId());
     }
 
@@ -209,9 +206,9 @@ public class TransactionSignature extends ECKey.ECDSASignature {
         // Bitcoin encoding is DER signature + sighash byte.
         if (requireCanonicalEncoding && !isEncodingCanonical(bytes))
             throw new VerificationException("Signature encoding is not canonical.");
-        ECKey.ECDSASignature sig;
+        ECDSASignature sig;
         try {
-            sig = ECKey.ECDSASignature.decodeFromDER(bytes);
+            sig = ECDSASignature.decodeFromDER(bytes);
         } catch (IllegalArgumentException e) {
             throw new VerificationException("Could not decode DER", e);
         }

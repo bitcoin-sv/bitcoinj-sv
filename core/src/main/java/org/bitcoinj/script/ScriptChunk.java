@@ -97,7 +97,7 @@ public class ScriptChunk<C> {
     /** If this chunk is an OP_N opcode returns the equivalent integer value. */
     public int decodeOpN() {
         checkState(isOpCode());
-        return Script.decodeFromOpN(opcode);
+        return Interpreter.decodeFromOpN(opcode);
     }
 
     /**
@@ -167,7 +167,7 @@ public class ScriptChunk<C> {
             buf.append(getPushDataName(opcode)).append("[").append(Utils.HEX.encode(data())).append("]");
         } else {
             // Small num
-            buf.append(Script.decodeFromOpN(opcode));
+            buf.append(Interpreter.decodeFromOpN(opcode));
         }
         return buf.toString();
     }

@@ -20,8 +20,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -148,9 +149,9 @@ public class PaymentChannelV2ClientState extends PaymentChannelClientState {
 
         TransactionSignature refundSignature = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
                 refundTx.calculateWitnessSignature(0, myKey.maybeDecrypt(userKey),
-                        getSignedScript(), refundTx.getInput(0).getConnectedOutput().getValue(), Transaction.SigHash.ALL, false) :
+                        getSignedScript(), refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.ALL, false) :
                 refundTx.calculateSignature(0, myKey.maybeDecrypt(userKey),
-                        getSignedScript(), Transaction.SigHash.ALL, false);
+                        getSignedScript(), SigHash.ALL, false);
         refundTx.getInput(0).setScriptSig(ScriptBuilder.createCLTVPaymentChannelP2SHRefund(refundSignature, redeemScript));
 
         refundTx.getConfidence().setSource(TransactionConfidence.Source.SELF);

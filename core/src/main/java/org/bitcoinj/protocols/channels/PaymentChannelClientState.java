@@ -23,8 +23,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.utils.Threading;
@@ -310,13 +311,13 @@ public abstract class PaymentChannelClientState {
             throw new ValueOutOfRangeException("Channel has too little money to pay " + size + " satoshis");
         Transaction tx = makeUnsignedChannelContract(newValueToMe);
         log.info("Signing new payment tx {}", tx);
-        Transaction.SigHash mode;
+        SigHash mode;
         // If we spent all the money we put into this channel, we (by definition) don't care what the outputs are, so
         // we sign with SIGHASH_NONE to let the server do what it wants.
         if (newValueToMe.equals(Coin.ZERO))
-            mode = Transaction.SigHash.NONE;
+            mode = SigHash.NONE;
         else
-            mode = Transaction.SigHash.SINGLE;
+            mode = SigHash.SINGLE;
         TransactionSignature sig = tx.getVersion() >= Transaction.FORKID_VERSION ?
                 tx.calculateWitnessSignature(0, myKey.maybeDecrypt(userKey), getSignedScript(), tx.getInput(0).getConnectedOutput().getValue(), mode, true) :
                 tx.calculateSignature(0, myKey.maybeDecrypt(userKey), getSignedScript(), mode, true);

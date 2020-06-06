@@ -18,14 +18,13 @@
 package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.ECKey.ECDSASignature;
+import org.bitcoinj.ecc.ECDSASignature;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.script.ScriptChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -183,7 +182,7 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
             if (chunk.isPushData()) {
                 ECDSASignature signature;
                 try {
-                    signature = ECKey.ECDSASignature.decodeFromDER(chunk.data());
+                    signature = ECDSASignature.decodeFromDER(chunk.data());
                 } catch (RuntimeException x) {
                     // Doesn't look like a signature.
                     signature = null;
@@ -207,7 +206,7 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
             if (chunk.isPushData()) {
                 ECDSASignature signature;
                 try {
-                    signature = ECKey.ECDSASignature.decodeFromDER(chunk.data());
+                    signature = ECDSASignature.decodeFromDER(chunk.data());
                 } catch (RuntimeException x) {
                     // Doesn't look like a signature.
                     signature = null;
