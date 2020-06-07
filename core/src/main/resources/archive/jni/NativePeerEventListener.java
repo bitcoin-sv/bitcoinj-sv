@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.jni;
+package archive.jni;
 
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.core.*;

@@ -90,7 +90,7 @@ public class HttpDiscovery implements PeerDiscovery {
                 url.addQueryParameter("srvmask", Long.toString(services));
             Request.Builder request = new Request.Builder();
             request.url(url.build());
-            request.addHeader("User-Agent", VersionMessage.LIBRARY_SUBVER); // TODO Add main version.
+            request.addHeader("User-Agent", BitcoinJ.LIBRARY_SUBVER); // TODO Add main version.
             log.info("Requesting seeds from {}", url);
             Response response = client.newCall(request.build()).execute();
             if (!response.isSuccessful())

@@ -32,7 +32,7 @@ import org.bitcoinj.testing.FakeTxBuilder;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletTransaction;
+import org.bitcoinj.temp.WalletTransaction;
 import org.bitcoinj.wallet.listeners.WalletChangeEventListener;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 import org.bitcoinj.wallet.listeners.WalletReorganizeEventListener;

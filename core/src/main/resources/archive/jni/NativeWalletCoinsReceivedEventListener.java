@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.jni;
+package archive.jni;
 
-import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
 import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.bitcoinj.core.Coin;
 import org.bitcoinj.msg.protocol.Transaction;
 
 /**
@@ -25,9 +26,9 @@ import org.bitcoinj.msg.protocol.Transaction;
  * this class using JNI on the native side, thus several instances of this can point to different actual
  * native implementations.
  */
-public class NativeTransactionConfidenceEventListener implements TransactionConfidenceEventListener {
+public class NativeWalletCoinsReceivedEventListener implements WalletCoinsReceivedEventListener {
     public long ptr;
 
     @Override
-    public native void onTransactionConfidenceChanged(Wallet wallet, Transaction tx);
+    public native void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance);
 }

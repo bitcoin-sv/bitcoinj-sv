@@ -31,9 +31,10 @@ import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.temp.CoinSelector;
 import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.wallet.KeyChain.KeyPurpose;
-import org.bitcoinj.wallet.Wallet.MissingSigsMode;
+import org.bitcoinj.temp.MissingSigsMode;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import com.google.common.base.MoreObjects;
@@ -96,7 +97,7 @@ public class SendRequest {
      *
      * <p>Note that this does not enforce certain fee rules that only apply to transactions which are larger than
      * 26,000 bytes. If you get a transaction which is that large, you should set a feePerKb of at least
-     * {@link Transaction#REFERENCE_DEFAULT_MIN_TX_FEE}.</p>
+     * {@link BitcoinJ#REFERENCE_DEFAULT_MIN_TX_FEE}.</p>
      */
     public boolean ensureMinRequiredFee = Context.get().isEnsureMinRequiredFee();
 
@@ -113,7 +114,7 @@ public class SendRequest {
     public KeyParameter aesKey = null;
 
     /**
-     * If not null, the {@link org.bitcoinj.wallet.CoinSelector} to use instead of the wallets default. Coin selectors are
+     * If not null, the {@link CoinSelector} to use instead of the wallets default. Coin selectors are
      * responsible for choosing which transaction outputs (coins) in a wallet to use given the desired send value
      * amount.
      */

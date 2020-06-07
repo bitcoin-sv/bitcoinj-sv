@@ -34,7 +34,7 @@ import org.bitcoinj.utils.BlockFileLoader;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletTransaction;
+import org.bitcoinj.temp.WalletTransaction;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -346,7 +346,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         assertEquals("Wrong number of PENDING.4", 1, wallet.getPoolSize(WalletTransaction.Pool.PENDING));
         Coin totalPendingTxAmount = Coin.ZERO;
         for (Transaction tx : wallet.getPendingTransactions()) {
-            totalPendingTxAmount = totalPendingTxAmount.add(tx.getValueSentToMe(wallet));
+            totalPendingTxAmount = totalPendingTxAmount.add(TxHelper.getValueSentToMe(tx, wallet));
         }
 
         // The availbale balance should be the 0 (as we spent the 1 BTC that's pending) and estimated should be 1/2 - fee BTC

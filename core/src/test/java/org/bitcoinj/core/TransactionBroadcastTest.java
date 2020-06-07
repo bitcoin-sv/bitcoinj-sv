@@ -25,6 +25,7 @@ import org.bitcoinj.msg.p2p.RejectMessage;
 import org.bitcoinj.msg.p2p.VersionMessage;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.testing.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.wallet.SendRequest;
@@ -233,7 +234,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         }
         assertNotNull(t1);
         // 49 BTC in change.
-        assertEquals(valueOf(49, 0), t1.getValueSentToMe(wallet));
+        assertEquals(valueOf(49, 0), TxHelper.getValueSentToMe(t1, wallet));
         // The future won't complete until it's heard back from the network on p2.
         InventoryMessage inv = new InventoryMessage(NET);
         inv.addTransaction(t1);

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.jni;
+package archive.jni;
 
-import org.bitcoinj.script.Script;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.ScriptsChangeEventListener;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 
 import java.util.List;
 
@@ -27,9 +26,9 @@ import java.util.List;
  * this class using JNI on the native side, thus several instances of this can point to different actual
  * native implementations.
  */
-public class NativeScriptsChangeEventListener implements ScriptsChangeEventListener {
+public class NativeKeyChainEventListener implements KeyChainEventListener {
     public long ptr;
 
     @Override
-    public native void onScriptsChanged(Wallet wallet, List<Script> scripts, boolean isAddingScripts);
+    public native void onKeysAdded(List<ECKey> keys);
 }

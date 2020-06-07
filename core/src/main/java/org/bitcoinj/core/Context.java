@@ -14,8 +14,6 @@
 
 package org.bitcoinj.core;
 
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.p2p.VersionMessage;
 import org.bitcoinj.params.NetworkParameters;
 import org.slf4j.*;
 
@@ -48,7 +46,7 @@ public class Context {
     private NetworkParameters params;
     private int eventHorizon = 100;
     private boolean ensureMinRequiredFee = true;
-    private Coin feePerKb = Transaction.DEFAULT_TX_FEE;
+    private Coin feePerKb = BitcoinJ.DEFAULT_TX_FEE;
 
     /**
      * Creates a new context object. For now, this will be done for you by the framework. Eventually you will be
@@ -57,7 +55,7 @@ public class Context {
      * @param params The network parameters that will be associated with this context.
      */
     public Context(NetworkParameters params) {
-        log.info("Creating bitcoinj {} context.", VersionMessage.BITCOINJ_VERSION);
+        log.info("Creating bitcoinj {} context.", BitcoinJ.BITCOINJ_VERSION);
         this.confidenceTable = new TxConfidenceTable();
         this.params = params;
         lastConstructed = this;
@@ -70,8 +68,8 @@ public class Context {
      *
      * @param params The network parameters that will be associated with this context.
      * @param eventHorizon Number of blocks after which the library will delete data and be unable to always process reorgs (see {@link #getEventHorizon()}.
-     * @param feePerKb The default fee per 1000 bytes of transaction data to pay when completing transactions. For details, see {@link org.bitcoinj.wallet.SendRequest#feePerKb}.
-     * @param ensureMinRequiredFee Whether to ensure the minimum required fee by default when completing transactions. For details, see {@link org.bitcoinj.wallet.SendRequest#ensureMinRequiredFee}.
+     * @param feePerKb The default fee per 1000 bytes of transaction data to pay when completing transactions. For details, see {@org.bitcoinj.wallet.SendRequest#feePerKb}.
+     * @param ensureMinRequiredFee Whether to ensure the minimum required fee by default when completing transactions. For details, see {org.bitcoinj.wallet.SendRequest#ensureMinRequiredFee}.
      */
     public Context(NetworkParameters params, int eventHorizon, Coin feePerKb, boolean ensureMinRequiredFee) {
         this(params);
@@ -180,14 +178,14 @@ public class Context {
     }
 
     /**
-     * The default fee per 1000 bytes of transaction data to pay when completing transactions. For details, see {@link org.bitcoinj.wallet.SendRequest#feePerKb}.
+     * The default fee per 1000 bytes of transaction data to pay when completing transactions. For details, see { org.bitcoinj.wallet.SendRequest#feePerKb}.
      */
     public Coin getFeePerKb() {
         return feePerKb;
     }
 
     /**
-     * Whether to ensure the minimum required fee by default when completing transactions. For details, see {@link org.bitcoinj.wallet.SendRequest#ensureMinRequiredFee}.
+     * Whether to ensure the minimum required fee by default when completing transactions. For details, see { org.bitcoinj.wallet.SendRequest#ensureMinRequiredFee}.
      */
     public boolean isEnsureMinRequiredFee() {
         return ensureMinRequiredFee;

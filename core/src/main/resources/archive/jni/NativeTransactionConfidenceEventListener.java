@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.jni;
+package archive.jni;
 
-import org.bitcoinj.core.TransactionConfidence;
+import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
+import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.msg.protocol.Transaction;
 
 /**
  * An event listener that relays events to a native C++ object. A pointer to that object is stored in
  * this class using JNI on the native side, thus several instances of this can point to different actual
  * native implementations.
  */
-public class NativeTransactionConfidenceListener implements TransactionConfidence.Listener {
+public class NativeTransactionConfidenceEventListener implements TransactionConfidenceEventListener {
     public long ptr;
 
     @Override
-    public native void onConfidenceChanged(TransactionConfidence confidence, ChangeReason reason);
+    public native void onTransactionConfidenceChanged(Wallet wallet, Transaction tx);
 }

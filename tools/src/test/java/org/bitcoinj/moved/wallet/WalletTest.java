@@ -38,12 +38,16 @@ import org.bitcoinj.signers.StatelessTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.temp.CoinSelector;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.MissingSigsMode;
+import org.bitcoinj.temp.WalletTransaction;
 import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.utils.Fiat;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.*;
 import org.bitcoinj.wallet.Wallet.BalanceType;
-import org.bitcoinj.wallet.WalletTransaction.Pool;
+import org.bitcoinj.temp.WalletTransaction.Pool;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 import org.bitcoinj.wallet.listeners.WalletChangeEventListener;
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
@@ -623,14 +627,14 @@ public class WalletTest extends TestWithWallet {
     public void balances() throws Exception {
         Coin nanos = COIN;
         Transaction tx1 = sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, nanos);
-        assertEquals(nanos, tx1.getValueSentToMe(wallet));
-        assertTrue(tx1.getWalletOutputs(wallet).size() >= 1);
+        assertEquals(nanos, TxHelper.getValueSentToMe(tx1, wallet));
+        assertTrue(TxHelper.getWalletOutputs(tx1, wallet).size() >= 1);
         // Send 0.10 to somebody else.
         Transaction send1 = wallet.createSend(OTHER_ADDRESS, valueOf(0, 10));
         // Reserialize.
         Transaction send2 = Serializer.defaultFor(TestWithWallet.NET).makeTransaction(send1.bitcoinSerialize());
-        assertEquals(nanos, send2.getValueSentFromMe(wallet));
-        assertEquals(ZERO.subtract(valueOf(0, 10)), send2.getValue(wallet));
+        assertEquals(nanos, TxHelper.getValueSentFromMe(send2, wallet));
+        assertEquals(ZERO.subtract(valueOf(0, 10)), TxHelper.getValue(send2, wallet));
     }
 
     @Test
@@ -729,7 +733,7 @@ public class WalletTest extends TestWithWallet {
         tx2.addInput(output);
         tx2.addOutput(new TransactionOutput(TestWithWallet.NET, tx2, valueOf(0, 5), myAddress));
         // tx2 doesn't send any coins from us, even though the output is in the wallet.
-        assertEquals(ZERO, tx2.getValueSentFromMe(wallet));
+        assertEquals(ZERO, TxHelper.getValueSentFromMe(tx2, wallet));
     }
 
     @Test
@@ -746,11 +750,11 @@ public class WalletTest extends TestWithWallet {
         Transaction outbound1 = wallet.createSend(OTHER_ADDRESS, coinHalf);
         wallet.commitTx(outbound1);
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, outbound1);
-        assertTrue(outbound1.getWalletOutputs(wallet).size() <= 1); //the change address at most
+        assertTrue(TxHelper.getWalletOutputs(outbound1, wallet).size() <= 1); //the change address at most
         // That other guy gives us the coins right back.
         Transaction inbound2 = new Transaction(TestWithWallet.NET);
         inbound2.addOutput(new TransactionOutput(TestWithWallet.NET, inbound2, coinHalf, myAddress));
-        assertTrue(outbound1.getWalletOutputs(wallet).size() >= 1);
+        assertTrue(TxHelper.getWalletOutputs(outbound1, wallet).size() >= 1);
         inbound2.addInput(outbound1.getOutputs().get(0));
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, inbound2);
         Assert.assertEquals(coin1, wallet.getBalance());
@@ -1638,7 +1642,7 @@ public class WalletTest extends TestWithWallet {
         wallet.addWatchedAddress(watchedAddress);
         Coin value = valueOf(5, 0);
         Transaction t1 = FakeTxBuilder.createFakeTx(TestWithWallet.NET, value, watchedAddress);
-        assertTrue(t1.getWalletOutputs(wallet).size() >= 1);
+        assertTrue(TxHelper.getWalletOutputs(t1, wallet).size() >= 1);
         assertTrue(wallet.isPendingTransactionRelevant(t1));
     }
 
@@ -1672,7 +1676,7 @@ public class WalletTest extends TestWithWallet {
         st2.addInput(t2.getOutput(0));
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, st2);
         Assert.assertEquals(baseElements + 2, wallet.getBloomFilterElementCount());
-        assertEquals(CENT, st2.getValueSentFromMe(wallet));
+        assertEquals(CENT, TxHelper.getValueSentFromMe(st2, wallet));
     }
 
     @Test
@@ -2300,30 +2304,30 @@ public class WalletTest extends TestWithWallet {
         request1.ensureMinRequiredFee = true;
         wallet.completeTx(request1);
         Transaction spend1 = request1.tx;
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request1.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request1.tx.getFee());
         assertEquals(2, spend1.getOutputs().size());
 
         // ...but not more fee than what we request
         SendRequest request3 = SendRequest.to(OTHER_ADDRESS, CENT.subtract(SATOSHI));
-        request3.feePerKb = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(SATOSHI);
+        request3.feePerKb = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(SATOSHI);
         request3.ensureMinRequiredFee = true;
         wallet.completeTx(request3);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request3.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request3.tx.getFee());
         assertEquals(2, request3.tx.getOutputs().size());
 
         // ...unless we need it
         SendRequest request4 = SendRequest.to(OTHER_ADDRESS, CENT.subtract(SATOSHI));
-        request4.feePerKb = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.subtract(SATOSHI);
+        request4.feePerKb = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.subtract(SATOSHI);
         request4.ensureMinRequiredFee = true;
         wallet.completeTx(request4);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request4.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request4.tx.getFee());
         assertEquals(2, request4.tx.getOutputs().size());
 
         // If we would have a change output < 0.01, it should add the fee
         SendRequest request5 = SendRequest.to(OTHER_ADDRESS, Coin.COIN.subtract(CENT.subtract(SATOSHI)));
         request5.ensureMinRequiredFee = true;
         wallet.completeTx(request5);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request5.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request5.tx.getFee());
         assertEquals(2, request5.tx.getOutputs().size());
 
         // If change is 0.1-satoshi and we already have a 0.1-satoshi output, fee should be reference fee
@@ -2331,39 +2335,39 @@ public class WalletTest extends TestWithWallet {
         request7.ensureMinRequiredFee = true;
         request7.tx.addOutput(CENT.subtract(SATOSHI), OTHER_ADDRESS);
         wallet.completeTx(request7);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request7.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request7.tx.getFee());
         assertEquals(3, request7.tx.getOutputs().size());
 
         // If we would have a change output == REFERENCE_DEFAULT_MIN_TX_FEE that would cause a fee, throw it away and make it fee
-        SendRequest request8 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE));
+        SendRequest request8 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE));
         request8.ensureMinRequiredFee = true;
         wallet.completeTx(request8);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request8.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request8.tx.getFee());
         assertEquals(1, request8.tx.getOutputs().size());
 
         // ...in fact, also add fee if we would get back less than MIN_NONDUST_OUTPUT
         SendRequest request9 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI)));
+                BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI)));
         request9.ensureMinRequiredFee = true;
         wallet.completeTx(request9);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI), request9.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI), request9.tx.getFee());
         assertEquals(1, request9.tx.getOutputs().size());
 
         // ...but if we get back any more than that, we should get a refund (but still pay fee)
         SendRequest request10 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT)));
+                BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT)));
         request10.ensureMinRequiredFee = true;
         wallet.completeTx(request10);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request10.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request10.tx.getFee());
         assertEquals(2, request10.tx.getOutputs().size());
 
         // ...of course fee should be min(request.fee, MIN_TX_FEE) so we should get MIN_TX_FEE.add(SATOSHI) here
         SendRequest request11 = SendRequest.to(OTHER_ADDRESS, COIN.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).add(SATOSHI.multiply(2))));
-        request11.feePerKb = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(SATOSHI);
+                BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).add(SATOSHI.multiply(2))));
+        request11.feePerKb = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(SATOSHI);
         request11.ensureMinRequiredFee = true;
         wallet.completeTx(request11);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request11.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request11.tx.getFee());
         assertEquals(2, request11.tx.getOutputs().size());
     }
 
@@ -2430,7 +2434,7 @@ public class WalletTest extends TestWithWallet {
         for (int i = 0; i < 29; i++)
             request15.tx.addOutput(CENT, OTHER_ADDRESS);
         assertTrue(request15.tx.unsafeBitcoinSerialize().length > 1000);
-        request15.feePerKb = Transaction.DEFAULT_TX_FEE;
+        request15.feePerKb = BitcoinJ.DEFAULT_TX_FEE;
         request15.ensureMinRequiredFee = true;
         wallet.completeTx(request15);
         assertEquals(Coin.valueOf(6065), request15.tx.getFee());
@@ -2450,7 +2454,7 @@ public class WalletTest extends TestWithWallet {
         assertTrue(request16.tx.unsafeBitcoinSerialize().length > 1000);
         wallet.completeTx(request16);
         // Just the reference fee should be added if feePerKb == 0
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request16.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request16.tx.getFee());
         Transaction spend16 = request16.tx;
         assertEquals(31, spend16.getOutputs().size());
         // We optimize for priority, so the output selected should be the largest one
@@ -2462,7 +2466,7 @@ public class WalletTest extends TestWithWallet {
         for (int i = 0; i < 22; i++)
             request17.tx.addOutput(CENT, OTHER_ADDRESS);
         request17.tx.addOutput(new TransactionOutput(TestWithWallet.NET, request17.tx, CENT, new byte[15]));
-        request17.feePerKb = Transaction.DEFAULT_TX_FEE;
+        request17.feePerKb = BitcoinJ.DEFAULT_TX_FEE;
         request17.ensureMinRequiredFee = true;
         wallet.completeTx(request17);
         assertEquals(Coin.valueOf(4995), request17.tx.getFee());
@@ -2489,7 +2493,7 @@ public class WalletTest extends TestWithWallet {
         for (int i = 0; i < 22; i++)
             request18.tx.addOutput(CENT, OTHER_ADDRESS);
         request18.tx.addOutput(new TransactionOutput(TestWithWallet.NET, request18.tx, CENT, new byte[17]));
-        request18.feePerKb = Transaction.DEFAULT_TX_FEE;
+        request18.feePerKb = BitcoinJ.DEFAULT_TX_FEE;
         request18.ensureMinRequiredFee = true;
         wallet.completeTx(request18);
         assertEquals(Coin.valueOf(5005), request18.tx.getFee());
@@ -2523,7 +2527,7 @@ public class WalletTest extends TestWithWallet {
         // Now reset request19 and give it a fee per kb
         request19.tx.clearInputs();
         request19 = SendRequest.forTx(request19.tx);
-        request19.feePerKb = Transaction.DEFAULT_TX_FEE;
+        request19.feePerKb = BitcoinJ.DEFAULT_TX_FEE;
         request19.shuffleOutputs = false;
         wallet.completeTx(request19);
         assertEquals(Coin.valueOf(18710), request19.tx.getFee());
@@ -2544,7 +2548,7 @@ public class WalletTest extends TestWithWallet {
         // Now reset request19 and give it a fee per kb
         request20.tx.clearInputs();
         request20 = SendRequest.forTx(request20.tx);
-        request20.feePerKb = Transaction.DEFAULT_TX_FEE;
+        request20.feePerKb = BitcoinJ.DEFAULT_TX_FEE;
         wallet.completeTx(request20);
         // 4kb tx.
         assertEquals(Coin.valueOf(18710), request20.tx.getFee());
@@ -2559,10 +2563,10 @@ public class WalletTest extends TestWithWallet {
         request21.ensureMinRequiredFee = true;
         for (int i = 0; i < 99; i++)
             request21.tx.addOutput(CENT, OTHER_ADDRESS);
-        request21.tx.addOutput(CENT.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE), OTHER_ADDRESS);
+        request21.tx.addOutput(CENT.subtract(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE), OTHER_ADDRESS);
         // If we send without a feePerKb, we should still require REFERENCE_DEFAULT_MIN_TX_FEE because we have an output < 0.01
         wallet.completeTx(request21);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request21.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request21.tx.getFee());
         assertEquals(2, request21.tx.getInputs().size());
         assertEquals(COIN, request21.tx.getInput(0).getValue());
         assertEquals(CENT, request21.tx.getInput(1).getValue());
@@ -2580,7 +2584,7 @@ public class WalletTest extends TestWithWallet {
         // Now reset request25 and give it a fee per kb
         request25.tx.clearInputs();
         request25 = SendRequest.forTx(request25.tx);
-        request25.feePerKb = Transaction.DEFAULT_TX_FEE;
+        request25.feePerKb = BitcoinJ.DEFAULT_TX_FEE;
         request25.shuffleOutputs = false;
         wallet.completeTx(request25);
         assertEquals(Coin.valueOf(13950), request25.tx.getFee());
@@ -2602,13 +2606,13 @@ public class WalletTest extends TestWithWallet {
         for (int i = 0; i < 98; i++)
             request26.tx.addOutput(CENT, OTHER_ADDRESS);
         request26.tx.addOutput(CENT.subtract(
-                Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI)),
+                BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI)),
                 OTHER_ADDRESS);
         assertTrue(request26.tx.unsafeBitcoinSerialize().length > 1000);
         request26.feePerKb = SATOSHI;
         request26.ensureMinRequiredFee = true;
         wallet.completeTx(request26);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI),
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(MIN_NONDUST_OUTPUT).subtract(SATOSHI),
                 request26.tx.getFee());
         Transaction spend26 = request26.tx;
         // If a transaction is over 1kb, the set fee should be added
@@ -2668,7 +2672,7 @@ public class WalletTest extends TestWithWallet {
 
         //
         SendRequest request4 = SendRequest.to(OTHER_ADDRESS, balance.subtract(SATOSHI));
-        request4.feePerKb = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.divide(request3.tx.unsafeBitcoinSerialize().length);
+        request4.feePerKb = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.divide(request3.tx.unsafeBitcoinSerialize().length);
         request4.ensureMinRequiredFee = true;
         wallet.completeTx(request4);
         assertEquals(SATOSHI, request4.tx.getFee());
@@ -2708,8 +2712,8 @@ public class WalletTest extends TestWithWallet {
         // Generate a ton of small outputs
         StoredBlock block = new StoredBlock(FakeTxBuilder.makeSolvedTestBlock(blockStore, OTHER_ADDRESS), BigInteger.ONE, 1);
         int i = 0;
-        while (i <= CENT.divide(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(10))) {
-            Transaction tx = FakeTxBuilder.createFakeTxWithChangeAddress(TestWithWallet.NET, Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(10), myAddress, OTHER_ADDRESS);
+        while (i <= CENT.divide(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(10))) {
+            Transaction tx = FakeTxBuilder.createFakeTxWithChangeAddress(TestWithWallet.NET, BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(10), myAddress, OTHER_ADDRESS);
             tx.getInput(0).setSequenceNumber(i++); // Keep every transaction unique
             wallet.receiveFromBlock(tx, block, AbstractBlockChain.NewBlockType.BEST_CHAIN, i);
         }
@@ -2718,7 +2722,7 @@ public class WalletTest extends TestWithWallet {
         SendRequest request1 = SendRequest.to(OTHER_ADDRESS, CENT.add(SATOSHI));
         request1.ensureMinRequiredFee = true;
         wallet.completeTx(request1);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, request1.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, request1.tx.getFee());
         assertEquals(request1.tx.getInputs().size(), i); // We should have spent all inputs
         assertEquals(2, request1.tx.getOutputs().size()); // and gotten change back
     }
@@ -2732,7 +2736,7 @@ public class WalletTest extends TestWithWallet {
 
         // Create a transaction
         SendRequest request = SendRequest.to(OTHER_ADDRESS, CENT);
-        request.feePerKb = Transaction.DEFAULT_TX_FEE;
+        request.feePerKb = BitcoinJ.DEFAULT_TX_FEE;
         wallet.completeTx(request);
         assertEquals(Coin.valueOf(1135), request.tx.getFee());
     }
@@ -2740,7 +2744,7 @@ public class WalletTest extends TestWithWallet {
     @Test
     public void lowerThanDefaultFee() throws InsufficientMoneyException {
         int feeFactor = 10;
-        Coin fee = Transaction.DEFAULT_TX_FEE.divide(feeFactor);
+        Coin fee = BitcoinJ.DEFAULT_TX_FEE.divide(feeFactor);
         receiveATransactionAmount(wallet, myAddress, Coin.COIN);
         SendRequest req = SendRequest.to(myAddress, Coin.CENT);
         req.feePerKb = fee;
@@ -2753,14 +2757,14 @@ public class WalletTest extends TestWithWallet {
         emptyReq.emptyWallet = true;
         emptyReq.coinSelector = AllowUnconfirmedCoinSelector.get();
         wallet.completeTx(emptyReq);
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, emptyReq.tx.getFee());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, emptyReq.tx.getFee());
         wallet.commitTx(emptyReq.tx);
     }
 
     @Test
     public void higherThanDefaultFee() throws InsufficientMoneyException {
         int feeFactor = 10;
-        Coin fee = Transaction.DEFAULT_TX_FEE.multiply(feeFactor);
+        Coin fee = BitcoinJ.DEFAULT_TX_FEE.multiply(feeFactor);
         receiveATransactionAmount(wallet, myAddress, Coin.COIN);
         SendRequest req = SendRequest.to(myAddress, Coin.CENT);
         req.feePerKb = fee;
@@ -2972,8 +2976,8 @@ public class WalletTest extends TestWithWallet {
         Transaction tx = broadcaster.waitForTransactionAndSucceed();
         final Coin THREE_CENTS = CENT.add(CENT).add(CENT);
         assertEquals(Coin.valueOf(2455), tx.getFee());
-        assertEquals(THREE_CENTS, tx.getValueSentFromMe(wallet));
-        assertEquals(THREE_CENTS.subtract(tx.getFee()), tx.getValueSentToMe(wallet));
+        assertEquals(THREE_CENTS, TxHelper.getValueSentFromMe(tx, wallet));
+        assertEquals(THREE_CENTS.subtract(tx.getFee()), TxHelper.getValueSentToMe(tx, wallet));
         // TX sends to one of our addresses (for now we ignore married wallets).
         final Address toAddress = new Address(ScriptUtils.getToAddress(tx.getOutput(0).getScriptPubKey(), TestWithWallet.PARAMS));
         final ECKey rotatingToKey = wallet.findKeyFromPubHash(toAddress.getHash160());
@@ -2997,8 +3001,8 @@ public class WalletTest extends TestWithWallet {
         assertEquals(Coin.valueOf(1000), tx.getFee());
         assertEquals(1, tx.getInputs().size());
         assertEquals(1, tx.getOutputs().size());
-        assertEquals(CENT, tx.getValueSentFromMe(wallet));
-        assertEquals(CENT.subtract(tx.getFee()), tx.getValueSentToMe(wallet));
+        assertEquals(CENT, TxHelper.getValueSentFromMe(tx, wallet));
+        assertEquals(CENT.subtract(tx.getFee()), TxHelper.getValueSentToMe(tx, wallet));
 
         assertEquals(Transaction.Purpose.KEY_ROTATION, tx.getPurpose());
 
@@ -3125,8 +3129,8 @@ public class WalletTest extends TestWithWallet {
         wallet.doMaintenance(null, true);
 
         Transaction tx = broadcaster.waitForTransactionAndSucceed();
-        final Coin valueSentToMe = tx.getValueSentToMe(wallet);
-        Coin fee = tx.getValueSentFromMe(wallet).subtract(valueSentToMe);
+        final Coin valueSentToMe = TxHelper.getValueSentToMe(tx, wallet);
+        Coin fee = TxHelper.getValueSentFromMe(tx, wallet).subtract(valueSentToMe);
         assertEquals(Coin.valueOf(900000), fee);
         assertEquals(KeyTimeCoinSelector.MAX_SIMULTANEOUS_INPUTS, tx.getInputs().size());
         assertEquals(Coin.valueOf(599100000), valueSentToMe);
@@ -3139,13 +3143,13 @@ public class WalletTest extends TestWithWallet {
     @Test
     public void completeTxPartiallySignedWithDummySigs() throws Exception {
         byte[] dummySig = TransactionSignature.dummy().encodeToBitcoin();
-        completeTxPartiallySigned(Wallet.MissingSigsMode.USE_DUMMY_SIG, dummySig);
+        completeTxPartiallySigned(MissingSigsMode.USE_DUMMY_SIG, dummySig);
     }
 
     @Test
     public void completeTxPartiallySignedWithEmptySig() throws Exception {
         byte[] emptySig = {};
-        completeTxPartiallySigned(Wallet.MissingSigsMode.USE_OP_ZERO, emptySig);
+        completeTxPartiallySigned(MissingSigsMode.USE_OP_ZERO, emptySig);
     }
 
     @Test (expected = ECKey.MissingPrivateKeyException.class)
@@ -3163,19 +3167,19 @@ public class WalletTest extends TestWithWallet {
     @Test
     public void completeTxPartiallySignedMarriedWithDummySigs() throws Exception {
         byte[] dummySig = TransactionSignature.dummy().encodeToBitcoin();
-        completeTxPartiallySignedMarried(Wallet.MissingSigsMode.USE_DUMMY_SIG, dummySig);
+        completeTxPartiallySignedMarried(MissingSigsMode.USE_DUMMY_SIG, dummySig);
     }
 
     @Test
     public void completeTxPartiallySignedMarriedWithEmptySig() throws Exception {
         byte[] emptySig = {};
-        completeTxPartiallySignedMarried(Wallet.MissingSigsMode.USE_OP_ZERO, emptySig);
+        completeTxPartiallySignedMarried(MissingSigsMode.USE_OP_ZERO, emptySig);
     }
 
     @Test (expected = TransactionSigner.MissingSignatureException.class)
     public void completeTxPartiallySignedMarriedThrows() throws Exception {
         byte[] emptySig = {};
-        completeTxPartiallySignedMarried(Wallet.MissingSigsMode.THROW, emptySig);
+        completeTxPartiallySignedMarried(MissingSigsMode.THROW, emptySig);
     }
 
     @Test (expected = TransactionSigner.MissingSignatureException.class)
@@ -3188,7 +3192,7 @@ public class WalletTest extends TestWithWallet {
         wallet.completeTx(req);
     }
 
-    public void completeTxPartiallySignedMarried(Wallet.MissingSigsMode missSigMode, byte[] expectedSig) throws Exception {
+    public void completeTxPartiallySignedMarried(MissingSigsMode missSigMode, byte[] expectedSig) throws Exception {
         // create married wallet without signer
         createMarriedWallet(2, 2, false);
         myAddress = wallet.currentAddress(KeyChain.KeyPurpose.RECEIVE_FUNDS);
@@ -3210,7 +3214,7 @@ public class WalletTest extends TestWithWallet {
 
 
     @SuppressWarnings("ConstantConditions")
-    public void completeTxPartiallySigned(Wallet.MissingSigsMode missSigMode, byte[] expectedSig) throws Exception {
+    public void completeTxPartiallySigned(MissingSigsMode missSigMode, byte[] expectedSig) throws Exception {
         // Check the wallet will write dummy scriptSigs for inputs that we have only pubkeys for without the privkey.
         ECKey priv = new ECKey();
         ECKey pub = ECKey.fromPublicOnly(priv.getPubKeyPoint());
@@ -3407,7 +3411,7 @@ public class WalletTest extends TestWithWallet {
         sendMoneyToWallet(wallet, AbstractBlockChain.NewBlockType.BEST_CHAIN, COIN, myAddress);
 
         SendRequest req = SendRequest.emptyWallet(OTHER_ADDRESS);
-        req.missingSigsMode = Wallet.MissingSigsMode.USE_DUMMY_SIG;
+        req.missingSigsMode = MissingSigsMode.USE_DUMMY_SIG;
         wallet.completeTx(req);
     }
 

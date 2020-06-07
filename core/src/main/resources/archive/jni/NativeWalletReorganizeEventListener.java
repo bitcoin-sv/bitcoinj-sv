@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.jni;
+package archive.jni;
 
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.wallet.listeners.WalletReorganizeEventListener;
 
 /**
  * An event listener that relays events to a native C++ object. A pointer to that object is stored in
  * this class using JNI on the native side, thus several instances of this can point to different actual
  * native implementations.
  */
-public class NativeWalletCoinsReceivedEventListener implements WalletCoinsReceivedEventListener {
+public class NativeWalletReorganizeEventListener implements WalletReorganizeEventListener {
     public long ptr;
 
     @Override
-    public native void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance);
+    public native void onReorganize(Wallet wallet);
 }

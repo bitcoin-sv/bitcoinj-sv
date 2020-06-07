@@ -17,6 +17,8 @@
 package org.bitcoinj.wallet;
 
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.RedeemData;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;

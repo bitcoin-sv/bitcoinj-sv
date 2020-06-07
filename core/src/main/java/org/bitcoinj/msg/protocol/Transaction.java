@@ -32,8 +32,7 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.utils.ExchangeRate;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletTransaction.Pool;
+//import org.bitcoinj.wallet.Wallet;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
@@ -112,16 +111,6 @@ public class Transaction extends ChildMessage implements ITransaction {
     /** How many bytes a transaction can be before it won't be relayed anymore. Currently 100kb. */
     public static final int MAX_STANDARD_TX_SIZE = 100000;
 
-    /**
-     * If feePerKb is lower than this, Bitcoin Core will treat it as if there were no fee.
-     */
-    public static final Coin REFERENCE_DEFAULT_MIN_TX_FEE = Coin.valueOf(1000); // 0.01 mBTC
-
-    /**
-     * If using this feePerKb, transactions will get confirmed within the next couple of blocks.
-     * This should be adjusted from time to time. Last adjustment: March 2016.
-     */
-    public static final Coin DEFAULT_TX_FEE = Coin.valueOf(5000); // 0.5 mBTC
 
     public static final int CURRENT_VERSION = 2;
     public static final int MAX_STANDARD_VERSION = 2;
@@ -288,19 +277,6 @@ public class Transaction extends ChildMessage implements ITransaction {
 
         return inputTotal;
     }
-    /**
-     * Gets the sum of the inputs, regardless of who owns them.
-     */
-    public Coin getValueSentToMe(TransactionBag transactionBag) {
-        maybeParse();
-        // This is tested in WalletTest.
-        Coin v = Coin.ZERO;
-        for (TransactionOutput o : outputs) {
-            if (!TxHelper.isMineOrWatched(o, transactionBag)) continue;
-            v = v.add(o.getValue());
-        }
-        return v;
-    }
 
     /**
      * Returns a map of block [hashes] which contain the transaction mapped to relativity counters, or null if this
@@ -358,36 +334,6 @@ public class Transaction extends ChildMessage implements ITransaction {
     }
 
     /**
-     * Calculates the sum of the inputs that are spending coins with keys in the wallet. This requires the
-     * transactions sending coins to those keys to be in the wallet. This method will not attempt to download the
-     * blocks containing the input transactions if the key is in the wallet but the transactions are not.
-     *
-     * @return sum of the inputs that are spending coins with keys in the wallet
-     */
-    public Coin getValueSentFromMe(TransactionBag wallet) throws ScriptException {
-        maybeParse();
-        // This is tested in WalletTest.
-        Coin v = Coin.ZERO;
-        for (TransactionInput input : inputs) {
-            // This input is taking value from a transaction in our wallet. To discover the value,
-            // we must find the connected transaction.
-            TransactionOutput connected = input.getConnectedOutput(wallet.getTransactionPool(Pool.UNSPENT));
-            if (connected == null)
-                connected = input.getConnectedOutput(wallet.getTransactionPool(Pool.SPENT));
-            if (connected == null)
-                connected = input.getConnectedOutput(wallet.getTransactionPool(Pool.PENDING));
-            if (connected == null)
-                continue;
-            // The connected output may be the change to the sender of a previous input sent to this wallet. In this
-            // case we ignore it.
-            if (!TxHelper.isMineOrWatched(connected, wallet))
-                continue;
-            v = v.add(connected.getValue());
-        }
-        return v;
-    }
-
-    /**
      * Gets the sum of the outputs of the transaction. If the outputs are less than the inputs, it does not count the fee.
      * @return the sum of the outputs regardless of who owns them.
      */
@@ -400,25 +346,6 @@ public class Transaction extends ChildMessage implements ITransaction {
         }
 
         return totalOut;
-    }
-
-    @Nullable private Coin cachedValue;
-    @Nullable private TransactionBag cachedForBag;
-
-    /**
-     * Returns the difference of {@link Transaction#getValueSentToMe(TransactionBag)} and {@link Transaction#getValueSentFromMe(TransactionBag)}.
-     */
-    public Coin getValue(TransactionBag wallet) throws ScriptException {
-        // FIXME: TEMP PERF HACK FOR ANDROID - this crap can go away once we have a real payments API.
-        boolean isAndroid = Utils.isAndroidRuntime();
-        if (isAndroid && cachedValue != null && cachedForBag == wallet)
-            return cachedValue;
-        Coin result = getValueSentToMe(wallet).subtract(getValueSentFromMe(wallet));
-        if (isAndroid) {
-            cachedValue = result;
-            cachedForBag = wallet;
-        }
-        return result;
     }
 
     /**
@@ -451,19 +378,6 @@ public class Transaction extends ChildMessage implements ITransaction {
                 return true;
         }
         return false;
-    }
-
-    /**
-     * Returns false if this transaction has at least one output that is owned by the given wallet and unspent, true
-     * otherwise.
-     */
-    public boolean isEveryOwnedOutputSpent(TransactionBag transactionBag) {
-        maybeParse();
-        for (TransactionOutput output : outputs) {
-            if (output.isAvailableForSpending() && TxHelper.isMineOrWatched(output, transactionBag))
-                return false;
-        }
-        return true;
     }
 
     /**
@@ -923,7 +837,7 @@ public class Transaction extends ChildMessage implements ITransaction {
      * <p>Calculates a signature hash, that is, a hash of a simplified form of the transaction. How exactly the transaction
      * is simplified is specified by the type and anyoneCanPay parameters.</p>
      *
-     * <p>This is a low level API and when using the regular {@link Wallet} class you don't have to call this yourself.
+     * <p>This is a low level API and when using the regular { Wallet} class you don't have to call this yourself.
      * When working with more complex transaction types and contracts, it can be necessary. When signing a P2SH output
      * the redeemScript should be the script encoded into the scriptSig field, for normal transactions, it's the
      * scriptPubKey of the output you're signing for.</p>
@@ -943,7 +857,7 @@ public class Transaction extends ChildMessage implements ITransaction {
      * <p>Calculates a signature hash, that is, a hash of a simplified form of the transaction. How exactly the transaction
      * is simplified is specified by the type and anyoneCanPay parameters.</p>
      *
-     * <p>This is a low level API and when using the regular {@link Wallet} class you don't have to call this yourself.
+     * <p>This is a low level API and when using the regular {Wallet} class you don't have to call this yourself.
      * When working with more complex transaction types and contracts, it can be necessary. When signing a P2SH output
      * the redeemScript should be the script encoded into the scriptSig field, for normal transactions, it's the
      * scriptPubKey of the output you're signing for.</p>
@@ -1054,7 +968,7 @@ public class Transaction extends ChildMessage implements ITransaction {
      * <p>Calculates a signature hash, that is, a hash of a simplified form of the transaction. How exactly the transaction
      * is simplified is specified by the type and anyoneCanPay parameters.</p>
      *
-     * <p>This is a low level API and when using the regular {@link Wallet} class you don't have to call this yourself.
+     * <p>This is a low level API and when using the regular {Wallet} class you don't have to call this yourself.
      * When working with more complex transaction types and contracts, it can be necessary. When signing a Witness output
      * the scriptCode should be the script encoded into the scriptSig field, for normal transactions, it's the
      * scriptPubKey of the output you're signing for. (See BIP143: https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki)</p>
@@ -1231,25 +1145,6 @@ public class Transaction extends ChildMessage implements ITransaction {
     public List<TransactionOutput> getOutputs() {
         maybeParse();
         return Collections.unmodifiableList(outputs);
-    }
-
-    /**
-     * <p>Returns the list of transacion outputs, whether spent or unspent, that match a wallet by address or that are
-     * watched by a wallet, i.e., transaction outputs whose script's address is controlled by the wallet and transaction
-     * outputs whose script is watched by the wallet.</p>
-     *
-     * @param transactionBag The wallet that controls addresses and watches scripts.
-     * @return linked list of outputs relevant to the wallet in this transaction
-     */
-    public List<TransactionOutput> getWalletOutputs(TransactionBag transactionBag){
-        maybeParse();
-        List<TransactionOutput> walletOutputs = new LinkedList<TransactionOutput>();
-        for (TransactionOutput o : outputs) {
-            if (!TxHelper.isMineOrWatched(o, transactionBag)) continue;
-            walletOutputs.add(o);
-        }
-
-        return walletOutputs;
     }
 
     /** Randomly re-orders the transaction outputs: good for privacy */

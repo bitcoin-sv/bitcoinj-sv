@@ -32,6 +32,7 @@ import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.temp.MissingSigsMode;
 import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 import org.slf4j.Logger;
@@ -183,7 +184,7 @@ public class PaymentChannelV2ServerState extends PaymentChannelServerState {
             signP2SHInput(tx, SigHash.NONE, true);
             // Let wallet handle adding additional inputs/fee as necessary.
             req.shuffleOutputs = false;
-            req.missingSigsMode = Wallet.MissingSigsMode.USE_DUMMY_SIG;
+            req.missingSigsMode = MissingSigsMode.USE_DUMMY_SIG;
             wallet.completeTx(req);  // TODO: Fix things so shuffling is usable.
             feePaidForPayment = req.tx.getFee();
             log.info("Calculated fee is {}", feePaidForPayment);

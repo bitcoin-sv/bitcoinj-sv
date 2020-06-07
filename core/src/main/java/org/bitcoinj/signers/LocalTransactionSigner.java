@@ -27,13 +27,13 @@ import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptVerifyFlag;
-import org.bitcoinj.wallet.KeyBag;
-import org.bitcoinj.wallet.RedeemData;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.RedeemData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <p>{@link TransactionSigner} implementation for signing inputs using keys from provided {@link org.bitcoinj.wallet.KeyBag}.</p>
+ * <p>{@link TransactionSigner} implementation for signing inputs using keys from provided {@link KeyBag}.</p>
  * <p>This signer doesn't create input scripts for tx inputs. Instead it expects inputs to contain scripts with
  * empty sigs and replaces one of the empty sigs with calculated signature.
  * </p>

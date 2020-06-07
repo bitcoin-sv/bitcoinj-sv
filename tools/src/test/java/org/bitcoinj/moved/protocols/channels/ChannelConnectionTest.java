@@ -209,7 +209,7 @@ public class ChannelConnectionTest extends TestWithWallet {
         // Wait for the channel to finish opening.
         client.getChannelOpenFuture().get();
         assertEquals(broadcastMultiSig.getHash(), channelOpenFuture.get());
-        assertEquals(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE, client.state().getValueSpent());
+        assertEquals(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE, client.state().getValueSpent());
 
         // Set up an autosave listener to make sure the server is saving the wallet after each payment increase.
         final CountDownLatch latch = new CountDownLatch(3);  // Expect 3 calls.
@@ -366,7 +366,7 @@ public class ChannelConnectionTest extends TestWithWallet {
         broadcastTxPause.release();
         server.receiveMessage(pair.clientRecorder.checkNextMsg(MessageType.PROVIDE_CONTRACT));
         broadcasts.take();
-        pair.serverRecorder.checkTotalPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
+        pair.serverRecorder.checkTotalPayment(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE);
         client.receiveMessage(pair.serverRecorder.checkNextMsg(MessageType.CHANNEL_OPEN));
         Sha256Hash contractHash = (Sha256Hash) pair.serverRecorder.q.take();
         pair.clientRecorder.checkInitiated();
@@ -421,7 +421,7 @@ public class ChannelConnectionTest extends TestWithWallet {
         broadcastTxPause.release();
         server.receiveMessage(pair.clientRecorder.checkNextMsg(MessageType.PROVIDE_CONTRACT));
         broadcasts.take();
-        pair.serverRecorder.checkTotalPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
+        pair.serverRecorder.checkTotalPayment(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE);
         client.receiveMessage(pair.serverRecorder.checkNextMsg(MessageType.CHANNEL_OPEN));
         Sha256Hash contractHash = (Sha256Hash) pair.serverRecorder.q.take();
         pair.clientRecorder.checkInitiated();
@@ -669,7 +669,7 @@ public class ChannelConnectionTest extends TestWithWallet {
                 .setInitiate(Protos.Initiate.newBuilder().setExpireTimeSecs(Utils.currentTimeSeconds())
                         .setMinAcceptedChannelSize(COIN.add(SATOSHI).value)
                         .setMultisigKey(ByteString.copyFrom(new ECKey().getPubKey()))
-                        .setMinPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.value))
+                        .setMinPayment(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.value))
                 .setType(MessageType.INITIATE).build());
         if (useRefunds()) {
             final Protos.TwoWayChannelMessage provideRefund = pair.clientRecorder.checkNextMsg(MessageType.PROVIDE_REFUND);
@@ -698,7 +698,7 @@ public class ChannelConnectionTest extends TestWithWallet {
                     .setInitiate(Protos.Initiate.newBuilder().setExpireTimeSecs(Utils.currentTimeSeconds())
                             .setMinAcceptedChannelSize(CENT.value)
                             .setMultisigKey(ByteString.copyFrom(new ECKey().getPubKey()))
-                            .setMinPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.value))
+                            .setMinPayment(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.value))
                     .setType(MessageType.INITIATE).build());
             fail();
         } catch (InsufficientMoneyException expected) {
@@ -776,7 +776,7 @@ public class ChannelConnectionTest extends TestWithWallet {
         broadcastTxPause.release();
         server.receiveMessage(pair.clientRecorder.checkNextMsg(MessageType.PROVIDE_CONTRACT));
         broadcasts.take();
-        pair.serverRecorder.checkTotalPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
+        pair.serverRecorder.checkTotalPayment(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE);
         client.receiveMessage(pair.serverRecorder.checkNextMsg(MessageType.CHANNEL_OPEN));
         Sha256Hash contractHash = (Sha256Hash) pair.serverRecorder.q.take();
         pair.clientRecorder.checkInitiated();
@@ -824,7 +824,7 @@ public class ChannelConnectionTest extends TestWithWallet {
             broadcastTxPause.release();
             server.receiveMessage(pair.clientRecorder.checkNextMsg(MessageType.PROVIDE_CONTRACT));
             broadcasts.take();
-            pair.serverRecorder.checkTotalPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
+            pair.serverRecorder.checkTotalPayment(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE);
             client.receiveMessage(pair.serverRecorder.checkNextMsg(MessageType.CHANNEL_OPEN));
             Sha256Hash contractHash = (Sha256Hash) pair.serverRecorder.q.take();
             pair.clientRecorder.checkInitiated();
@@ -880,7 +880,7 @@ public class ChannelConnectionTest extends TestWithWallet {
             broadcastTxPause.release();
             server.receiveMessage(pair.clientRecorder.checkNextMsg(MessageType.PROVIDE_CONTRACT));
             broadcasts.take();
-            pair.serverRecorder.checkTotalPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
+            pair.serverRecorder.checkTotalPayment(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE);
             client.receiveMessage(pair.serverRecorder.checkNextMsg(MessageType.CHANNEL_OPEN));
             Sha256Hash contractHash = (Sha256Hash) pair.serverRecorder.q.take();
             pair.clientRecorder.checkInitiated();

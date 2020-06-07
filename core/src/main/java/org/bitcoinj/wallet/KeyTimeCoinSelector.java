@@ -21,6 +21,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.script.Script;
 import com.google.common.collect.Lists;
+import org.bitcoinj.temp.CoinSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

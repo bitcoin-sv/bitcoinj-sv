@@ -21,13 +21,13 @@ import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptChunk;
-import org.bitcoinj.wallet.KeyBag;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.MissingSigsMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This transaction signer resolves missing signatures in accordance with the given {@link org.bitcoinj.wallet.Wallet.MissingSigsMode}.
+ * This transaction signer resolves missing signatures in accordance with the given {@link MissingSigsMode}.
  * If missingSigsMode is USE_OP_ZERO this signer does nothing assuming missing signatures are already presented in
  * scriptSigs as OP_0.
  * In MissingSigsMode.THROW mode this signer will throw an exception. It would be MissingSignatureException
@@ -36,12 +36,12 @@ import org.slf4j.LoggerFactory;
 public class MissingSigResolutionSigner extends StatelessTransactionSigner {
     private static final Logger log = LoggerFactory.getLogger(MissingSigResolutionSigner.class);
 
-    public Wallet.MissingSigsMode missingSigsMode = Wallet.MissingSigsMode.USE_DUMMY_SIG;
+    public MissingSigsMode missingSigsMode = MissingSigsMode.USE_DUMMY_SIG;
 
     public MissingSigResolutionSigner() {
     }
 
-    public MissingSigResolutionSigner(Wallet.MissingSigsMode missingSigsMode) {
+    public MissingSigResolutionSigner(MissingSigsMode missingSigsMode) {
         this.missingSigsMode = missingSigsMode;
     }
 
@@ -52,7 +52,7 @@ public class MissingSigResolutionSigner extends StatelessTransactionSigner {
 
     @Override
     public boolean signInputs(ProposedTransaction propTx, KeyBag keyBag) {
-        if (missingSigsMode == Wallet.MissingSigsMode.USE_OP_ZERO)
+        if (missingSigsMode == MissingSigsMode.USE_OP_ZERO)
             return true;
 
         int numInputs = propTx.partialTx.getInputs().size();
@@ -72,18 +72,18 @@ public class MissingSigResolutionSigner extends StatelessTransactionSigner {
                 for (int j = 1; j < inputScript.getChunks().size() - sigSuffixCount; j++) {
                     ScriptChunk scriptChunk = inputScript.getChunks().get(j);
                     if (scriptChunk.equalsOpCode(0)) {
-                        if (missingSigsMode == Wallet.MissingSigsMode.THROW) {
+                        if (missingSigsMode == MissingSigsMode.THROW) {
                             throw new MissingSignatureException();
-                        } else if (missingSigsMode == Wallet.MissingSigsMode.USE_DUMMY_SIG) {
+                        } else if (missingSigsMode == MissingSigsMode.USE_DUMMY_SIG) {
                             txIn.setScriptSig(scriptPubKey.getScriptSigWithSignature(inputScript, dummySig, j - 1));
                         }
                     }
                 }
             } else {
                 if (inputScript.getChunks().get(0).equalsOpCode(0)) {
-                    if (missingSigsMode == Wallet.MissingSigsMode.THROW) {
+                    if (missingSigsMode == MissingSigsMode.THROW) {
                         throw new ECKey.MissingPrivateKeyException();
-                    } else if (missingSigsMode == Wallet.MissingSigsMode.USE_DUMMY_SIG) {
+                    } else if (missingSigsMode == MissingSigsMode.USE_DUMMY_SIG) {
                         txIn.setScriptSig(scriptPubKey.getScriptSigWithSignature(inputScript, dummySig, 0));
                     }
                 }

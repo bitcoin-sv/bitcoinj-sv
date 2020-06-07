@@ -23,7 +23,6 @@ import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
-import org.bitcoinj.wallet.Wallet;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -222,7 +221,7 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
      * {@link Coin#MIN_NONDUST_OUTPUT}.
      */
     public Coin getMinNonDustValue() {
-        return getMinNonDustValue(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3));
+        return getMinNonDustValue(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3));
     }
 
     /**
@@ -254,7 +253,7 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
 
     /**
      * Returns whether {@link TransactionOutput#markAsSpent(TransactionInput)} has been called on this class. A
-     * {@link Wallet} will mark a transaction output as spent once it sees a transaction input that is connected to it.
+     * {Wallet} will mark a transaction output as spent once it sees a transaction input that is connected to it.
      * Note that this flag can be false when an output has in fact been spent according to the rest of the network if
      * the spending transaction wasn't downloaded yet, and it can be marked as spent when in reality the rest of the
      * network believes it to be unspent if the signature or script connecting to it was not actually valid.

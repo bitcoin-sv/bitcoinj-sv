@@ -43,9 +43,10 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.*;
 import org.bitcoinj.signers.*;
+import org.bitcoinj.temp.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.protos.Protos.Wallet.*;
-import org.bitcoinj.wallet.WalletTransaction.*;
+import org.bitcoinj.temp.WalletTransaction.*;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 import org.bitcoinj.wallet.listeners.ScriptsChangeEventListener;
 import org.bitcoinj.wallet.listeners.WalletChangeEventListener;
@@ -1685,8 +1686,8 @@ public class Wallet extends BaseTaggableObject
                 log.warn("There are now {} risk dropped transactions being kept in memory", riskDropped.size());
                 return;
             }
-            Coin valueSentToMe = tx.getValueSentToMe(this);
-            Coin valueSentFromMe = tx.getValueSentFromMe(this);
+            Coin valueSentToMe = TxHelper.getValueSentToMe(tx, this);
+            Coin valueSentFromMe = TxHelper.getValueSentFromMe(tx, this);
             if (log.isInfoEnabled()) {
                 log.info(String.format(Locale.US, "Received a pending transaction %s that spends %s from our own wallet," +
                         " and sends us %s", tx.getHashAsString(), valueSentFromMe.toFriendlyString(),
@@ -1786,8 +1787,8 @@ public class Wallet extends BaseTaggableObject
     public boolean isTransactionRelevant(Transaction tx) throws ScriptException {
         lock.lock();
         try {
-            return tx.getValueSentFromMe(this).signum() > 0 ||
-                   tx.getValueSentToMe(this).signum() > 0 ||
+            return TxHelper.getValueSentFromMe(tx, this).signum() > 0 ||
+                   TxHelper.getValueSentToMe(tx, this).signum() > 0 ||
                    !findDoubleSpendsAgainst(tx, transactions).isEmpty();
         } finally {
             lock.unlock();
@@ -1894,8 +1895,8 @@ public class Wallet extends BaseTaggableObject
         boolean bestChain = blockType == SPVBlockChain.NewBlockType.BEST_CHAIN;
         boolean sideChain = blockType == SPVBlockChain.NewBlockType.SIDE_CHAIN;
 
-        Coin valueSentFromMe = tx.getValueSentFromMe(this);
-        Coin valueSentToMe = tx.getValueSentToMe(this);
+        Coin valueSentFromMe = TxHelper.getValueSentFromMe(tx, this);
+        Coin valueSentToMe = TxHelper.getValueSentToMe(tx, this);
         Coin valueDifference = valueSentToMe.subtract(valueSentFromMe);
 
         log.info("Received tx{} for {}: {} [{}] in block {}", sideChain ? " on a side chain" : "",
@@ -2176,17 +2177,17 @@ public class Wallet extends BaseTaggableObject
         // Now make sure it ends up in the right pool. Also, handle the case where this TX is double-spending
         // against our pending transactions. Note that a tx may double spend our pending transactions and also send
         // us money/spend our money.
-        boolean hasOutputsToMe = tx.getValueSentToMe(this).signum() > 0;
+        boolean hasOutputsToMe = TxHelper.getValueSentToMe(tx, this).signum() > 0;
         if (hasOutputsToMe) {
             // Needs to go into either unspent or spent (if the outputs were already spent by a pending tx).
-            if (tx.isEveryOwnedOutputSpent(this)) {
+            if (TxHelper.isEveryOwnedOutputSpent(tx, this)) {
                 log.info("  tx {} ->spent (by pending)", tx.getHashAsString());
                 addWalletTransaction(Pool.SPENT, tx);
             } else {
                 log.info("  tx {} ->unspent", tx.getHashAsString());
                 addWalletTransaction(Pool.UNSPENT, tx);
             }
-        } else if (tx.getValueSentFromMe(this).signum() > 0) {
+        } else if (TxHelper.getValueSentFromMe(tx, this).signum() > 0) {
             // Didn't send us any money, but did spend some. Keep it around for record keeping purposes.
             log.info("  tx {} ->spent", tx.getHashAsString());
             addWalletTransaction(Pool.SPENT, tx);
@@ -2367,7 +2368,7 @@ public class Wallet extends BaseTaggableObject
      */
     private void maybeMovePool(Transaction tx, String context) {
         checkState(lock.isHeldByCurrentThread());
-        if (tx.isEveryOwnedOutputSpent(this)) {
+        if (TxHelper.isEveryOwnedOutputSpent(tx, this)) {
             // There's nothing left I can spend in this transaction.
             if (unspent.remove(tx.getHash()) != null) {
                 if (log.isInfoEnabled()) {
@@ -2451,7 +2452,7 @@ public class Wallet extends BaseTaggableObject
             // they are showing to the user in qr codes etc.
             markKeysAsUsed(tx);
             try {
-                Coin valueSentFromMe = tx.getValueSentFromMe(this);
+                Coin valueSentFromMe = TxHelper.getValueSentFromMe(tx, this);
                 Coin newBalance = balance.add(valueSentToMe).subtract(valueSentFromMe);
                 if (valueSentToMe.signum() > 0) {
                     checkBalanceFuturesLocked(null);
@@ -3256,11 +3257,11 @@ public class Wallet extends BaseTaggableObject
 
         for (Transaction tx : txns) {
             try {
-                builder.append(tx.getValue(this).toFriendlyString());
+                builder.append(TxHelper.getValue(tx, this).toFriendlyString());
                 builder.append(" total value (sends ");
-                builder.append(tx.getValueSentFromMe(this).toFriendlyString());
+                builder.append(TxHelper.getValueSentFromMe(tx, this).toFriendlyString());
                 builder.append(" and receives ");
-                builder.append(tx.getValueSentToMe(this).toFriendlyString());
+                builder.append(TxHelper.getValueSentToMe(tx, this).toFriendlyString());
                 builder.append(")\n");
             } catch (ScriptException e) {
                 // Ignore and don't print this line.
@@ -3683,24 +3684,6 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * Enumerates possible resolutions for missing signatures.
-     */
-    public enum MissingSigsMode {
-        /** Input script will have OP_0 instead of missing signatures */
-        USE_OP_ZERO,
-        /**
-         * Missing signatures will be replaced by dummy sigs. This is useful when you'd like to know the fee for
-         * a transaction without knowing the user's password, as fee depends on size.
-         */
-        USE_DUMMY_SIG,
-        /**
-         * If signature is missing, {@link org.bitcoinj.signers.TransactionSigner.MissingSignatureException}
-         * will be thrown for P2SH and {@link org.bitcoinj.core.ECKey.MissingPrivateKeyException} for other tx types.
-         */
-        THROW
-    }
-
-    /**
      * <p>Statelessly creates a transaction that sends the given value to address. The change is sent to
      * {@link Wallet#currentChangeAddress()}, so you must have added at least one key.</p>
      *
@@ -4088,8 +4071,8 @@ public class Wallet extends BaseTaggableObject
             boolean ensureMinRequiredFee) {
         final int size = tx.unsafeBitcoinSerialize().length + estimateBytesForSigning(coinSelection);
         Coin fee = feePerKb.multiply(size).divide(1000);
-        if (ensureMinRequiredFee && fee.compareTo(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
-            fee = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE;
+        if (ensureMinRequiredFee && fee.compareTo(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
+            fee = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE;
         TransactionOutput output = tx.getOutput(0);
         output.setValue(output.getValue().subtract(fee));
         return !output.isDust();
@@ -4828,8 +4811,8 @@ public class Wallet extends BaseTaggableObject
             resetTxInputs(req, originalInputs);
 
             Coin fees = req.feePerKb.multiply(lastCalculatedSize).divide(1000);
-            if (needAtLeastReferenceFee && fees.compareTo(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
-                fees = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE;
+            if (needAtLeastReferenceFee && fees.compareTo(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
+                fees = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE;
 
             valueNeeded = value.add(fees);
             if (additionalValueForNextCategory != null)
@@ -4862,12 +4845,12 @@ public class Wallet extends BaseTaggableObject
 
             // If change is < 0.01 BTC, we will need to have at least minfee to be accepted by the network
             if (req.ensureMinRequiredFee && !change.equals(Coin.ZERO) &&
-                    change.compareTo(Coin.CENT) < 0 && fees.compareTo(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0) {
+                    change.compareTo(Coin.CENT) < 0 && fees.compareTo(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE) < 0) {
                 // This solution may fit into category 2, but it may also be category 3, we'll check that later
                 eitherCategory2Or3 = true;
                 additionalValueForNextCategory = Coin.CENT;
                 // If the change is smaller than the fee we want to add, this will be negative
-                change = change.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.subtract(fees));
+                change = change.subtract(BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.subtract(fees));
             }
 
             int size = 0;
@@ -4884,7 +4867,7 @@ public class Wallet extends BaseTaggableObject
                 if (req.ensureMinRequiredFee && changeOutput.isDust()) {
                     // This solution definitely fits in category 3
                     isCategory3 = true;
-                    additionalValueForNextCategory = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(
+                    additionalValueForNextCategory = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(
                                                      changeOutput.getMinNonDustValue().add(Coin.SATOSHI));
                 } else {
                     size += changeOutput.unsafeBitcoinSerialize().length + VarInt.sizeOf(req.tx.getOutputs().size()) - VarInt.sizeOf(req.tx.getOutputs().size() - 1);
@@ -4896,7 +4879,7 @@ public class Wallet extends BaseTaggableObject
                 if (eitherCategory2Or3) {
                     // This solution definitely fits in category 3 (we threw away change because it was smaller than MIN_TX_FEE)
                     isCategory3 = true;
-                    additionalValueForNextCategory = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Coin.SATOSHI);
+                    additionalValueForNextCategory = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.add(Coin.SATOSHI);
                 }
             }
 
@@ -5242,7 +5225,7 @@ public class Wallet extends BaseTaggableObject
             }
             // When not signing, don't waste addresses.
             rekeyTx.addOutput(toMove.valueGathered, sign ? freshReceiveAddress() : currentReceiveAddress());
-            if (!adjustOutputDownwardsForFee(rekeyTx, toMove, Transaction.DEFAULT_TX_FEE, true)) {
+            if (!adjustOutputDownwardsForFee(rekeyTx, toMove, BitcoinJ.DEFAULT_TX_FEE, true)) {
                 log.error("Failed to adjust rekey tx for fees.");
                 return null;
             }

@@ -10,13 +10,17 @@ import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.script.ScriptVerifyFlag;
-import org.bitcoinj.wallet.KeyBag;
-import org.bitcoinj.wallet.RedeemData;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.RedeemData;
+import org.bitcoinj.temp.TransactionBag;
+import org.bitcoinj.temp.WalletTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -290,5 +294,88 @@ public class TxHelper {
             }
         }
         return -1;
+    }
+
+    /**
+     * Calculates the sum of the inputs that are spending coins with keys in the wallet. This requires the
+     * transactions sending coins to those keys to be in the wallet. This method will not attempt to download the
+     * blocks containing the input transactions if the key is in the wallet but the transactions are not.
+     *
+     * @return sum of the inputs that are spending coins with keys in the wallet
+     */
+    public static Coin getValueSentFromMe(Transaction transaction, TransactionBag wallet) throws ScriptException {
+        // This is tested in WalletTest.
+        Coin v = Coin.ZERO;
+        for (TransactionInput input : transaction.getInputs()) {
+            // This input is taking value from a transaction in our wallet. To discover the value,
+            // we must find the connected transaction.
+            TransactionOutput connected = input.getConnectedOutput(wallet.getTransactionPool(WalletTransaction.Pool.UNSPENT));
+            if (connected == null)
+                connected = input.getConnectedOutput(wallet.getTransactionPool(WalletTransaction.Pool.SPENT));
+            if (connected == null)
+                connected = input.getConnectedOutput(wallet.getTransactionPool(WalletTransaction.Pool.PENDING));
+            if (connected == null)
+                continue;
+            // The connected output may be the change to the sender of a previous input sent to this wallet. In this
+            // case we ignore it.
+            if (!isMineOrWatched(connected, wallet))
+                continue;
+            v = v.add(connected.getValue());
+        }
+        return v;
+    }
+
+    /**
+     * Gets the sum of the inputs, regardless of who owns them.
+     */
+    public static Coin getValueSentToMe(Transaction transaction, TransactionBag transactionBag) {
+        // This is tested in WalletTest.
+        Coin v = Coin.ZERO;
+        for (TransactionOutput o : transaction.getOutputs()) {
+            if (!isMineOrWatched(o, transactionBag)) continue;
+            v = v.add(o.getValue());
+        }
+        return v;
+    }
+
+    /**
+     * Returns the difference of {@link TxHelper#getValueSentToMe(Transaction, TransactionBag)} and {@link TxHelper#getValueSentFromMe(Transaction, TransactionBag)}.
+     */
+    public static Coin getValue(Transaction transaction, TransactionBag wallet) throws ScriptException {
+        // FIXME: TEMP PERF HACK FOR ANDROID - this crap can go away once we have a real payments API.
+        boolean isAndroid = Utils.isAndroidRuntime();
+        Coin result = getValueSentToMe(transaction, wallet).subtract(getValueSentFromMe(transaction, wallet));
+        return result;
+    }
+
+    /**
+     * Returns false if this transaction has at least one output that is owned by the given wallet and unspent, true
+     * otherwise.
+     */
+    public static boolean isEveryOwnedOutputSpent(Transaction transaction, TransactionBag transactionBag) {
+        for (TransactionOutput output : transaction.getOutputs()) {
+            if (output.isAvailableForSpending() && isMineOrWatched(output, transactionBag))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * <p>Returns the list of transacion outputs, whether spent or unspent, that match a wallet by address or that are
+     * watched by a wallet, i.e., transaction outputs whose script's address is controlled by the wallet and transaction
+     * outputs whose script is watched by the wallet.</p>
+     *
+     * @param transaction
+     * @param transactionBag The wallet that controls addresses and watches scripts.
+     * @return linked list of outputs relevant to the wallet in this transaction
+     */
+    public static List<TransactionOutput> getWalletOutputs(Transaction transaction, TransactionBag transactionBag){
+        List<TransactionOutput> walletOutputs = new LinkedList<TransactionOutput>();
+        for (TransactionOutput o : transaction.getOutputs()) {
+            if (!isMineOrWatched(o, transactionBag)) continue;
+            walletOutputs.add(o);
+        }
+
+        return walletOutputs;
     }
 }

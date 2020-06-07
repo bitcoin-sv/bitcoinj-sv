@@ -44,8 +44,8 @@ import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.signers.LocalTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner.ProposedTransaction;
-import org.bitcoinj.wallet.KeyBag;
-import org.bitcoinj.wallet.RedeemData;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.RedeemData;
 
 /**
  * Test case generator for transactions with low-S and high-S signatures, to

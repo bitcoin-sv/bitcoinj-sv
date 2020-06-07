@@ -26,6 +26,8 @@ import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.*;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.RedeemData;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 import org.slf4j.*;

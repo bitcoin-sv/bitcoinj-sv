@@ -27,8 +27,8 @@ import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptUtils;
-import org.bitcoinj.wallet.KeyBag;
-import org.bitcoinj.wallet.RedeemData;
+import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.RedeemData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -302,7 +302,7 @@ public class PaymentChannelClient implements IPaymentChannelClient {
 
         // For now we require a hard-coded value. In future this will have to get more complex and dynamic as the fees
         // start to float.
-        final long MIN_PAYMENT = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.value;
+        final long MIN_PAYMENT = BitcoinJ.REFERENCE_DEFAULT_MIN_TX_FEE.value;
         if (initiate.getMinPayment() != MIN_PAYMENT) {
             log.error("Server requested a min payment of {} but we expected {}", initiate.getMinPayment(), MIN_PAYMENT);
             errorBuilder.setCode(Protos.Error.ErrorCode.MIN_PAYMENT_TOO_LARGE);

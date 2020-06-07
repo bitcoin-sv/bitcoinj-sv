@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.temp;
 
+import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.script.Script;
-import org.bitcoinj.wallet.WalletTransaction;
+import org.bitcoinj.temp.WalletTransaction;
 
 import java.util.Map;
 
 /**
- * This interface is used to abstract the {@link org.bitcoinj.wallet.Wallet} and the {@link Transaction}
+ * This interface is used to abstract the { org.bitcoinj.wallet.Wallet} and the {@link Transaction}
  */
 public interface TransactionBag {
     /** Returns true if this wallet contains a public key which hashes to the given hash. */

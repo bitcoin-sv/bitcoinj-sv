@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.jni;
+package archive.jni;
 
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.wallet.listeners.KeyChainEventListener;
-
-import java.util.List;
+import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.wallet.listeners.WalletCoinsSentEventListener;
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.msg.protocol.Transaction;
 
 /**
  * An event listener that relays events to a native C++ object. A pointer to that object is stored in
  * this class using JNI on the native side, thus several instances of this can point to different actual
  * native implementations.
  */
-public class NativeKeyChainEventListener implements KeyChainEventListener {
+public class NativeWalletCoinsSentEventListener implements WalletCoinsSentEventListener {
     public long ptr;
 
     @Override
-    public native void onKeysAdded(List<ECKey> keys);
+    public native void onCoinsSent(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance);
 }

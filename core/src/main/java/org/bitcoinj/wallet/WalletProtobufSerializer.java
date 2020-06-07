@@ -31,6 +31,7 @@ import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.signers.LocalTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;
+import org.bitcoinj.temp.WalletTransaction;
 import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.utils.Fiat;
 import org.bitcoinj.protos.Protos.Wallet.EncryptionType;

@@ -30,6 +30,7 @@ import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptUtils;
+import org.bitcoinj.temp.RedeemData;
 
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
