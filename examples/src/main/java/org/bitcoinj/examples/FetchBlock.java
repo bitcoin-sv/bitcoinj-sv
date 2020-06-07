@@ -17,6 +17,7 @@
 
 package org.bitcoinj.examples;
 
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.PeerAddress;

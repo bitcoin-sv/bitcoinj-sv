@@ -14,6 +14,7 @@
 
 package org.bitcoinj.examples;
 
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.listeners.DownloadProgressTracker;
 import org.bitcoinj.core.*;
 import org.bitcoinj.net.discovery.DnsDiscovery;
@@ -64,7 +65,7 @@ public class RestoreFromSeed {
         peers.addPeerDiscovery(new DnsDiscovery(params));
 
         // Now we need to hook the wallet up to the blockchain and the peers. This registers event listeners that notify our wallet about new transactions.
-        chain.addWallet(wallet);
+        chain.addChainEventListener(wallet);
         peers.addWallet(wallet);
 
         DownloadProgressTracker bListener = new DownloadProgressTracker() {

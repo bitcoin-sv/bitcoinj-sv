@@ -24,6 +24,10 @@ import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.*;
 import net.jcip.annotations.*;
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.ChainEventListener;
+import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.ecc.ECKeyBytes;
@@ -101,7 +105,7 @@ import static com.google.common.base.Preconditions.*;
  * for more information about this.</p>
  */
 public class Wallet extends BaseTaggableObject
-    implements NewBestBlockListener, TransactionReceivedInBlockListener, PeerFilterProvider, KeyBag, TransactionBag, ReorganizeListener {
+    implements PeerFilterProvider, KeyBag, TransactionBag, ChainEventListener {
     private static final Logger log = LoggerFactory.getLogger(Wallet.class);
     private static final int MINIMUM_BLOOM_DATA_LENGTH = 8;
 

@@ -17,6 +17,7 @@
 
 package org.bitcoinj.msg.protocol;
 
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.ecc.TransactionSignature;

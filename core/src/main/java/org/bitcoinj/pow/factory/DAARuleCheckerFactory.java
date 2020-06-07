@@ -3,7 +3,7 @@ package org.bitcoinj.pow.factory;
 import org.bitcoinj.core.Verification;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.pow.RulesPoolChecker;
 import org.bitcoinj.pow.rule.MinimalDifficultyRuleChecker;

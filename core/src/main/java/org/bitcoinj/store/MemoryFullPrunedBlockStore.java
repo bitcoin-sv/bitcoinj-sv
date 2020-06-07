@@ -16,6 +16,8 @@
 
 package org.bitcoinj.store;
 
+import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain.StoredUndoableBlock;
 import org.bitcoinj.core.*;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

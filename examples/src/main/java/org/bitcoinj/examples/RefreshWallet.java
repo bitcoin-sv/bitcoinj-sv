@@ -17,6 +17,7 @@
 
 package org.bitcoinj.examples;
 
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;

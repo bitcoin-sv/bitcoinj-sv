@@ -255,7 +255,7 @@ public class PeerGroupTest extends TestWithPeerGroup {
         Address address2 = key2.toAddress(PARAMS);
         
         peerGroup.addWallet(wallet2);
-        SPVBlockChain.addWallet(wallet2);
+        SPVBlockChain.addChainEventListener(wallet2);
 
         assertEquals(BloomFilter.class, waitForOutbound(p1).getClass());
         assertEquals(MemoryPoolMessage.class, waitForOutbound(p1).getClass());

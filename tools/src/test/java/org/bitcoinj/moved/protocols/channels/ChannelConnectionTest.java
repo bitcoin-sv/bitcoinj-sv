@@ -16,6 +16,7 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
+import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.msg.protocol.Block;

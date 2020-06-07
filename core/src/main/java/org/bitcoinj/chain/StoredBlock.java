@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.chain;
 
+import org.bitcoinj.core.CheckpointManager;
+import org.bitcoinj.core.ProtocolException;
+import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
@@ -65,7 +68,7 @@ public class StoredBlock {
 
     private int txidFileNum = -1;
     private long txidFileOffset = -1;
-    private ObjectGetter<List<Sha256Hash>> txids; 
+    private ObjectGetter<List<Sha256Hash>> txids;
 
 
     public StoredBlock(Block header, BigInteger chainWork, int height) {

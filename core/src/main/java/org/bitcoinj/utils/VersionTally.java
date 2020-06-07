@@ -18,7 +18,7 @@ package org.bitcoinj.utils;
 
 import java.util.Stack;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;
 

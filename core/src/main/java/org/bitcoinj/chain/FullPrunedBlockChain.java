@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.chain;
 
+import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -29,7 +30,6 @@ import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.FullPrunedBlockStore;
 import org.bitcoinj.utils.*;
-import org.bitcoinj.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,31 +63,31 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     private boolean runScripts = true;
 
     /**
-     * Constructs a block chain connected to the given wallet and store. To obtain a {@link Wallet} you can construct
+     * Constructs a block chain connected to the given wallet and store. To obtain a {@link ChainEventListener} you can construct
      * one from scratch, or you can deserialize a saved wallet from disk using
      */
-    public FullPrunedBlockChain(Context context, Wallet wallet, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(context, new ArrayList<Wallet>(), blockStore);
-        addWallet(wallet);
+    public FullPrunedBlockChain(Context context, ChainEventListener chainEventListener, FullPrunedBlockStore blockStore) throws BlockStoreException {
+        this(context, new ArrayList<ChainEventListener>(), blockStore);
+        addChainEventListener(chainEventListener);
     }
 
     /**
-     * Constructs a block chain connected to the given wallet and store. To obtain a {@link Wallet} you can construct
+     * Constructs a block chain connected to the given wallet and store. To obtain a {@link ChainEventListener} you can construct
      * one from scratch, or you can deserialize a saved wallet from disk using
      */
-    public FullPrunedBlockChain(NetworkParameters params, Wallet wallet, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), wallet, blockStore);
+    public FullPrunedBlockChain(NetworkParameters params, ChainEventListener chainEventListener, FullPrunedBlockStore blockStore) throws BlockStoreException {
+        this(Context.getOrCreate(params), chainEventListener, blockStore);
     }
 
     /**
      * Constructs a block chain connected to the given store.
      */
     public FullPrunedBlockChain(Context context, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(context, new ArrayList<Wallet>(), blockStore);
+        this(context, new ArrayList<ChainEventListener>(), blockStore);
     }
 
     /**
-     * See {@link #FullPrunedBlockChain(Context, Wallet, FullPrunedBlockStore)}
+     * See {@link #FullPrunedBlockChain(Context, ChainEventListener, FullPrunedBlockStore)}
      */
     public FullPrunedBlockChain(NetworkParameters params, FullPrunedBlockStore blockStore) throws BlockStoreException {
         this(Context.getOrCreate(params), blockStore);
@@ -96,7 +96,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     /**
      * Constructs a block chain connected to the given list of wallets and a store.
      */
-    public FullPrunedBlockChain(Context context, List<Wallet> listeners, FullPrunedBlockStore blockStore) throws BlockStoreException {
+    public FullPrunedBlockChain(Context context, List<ChainEventListener> listeners, FullPrunedBlockStore blockStore) throws BlockStoreException {
         super(context, listeners, blockStore);
         this.blockStore = blockStore;
         // Ignore upgrading for now
@@ -106,7 +106,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     /**
      * See {@link #FullPrunedBlockChain(Context, List, FullPrunedBlockStore)}
      */
-    public FullPrunedBlockChain(NetworkParameters params, List<Wallet> listeners,
+    public FullPrunedBlockChain(NetworkParameters params, List<ChainEventListener> listeners,
                                 FullPrunedBlockStore blockStore) throws BlockStoreException {
         this(Context.getOrCreate(params), listeners, blockStore);
     }
@@ -133,7 +133,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     }
 
     @Override
-    protected boolean shouldVerifyTransactions() {
+    public boolean shouldVerifyTransactions() {
         return true;
     }
 

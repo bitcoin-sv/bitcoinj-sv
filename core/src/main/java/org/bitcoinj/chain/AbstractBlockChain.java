@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.chain;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
+import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
@@ -34,7 +35,6 @@ import org.bitcoinj.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.pow.factory.RuleCheckerFactory;
 import org.bitcoinj.store.*;
 import org.bitcoinj.utils.*;
-import org.bitcoinj.wallet.Wallet;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -48,7 +48,7 @@ import static com.google.common.base.Preconditions.*;
  * <p>An AbstractBlockChain holds a series of {@link Block} objects, links them together, and knows how to verify that
  * the chain follows the rules of the {@link NetworkParameters} for this chain.</p>
  *
- * <p>It can be connected to a {@link Wallet}, and also {@link TransactionReceivedInBlockListener}s that can receive transactions and
+ * <p>It can be connected to a { Wallet}, and also {@link TransactionReceivedInBlockListener}s that can receive transactions and
  * notifications of re-organizations.</p>
  *
  * <p>An AbstractBlockChain implementation must be connected to a {@link BlockStore} implementation. The chain object
@@ -147,7 +147,7 @@ public abstract class AbstractBlockChain {
     private final VersionTally versionTally;
 
     /** See {@link #AbstractBlockChain(Context, List, BlockStore)} */
-    public AbstractBlockChain(NetworkParameters params, List<? extends Wallet> transactionReceivedListeners,
+    public AbstractBlockChain(NetworkParameters params, List<? extends ChainEventListener> transactionReceivedListeners,
                               BlockStore blockStore) throws BlockStoreException {
         this(Context.getOrCreate(params), transactionReceivedListeners, blockStore);
     }
@@ -155,7 +155,7 @@ public abstract class AbstractBlockChain {
     /**
      * Constructs a BlockChain connected to the given list of listeners (eg, wallets) and a store.
      */
-    public AbstractBlockChain(Context context, List<? extends Wallet> wallets,
+    public AbstractBlockChain(Context context, List<? extends ChainEventListener> wallets,
                               BlockStore blockStore) throws BlockStoreException {
         this.blockStore = blockStore;
         chainHead = blockStore.getChainHead();
@@ -166,9 +166,11 @@ public abstract class AbstractBlockChain {
         this.newBestBlockListeners = new CopyOnWriteArrayList<ListenerRegistration<NewBestBlockListener>>();
         this.reorganizeListeners = new CopyOnWriteArrayList<ListenerRegistration<ReorganizeListener>>();
         this.transactionReceivedListeners = new CopyOnWriteArrayList<ListenerRegistration<TransactionReceivedInBlockListener>>();
-        for (NewBestBlockListener l : wallets) addNewBestBlockListener(Threading.SAME_THREAD, l);
-        for (ReorganizeListener l : wallets) addReorganizeListener(Threading.SAME_THREAD, l);
-        for (TransactionReceivedInBlockListener l : wallets) addTransactionReceivedListener(Threading.SAME_THREAD, l);
+        for (ChainEventListener l : wallets) {
+            addNewBestBlockListener(Threading.SAME_THREAD, l);
+            addReorganizeListener(Threading.SAME_THREAD, l);
+            addTransactionReceivedListener(Threading.SAME_THREAD, l);
+        }
 
         this.versionTally = new VersionTally(context.getParams());
         this.versionTally.initialize(blockStore, chainHead);
@@ -180,23 +182,23 @@ public abstract class AbstractBlockChain {
      * have never been in use, or if the wallet has been loaded along with the BlockChain. Note that adding multiple
      * wallets is not well tested!
      */
-    public final void addWallet(Wallet wallet) {
-        addNewBestBlockListener(Threading.SAME_THREAD, wallet);
-        addReorganizeListener(Threading.SAME_THREAD, wallet);
-        addTransactionReceivedListener(Threading.SAME_THREAD, wallet);
-        int walletHeight = wallet.getLastBlockSeenHeight();
+    public final void addChainEventListener(ChainEventListener chainEventListener) {
+        addNewBestBlockListener(Threading.SAME_THREAD, chainEventListener);
+        addReorganizeListener(Threading.SAME_THREAD, chainEventListener);
+        addTransactionReceivedListener(Threading.SAME_THREAD, chainEventListener);
+        int listenerHeight = chainEventListener.getLastBlockSeenHeight();
         int chainHeight = getBestChainHeight();
-        if (walletHeight != chainHeight) {
-            log.warn("Wallet/chain height mismatch: {} vs {}", walletHeight, chainHeight);
-            log.warn("Hashes: {} vs {}", wallet.getLastBlockSeenHash(), getChainHead().getHeader().getHash());
+        if (listenerHeight != chainHeight) {
+            log.warn("Wallet/chain height mismatch: {} vs {}", listenerHeight, chainHeight);
+            //log.warn("Hashes: {} vs {}", wallet.getLastBlockSeenHash(), getChainHead().getHeader().getHash());
 
             // This special case happens when the VM crashes because of a transaction received. It causes the updated
             // block store to persist, but not the wallet. In order to fix the issue, we roll back the block store to
             // the wallet height to make it look like as if the block has never been received.
-            if (walletHeight < chainHeight && walletHeight > 0) {
+            if (listenerHeight < chainHeight && listenerHeight > 0) {
                 try {
-                    rollbackBlockStore(walletHeight);
-                    log.info("Rolled back block store to height {}.", walletHeight);
+                    rollbackBlockStore(listenerHeight);
+                    log.info("Rolled back block store to height {}.", listenerHeight);
                 } catch (BlockStoreException x) {
                     log.warn("Rollback of block store failed, continuing with mismatched heights. This can happen due to a replay.");
                 }
@@ -205,31 +207,10 @@ public abstract class AbstractBlockChain {
     }
 
     /** Removes a wallet from the chain. */
-    public void removeWallet(Wallet wallet) {
-        removeNewBestBlockListener(wallet);
-        removeReorganizeListener(wallet);
-        removeTransactionReceivedListener(wallet);
-    }
-
-    /** Replaced with more specific listener methods: use them instead. */
-    @Deprecated @SuppressWarnings("deprecation")
-    public void addListener(BlockChainListener listener) {
-        addListener(listener, Threading.USER_THREAD);
-    }
-
-    /** Replaced with more specific listener methods: use them instead. */
-    @Deprecated
-    public void addListener(BlockChainListener listener, Executor executor) {
-        addReorganizeListener(executor, listener);
-        addNewBestBlockListener(executor, listener);
-        addTransactionReceivedListener(executor, listener);
-    }
-
-    @Deprecated
-    public void removeListener(BlockChainListener listener) {
-        removeReorganizeListener(listener);
-        removeNewBestBlockListener(listener);
-        removeTransactionReceivedListener(listener);
+    public void removeChainEventListener(ChainEventListener chainEventListener) {
+        removeNewBestBlockListener(chainEventListener);
+        removeReorganizeListener(chainEventListener);
+        removeTransactionReceivedListener(chainEventListener);
     }
 
     /**
@@ -410,7 +391,7 @@ public abstract class AbstractBlockChain {
      * Whether or not we are maintaining a set of unspent outputs and are verifying all transactions.
      * Also indicates that all calls to add() should provide a block containing transactions
      */
-    protected abstract boolean shouldVerifyTransactions();
+    public abstract boolean shouldVerifyTransactions();
     
     /**
      * Connect each transaction in block.transactions, verifying them as we go and removing spent outputs

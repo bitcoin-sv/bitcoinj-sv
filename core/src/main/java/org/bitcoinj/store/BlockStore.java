@@ -17,9 +17,9 @@
 package org.bitcoinj.store;
 
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.SPVBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.exception.BlockStoreException;
 
 /**

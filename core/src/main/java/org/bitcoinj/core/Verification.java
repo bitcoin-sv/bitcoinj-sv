@@ -1,6 +1,7 @@
 package org.bitcoinj.core;
 
 import com.google.common.base.Preconditions;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -140,7 +141,7 @@ public class Verification {
      * required to produce that work.
      */
      public static BigInteger ComputeTarget(StoredBlock firstBlock,
-                                   StoredBlock lastBlock) {
+                                            StoredBlock lastBlock) {
          Preconditions.checkState(lastBlock.getHeight() > firstBlock.getHeight());
 
         /*

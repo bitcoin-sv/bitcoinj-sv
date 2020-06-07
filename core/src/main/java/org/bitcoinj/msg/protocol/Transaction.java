@@ -17,6 +17,8 @@
 
 package org.bitcoinj.msg.protocol;
 
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.ecc.TransactionSignature;

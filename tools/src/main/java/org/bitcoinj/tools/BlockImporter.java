@@ -14,6 +14,9 @@
 
 package org.bitcoinj.tools;
 
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.FullPrunedBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;

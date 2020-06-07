@@ -18,6 +18,8 @@
 
 package org.bitcoinj.store;
 
+import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain.StoredUndoableBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.msg.protocol.Transaction;

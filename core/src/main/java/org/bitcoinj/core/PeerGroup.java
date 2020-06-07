@@ -25,6 +25,7 @@ import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.subgraph.orchid.*;
 import net.jcip.annotations.*;
+import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.PeerDiscoveryException;
 import org.bitcoinj.exception.VerificationException;

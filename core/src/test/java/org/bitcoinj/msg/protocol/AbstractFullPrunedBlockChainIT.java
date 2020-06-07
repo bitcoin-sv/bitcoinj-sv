@@ -18,6 +18,8 @@
 package org.bitcoinj.msg.protocol;
 
 import com.google.common.collect.Lists;
+import org.bitcoinj.chain.FullPrunedBlockChain;
+import org.bitcoinj.chain.StoredUndoableBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;

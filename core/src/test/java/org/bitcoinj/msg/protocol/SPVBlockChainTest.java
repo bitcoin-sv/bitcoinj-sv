@@ -17,6 +17,9 @@
 
 package org.bitcoinj.msg.protocol;
 
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
@@ -331,7 +334,7 @@ public class SPVBlockChainTest {
         Wallet wallet2 = new Wallet(PARAMS);
         ECKey receiveKey = wallet2.freshReceiveKey();
         int height = 1;
-        chain.addWallet(wallet2);
+        chain.addChainEventListener(wallet2);
 
         Address addressToSendTo = receiveKey.toAddress(PARAMS);
 
@@ -479,13 +482,13 @@ public class SPVBlockChainTest {
         assertEquals(1, chain.getBestChainHeight());
         assertEquals(1, wallet.getLastBlockSeenHeight());
         // Add block 2 while wallet is disconnected, to simulate crash.
-        chain.removeWallet(wallet);
+        chain.removeChainEventListener(wallet);
         assertTrue(chain.add(b2));
         assertEquals(b2.cloneAsHeader(), chain.getChainHead().getHeader());
         assertEquals(2, chain.getBestChainHeight());
         assertEquals(1, wallet.getLastBlockSeenHeight());
         // Add wallet back. This will detect the height mismatch and repair the damage done.
-        chain.addWallet(wallet);
+        chain.addChainEventListener(wallet);
         assertEquals(b1.cloneAsHeader(), chain.getChainHead().getHeader());
         assertEquals(1, chain.getBestChainHeight());
         assertEquals(1, wallet.getLastBlockSeenHeight());

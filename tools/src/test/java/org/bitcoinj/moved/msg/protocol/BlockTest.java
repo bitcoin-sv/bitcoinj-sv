@@ -19,8 +19,9 @@ package org.bitcoinj.moved.msg.protocol;
 
 import com.google.common.io.ByteStreams;
 
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
-import org.bitcoinj.core.AbstractBlockChain.NewBlockType;
+import org.bitcoinj.chain.AbstractBlockChain.NewBlockType;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Serializer;

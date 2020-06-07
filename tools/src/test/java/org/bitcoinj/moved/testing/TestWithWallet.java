@@ -16,6 +16,8 @@
 
 package org.bitcoinj.moved.testing;
 
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;

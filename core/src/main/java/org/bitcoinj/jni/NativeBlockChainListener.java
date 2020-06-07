@@ -16,6 +16,8 @@
 
 package org.bitcoinj.jni;
 
+import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 
 import java.util.List;

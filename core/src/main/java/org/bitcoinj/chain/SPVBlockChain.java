@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.chain;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.FilteredBlock;
@@ -48,14 +49,14 @@ public class SPVBlockChain extends AbstractBlockChain {
      * {@link org.bitcoinj.store.MemoryBlockStore} if you want to hold all headers in RAM and don't care about
      * disk serialization (this is rare).</p>
      */
-    public SPVBlockChain(Context context, Wallet wallet, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(Context context, ChainEventListener chainEventListener, BlockStore blockStore) throws BlockStoreException {
         this(context, new ArrayList<Wallet>(), blockStore);
-        addWallet(wallet);
+        addChainEventListener(chainEventListener);
     }
 
-    /** See {@link #SPVBlockChain(Context, Wallet, BlockStore)}} */
-    public SPVBlockChain(NetworkParameters params, Wallet wallet, BlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), wallet, blockStore);
+    /** See {@link #SPVBlockChain(Context, ChainEventListener, BlockStore)}} */
+    public SPVBlockChain(NetworkParameters params, ChainEventListener chainEventListener, BlockStore blockStore) throws BlockStoreException {
+        this(Context.getOrCreate(params), chainEventListener, blockStore);
     }
 
     /**
@@ -128,7 +129,7 @@ public class SPVBlockChain extends AbstractBlockChain {
     }
 
     @Override
-    protected boolean shouldVerifyTransactions() {
+    public boolean shouldVerifyTransactions() {
         return false;
     }
 

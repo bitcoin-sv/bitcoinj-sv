@@ -15,6 +15,7 @@
 package org.bitcoinj.core;
 
 import com.google.common.collect.ImmutableList;
+import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.msg.protocol.TxHelper;

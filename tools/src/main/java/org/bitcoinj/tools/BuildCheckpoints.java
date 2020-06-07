@@ -17,6 +17,8 @@
 
 package org.bitcoinj.tools;
 
+import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.listeners.NewBestBlockListener;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;

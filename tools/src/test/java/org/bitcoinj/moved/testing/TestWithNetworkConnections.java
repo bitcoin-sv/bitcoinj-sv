@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.testing;
+package org.bitcoinj.moved.testing;
 
+import com.google.common.util.concurrent.SettableFuture;
 import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
 import org.bitcoinj.core.listeners.PreMessageReceivedEventListener;
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.*;
+import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.p2p.Ping;
 import org.bitcoinj.msg.p2p.Pong;
 import org.bitcoinj.msg.p2p.VersionAck;
@@ -35,8 +36,6 @@ import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;
-
-import com.google.common.util.concurrent.SettableFuture;
 
 import javax.annotation.Nullable;
 import javax.net.SocketFactory;

@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 import java.io.*;
 import java.nio.ByteBuffer;
 
+import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain.StoredUndoableBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.BlockStoreException;

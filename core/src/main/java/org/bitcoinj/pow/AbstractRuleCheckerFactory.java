@@ -2,7 +2,7 @@ package org.bitcoinj.pow;
 
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.chain.StoredBlock;
 
 public abstract class AbstractRuleCheckerFactory {
 

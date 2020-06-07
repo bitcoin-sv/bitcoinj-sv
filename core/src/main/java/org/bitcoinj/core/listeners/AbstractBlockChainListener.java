@@ -14,6 +14,8 @@
 
 package org.bitcoinj.core.listeners;
 
+import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;

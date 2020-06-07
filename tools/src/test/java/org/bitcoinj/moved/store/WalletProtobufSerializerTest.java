@@ -17,6 +17,7 @@
 
 package org.bitcoinj.moved.store;
 
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Serializer;

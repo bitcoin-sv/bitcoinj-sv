@@ -16,6 +16,7 @@
 
 package org.bitcoinj.moved.wallet;
 
+import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.PeerAddress;

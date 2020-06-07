@@ -17,7 +17,7 @@
 package org.bitcoinj.examples;
 
 import java.net.InetAddress;
-import org.bitcoinj.core.FullPrunedBlockChain;
+import org.bitcoinj.chain.FullPrunedBlockChain;
 import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.store.FullPrunedBlockStore;

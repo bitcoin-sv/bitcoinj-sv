@@ -16,6 +16,7 @@
 
 package org.bitcoinj.core;
 
+import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.msg.protocol.Block;
 
 import java.io.IOException;

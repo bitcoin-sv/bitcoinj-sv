@@ -16,10 +16,10 @@
 
 package org.bitcoinj.utils;
 
-import org.bitcoinj.core.SPVBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.Context;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;

@@ -17,6 +17,7 @@
 
 package org.bitcoinj.moved.testing;
 
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.BlockStoreException;

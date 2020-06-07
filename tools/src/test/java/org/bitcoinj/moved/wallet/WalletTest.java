@@ -17,6 +17,9 @@
 
 package org.bitcoinj.moved.wallet;
 
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.moved.testing.*;
 import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
@@ -35,7 +38,6 @@ import org.bitcoinj.signers.StatelessTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.MemoryBlockStore;
-import org.bitcoinj.moved.testing.*;
 import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.utils.Fiat;
 import org.bitcoinj.utils.Threading;

@@ -1,6 +1,7 @@
 package org.bitcoinj.pow.rule;
 
-import org.bitcoinj.core.*;
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.NetworkParameters;

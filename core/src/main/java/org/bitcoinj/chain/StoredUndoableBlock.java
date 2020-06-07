@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.chain;
 
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.TransactionOutputChanges;
 import org.bitcoinj.msg.protocol.Transaction;
 
 import java.util.List;

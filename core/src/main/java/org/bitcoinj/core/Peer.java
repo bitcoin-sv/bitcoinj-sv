@@ -18,6 +18,8 @@ package org.bitcoinj.core;
 
 import com.google.common.base.*;
 import com.google.common.base.Objects;
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.*;

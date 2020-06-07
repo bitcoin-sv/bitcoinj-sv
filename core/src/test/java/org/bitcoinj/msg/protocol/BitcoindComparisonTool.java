@@ -20,6 +20,8 @@ package org.bitcoinj.msg.protocol;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
+import org.bitcoinj.chain.FullPrunedBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.BlockStoreException;

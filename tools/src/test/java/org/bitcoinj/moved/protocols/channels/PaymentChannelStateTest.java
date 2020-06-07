@@ -16,10 +16,12 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.moved.protocols.channels.*;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.script.Script;
@@ -109,7 +111,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         chain = new SPVBlockChain(PARAMS, wallet, blockStore); // Recreate chain as sendMoneyToWallet will confuse it
         serverWallet = new Wallet(PARAMS);
         serverKey = serverWallet.freshReceiveKey();
-        chain.addWallet(serverWallet);
+        chain.addChainEventListener(serverWallet);
 
         broadcasts = new LinkedBlockingQueue<TxFuturePair>();
         mockBroadcaster = new TransactionBroadcaster() {
