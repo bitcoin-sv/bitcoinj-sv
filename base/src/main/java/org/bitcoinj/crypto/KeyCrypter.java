@@ -16,7 +16,7 @@
 
 package org.bitcoinj.crypto;
 
-import org.bitcoinj.wallet.Protos.Wallet.EncryptionType;
+import org.bitcoinj.protos.Protos.Wallet.EncryptionType;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import java.io.Serializable;

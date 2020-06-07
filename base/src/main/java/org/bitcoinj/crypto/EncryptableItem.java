@@ -16,7 +16,7 @@
 
 package org.bitcoinj.crypto;
 
-import org.bitcoinj.wallet.Protos;
+import org.bitcoinj.protos.Protos;
 
 import javax.annotation.Nullable;
 

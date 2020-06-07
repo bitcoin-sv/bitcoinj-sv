@@ -41,7 +41,7 @@ import org.bitcoinj.wallet.KeyChain;
 import com.google.protobuf.ByteString;
 
 import org.bitcoinj.wallet.MarriedKeyChain;
-import org.bitcoinj.wallet.Protos;
+import org.bitcoinj.protos.Protos;
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.WalletExtension;

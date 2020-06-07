@@ -23,6 +23,7 @@ import org.bitcoinj.crypto.*;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
+import org.bitcoinj.protos.Protos;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;

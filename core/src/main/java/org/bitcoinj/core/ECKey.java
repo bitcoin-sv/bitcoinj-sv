@@ -27,7 +27,7 @@ import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.ecc.ECDSASignature;
 import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.wallet.Protos;
+import org.bitcoinj.protos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;

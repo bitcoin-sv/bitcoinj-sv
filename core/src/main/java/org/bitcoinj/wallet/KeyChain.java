@@ -18,6 +18,7 @@ package org.bitcoinj.wallet;
 
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.protos.Protos;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 
 import java.util.List;
