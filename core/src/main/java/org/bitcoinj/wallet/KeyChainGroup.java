@@ -17,6 +17,7 @@
 
 package org.bitcoinj.wallet;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.google.protobuf.*;
 import org.bitcoinj.core.*;
@@ -641,7 +642,8 @@ public class KeyChainGroup implements KeyBag {
         return result;
     }
 
-    static KeyChainGroup fromProtobufUnencrypted(NetworkParameters params, List<Protos.Key> keys) throws UnreadableWalletException {
+    @VisibleForTesting
+    public static KeyChainGroup fromProtobufUnencrypted(NetworkParameters params, List<Protos.Key> keys) throws UnreadableWalletException {
         return fromProtobufUnencrypted(params, keys, new DefaultKeyChainFactory());
     }
 
@@ -655,7 +657,8 @@ public class KeyChainGroup implements KeyBag {
         return new KeyChainGroup(params, basicKeyChain, chains, currentKeys, null);
     }
 
-    static KeyChainGroup fromProtobufEncrypted(NetworkParameters params, List<Protos.Key> keys, KeyCrypter crypter) throws UnreadableWalletException {
+    @VisibleForTesting
+    public static KeyChainGroup fromProtobufEncrypted(NetworkParameters params, List<Protos.Key> keys, KeyCrypter crypter) throws UnreadableWalletException {
         return fromProtobufEncrypted(params, keys, crypter, new DefaultKeyChainFactory());
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.bitcoinj.moved.wallet;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
@@ -24,6 +24,7 @@ import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
+import org.bitcoinj.wallet.*;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 
 import com.google.common.collect.ImmutableList;

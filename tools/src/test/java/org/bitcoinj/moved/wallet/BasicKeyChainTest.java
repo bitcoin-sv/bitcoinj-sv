@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.bitcoinj.moved.wallet;
 
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
@@ -27,6 +27,9 @@ import org.bitcoinj.utils.Threading;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import org.bitcoinj.wallet.BasicKeyChain;
+import org.bitcoinj.wallet.KeyChain;
+import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.listeners.AbstractKeyChainEventListener;
 import org.junit.Before;
 import org.junit.Test;

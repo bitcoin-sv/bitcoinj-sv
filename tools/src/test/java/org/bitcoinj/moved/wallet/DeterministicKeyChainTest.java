@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.bitcoinj.moved.wallet;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.msg.p2p.BloomFilter;
@@ -25,6 +26,7 @@ import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
+import org.bitcoinj.wallet.*;
 import org.bitcoinj.wallet.listeners.AbstractKeyChainEventListener;
 
 import com.google.common.collect.ImmutableList;
@@ -116,7 +118,8 @@ public class DeterministicKeyChainTest {
         }
 
         @Override
-        protected ImmutableList<ChildNumber> getAccountPath() {
+        @VisibleForTesting
+        public ImmutableList<ChildNumber> getAccountPath() {
             return ImmutableList.of(ChildNumber.ONE);
         }
     }

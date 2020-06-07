@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.bitcoinj.moved.store;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.protocol.BlockTest;
+import org.bitcoinj.moved.msg.protocol.BlockTest;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.Transaction.Purpose;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
@@ -32,8 +32,9 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.testing.FakeTxBuilder;
-import org.bitcoinj.testing.FooWalletExtension;
+import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.moved.testing.FakeTxBuilder;
+import org.bitcoinj.moved.testing.FooWalletExtension;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.DeterministicKeyChain;
@@ -63,7 +64,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static org.bitcoinj.core.Coin.*;
-import static org.bitcoinj.testing.FakeTxBuilder.createFakeTx;
+import static org.bitcoinj.moved.testing.FakeTxBuilder.createFakeTx;
 import static org.junit.Assert.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -119,7 +120,7 @@ public class WalletProtobufSerializerTest {
     public void oneTx() throws Exception {
         // Check basic tx serialization.
         Coin v1 = COIN;
-        Transaction t1 = createFakeTx(NET, v1, myAddress);
+        Transaction t1 = FakeTxBuilder.createFakeTx(NET, v1, myAddress);
         t1.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("1.2.3.4")));
         t1.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("5.6.7.8")));
         t1.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
@@ -155,7 +156,7 @@ public class WalletProtobufSerializerTest {
     public void raiseFeeTx() throws Exception {
         // Check basic tx serialization.
         Coin v1 = COIN;
-        Transaction t1 = createFakeTx(NET, v1, myAddress);
+        Transaction t1 = FakeTxBuilder.createFakeTx(NET, v1, myAddress);
         t1.setPurpose(Purpose.RAISE_FEE);
         myWallet.receivePending(t1, null);
         Wallet wallet1 = roundTrip(myWallet);
@@ -225,10 +226,10 @@ public class WalletProtobufSerializerTest {
     @Test
     public void testSequenceNumber() throws Exception {
         Wallet wallet = new Wallet(PARAMS);
-        Transaction tx1 = createFakeTx(NET, Coin.COIN, wallet.currentReceiveAddress());
+        Transaction tx1 = FakeTxBuilder.createFakeTx(NET, Coin.COIN, wallet.currentReceiveAddress());
         tx1.getInput(0).setSequenceNumber(TransactionInput.NO_SEQUENCE);
         wallet.receivePending(tx1, null);
-        Transaction tx2 = createFakeTx(NET, Coin.COIN, wallet.currentReceiveAddress());
+        Transaction tx2 = FakeTxBuilder.createFakeTx(NET, Coin.COIN, wallet.currentReceiveAddress());
         tx2.getInput(0).setSequenceNumber(TransactionInput.NO_SEQUENCE - 1);
         wallet.receivePending(tx2, null);
         Wallet walletCopy = roundTrip(wallet);

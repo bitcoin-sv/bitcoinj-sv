@@ -1568,7 +1568,7 @@ public class Wallet extends BaseTaggableObject
      * one unspent.
      */
     @VisibleForTesting
-    boolean isTxConsistent(final Transaction tx, final boolean isSpent) {
+    public boolean isTxConsistent(final Transaction tx, final boolean isSpent) {
         boolean isActuallySpent = true;
         for (TransactionOutput o : tx.getOutputs()) {
             if (o.isAvailableForSpending()) {
@@ -1823,7 +1823,8 @@ public class Wallet extends BaseTaggableObject
      * Adds to txSet all the txns in txPool spending outputs of txns in txSet,
      * and all txns spending the outputs of those txns, recursively.
      */
-    void addTransactionsDependingOn(Set<Transaction> txSet, Set<Transaction> txPool) {
+    @VisibleForTesting
+    public void addTransactionsDependingOn(Set<Transaction> txSet, Set<Transaction> txPool) {
         Map<Sha256Hash, Transaction> txQueue = new LinkedHashMap<Sha256Hash, Transaction>();
         for (Transaction tx : txSet) {
             txQueue.put(tx.getHash(), tx);
@@ -2038,7 +2039,8 @@ public class Wallet extends BaseTaggableObject
      * Several invocations to this method with the same inputSet could result in lists with txns in different order,
      * as there is no guarantee on the order of the returned txns besides what was already stated.
      */
-    List<Transaction> sortTxnsByDependency(Set<Transaction> inputSet) {
+    @VisibleForTesting
+    public List<Transaction> sortTxnsByDependency(Set<Transaction> inputSet) {
         ArrayList<Transaction> result = new ArrayList<Transaction>(inputSet);
         for (int i = 0; i < result.size()-1; i++) {
             boolean txAtISpendsOtherTxInTheList;

@@ -17,6 +17,7 @@
 
 package org.bitcoinj.wallet;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.core.ECKey;
@@ -421,7 +422,8 @@ public class DeterministicKeyChain implements EncryptableKeyChain {
     }
 
     /** Override in subclasses to use a different account derivation path */
-    protected ImmutableList<ChildNumber> getAccountPath() {
+    @VisibleForTesting
+    public ImmutableList<ChildNumber> getAccountPath() {
         return ACCOUNT_ZERO_PATH;
     }
 
@@ -610,7 +612,8 @@ public class DeterministicKeyChain implements EncryptableKeyChain {
     }
 
     /** Returns the deterministic key for the given absolute path in the hierarchy. */
-    protected DeterministicKey getKeyByPath(List<ChildNumber> path) {
+    @VisibleForTesting
+    public DeterministicKey getKeyByPath(List<ChildNumber> path) {
         return getKeyByPath(path, false);
     }
 
@@ -767,7 +770,8 @@ public class DeterministicKeyChain implements EncryptableKeyChain {
         return entries;
     }
 
-    static List<DeterministicKeyChain> fromProtobuf(List<Protos.Key> keys, @Nullable KeyCrypter crypter) throws UnreadableWalletException {
+    @VisibleForTesting
+    public static List<DeterministicKeyChain> fromProtobuf(List<Protos.Key> keys, @Nullable KeyCrypter crypter) throws UnreadableWalletException {
         return fromProtobuf(keys, crypter, new DefaultKeyChainFactory());
     }
 
@@ -1220,7 +1224,9 @@ public class DeterministicKeyChain implements EncryptableKeyChain {
     }
 
     // For internal usage only
-    /* package */ List<ECKey> getKeys(boolean includeLookahead) {
+    /* package */
+    @VisibleForTesting
+    public List<ECKey> getKeys(boolean includeLookahead) {
         List<ECKey> keys = basicKeyChain.getKeys();
         if (!includeLookahead) {
             int treeSize = internalParentKey.getPath().size();

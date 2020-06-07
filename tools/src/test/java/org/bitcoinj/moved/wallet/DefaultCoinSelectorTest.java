@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.bitcoinj.moved.wallet;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Block;
@@ -22,7 +22,9 @@ import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.*;
-import org.bitcoinj.testing.*;
+import org.bitcoinj.moved.testing.*;
+import org.bitcoinj.wallet.CoinSelection;
+import org.bitcoinj.wallet.DefaultCoinSelector;
 import org.junit.*;
 
 import java.net.*;

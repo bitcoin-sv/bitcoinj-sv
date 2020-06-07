@@ -17,6 +17,7 @@
 
 package org.bitcoinj.wallet;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.*;
 
@@ -226,7 +227,8 @@ public class DeterministicSeed implements EncryptableItem {
             MnemonicCode.INSTANCE.check(mnemonicCode);
     }
 
-    byte[] getEntropyBytes() throws MnemonicException {
+    @VisibleForTesting
+    public byte[] getEntropyBytes() throws MnemonicException {
         return MnemonicCode.INSTANCE.toEntropy(mnemonicCode);
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.testing;
+package org.bitcoinj.moved.testing;
 
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.wallet.KeyBag;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.msg.protocol;
+package org.bitcoinj.moved.msg.protocol;
 
 import com.google.common.io.ByteStreams;
 
@@ -24,6 +24,7 @@ import org.bitcoinj.core.AbstractBlockChain.NewBlockType;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Serializer;
+import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.ScriptOpCodes;
 import org.bitcoinj.wallet.Wallet;

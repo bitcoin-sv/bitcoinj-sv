@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.bitcoinj.moved.wallet;
 
 import com.google.common.collect.*;
 import org.bitcoinj.core.*;
@@ -28,8 +28,11 @@ import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.*;
-import org.bitcoinj.testing.FakeTxBuilder;
+import org.bitcoinj.moved.testing.FakeTxBuilder;
+import org.bitcoinj.wallet.DefaultRiskAnalysis;
 import org.bitcoinj.wallet.DefaultRiskAnalysis.*;
+import org.bitcoinj.wallet.RiskAnalysis;
+import org.bitcoinj.wallet.Wallet;
 import org.junit.*;
 
 import java.util.*;
@@ -66,7 +69,7 @@ public class DefaultRiskAnalysisTest {
     public void analysisCantBeUsedTwice() {
         Transaction tx = new Transaction(NET);
         DefaultRiskAnalysis analysis = DefaultRiskAnalysis.FACTORY.create(wallet, tx, NO_DEPS);
-        assertEquals(RiskAnalysis.Result.OK, analysis.analyze());
+        Assert.assertEquals(RiskAnalysis.Result.OK, analysis.analyze());
         assertNull(analysis.getNonFinal());
         // Verify we can't re-use a used up risk analysis.
         analysis.analyze();

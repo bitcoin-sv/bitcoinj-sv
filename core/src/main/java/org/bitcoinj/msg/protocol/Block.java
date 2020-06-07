@@ -1266,7 +1266,7 @@ public class Block extends Message {
      * This method is intended for test use only.
      */
     @VisibleForTesting
-    Block createNextBlockWithCoinbase(long version, byte[] pubKey, final int height) {
+    public Block createNextBlockWithCoinbase(long version, byte[] pubKey, final int height) {
         return createNextBlock(null, version, (TransactionOutPoint) null,
                                Utils.currentTimeSeconds(), pubKey, FIFTY_COINS, height);
     }

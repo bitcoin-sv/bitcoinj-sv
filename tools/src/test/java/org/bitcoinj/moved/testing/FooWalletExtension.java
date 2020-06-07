@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.testing;
+package org.bitcoinj.moved.testing;
 
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.WalletExtension;
