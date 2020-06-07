@@ -21,7 +21,7 @@ import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.temp.SendRequest;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;

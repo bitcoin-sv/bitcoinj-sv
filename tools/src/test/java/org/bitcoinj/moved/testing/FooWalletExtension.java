@@ -14,8 +14,8 @@
 
 package org.bitcoinj.moved.testing;
 
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletExtension;
+import org.bitcoinj.moved.wallet.Wallet;
+import org.bitcoinj.moved.wallet.WalletExtension;
 
 import java.util.Arrays;
 

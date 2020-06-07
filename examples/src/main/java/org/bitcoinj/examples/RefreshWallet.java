@@ -25,7 +25,7 @@ import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.temp.TransactionBag;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 
 import java.io.File;

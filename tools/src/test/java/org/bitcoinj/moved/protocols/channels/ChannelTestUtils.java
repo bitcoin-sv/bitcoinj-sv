@@ -17,10 +17,7 @@ package org.bitcoinj.moved.protocols.channels;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.TransactionBroadcaster;
-import org.bitcoinj.moved.protocols.channels.IPaymentChannelClient;
-import org.bitcoinj.moved.protocols.channels.PaymentChannelCloseException;
-import org.bitcoinj.moved.protocols.channels.PaymentChannelServer;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.Futures;

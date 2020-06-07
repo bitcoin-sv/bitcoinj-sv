@@ -20,7 +20,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.Wallet;
 
 import javax.annotation.Nullable;
 import java.util.Date;

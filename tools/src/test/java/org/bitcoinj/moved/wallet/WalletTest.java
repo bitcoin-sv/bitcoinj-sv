@@ -42,13 +42,12 @@ import org.bitcoinj.temp.*;
 import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.utils.Fiat;
 import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.*;
-import org.bitcoinj.wallet.Wallet.BalanceType;
+import org.bitcoinj.moved.wallet.Wallet.BalanceType;
 import org.bitcoinj.temp.WalletTransaction.Pool;
 import org.bitcoinj.temp.listener.KeyChainEventListener;
-import org.bitcoinj.wallet.listeners.WalletChangeEventListener;
+import org.bitcoinj.moved.wallet.listeners.WalletChangeEventListener;
 import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
-import org.bitcoinj.wallet.listeners.WalletCoinsSentEventListener;
+import org.bitcoinj.moved.wallet.listeners.WalletCoinsSentEventListener;
 import org.easymock.EasyMock;
 
 import com.google.common.collect.ImmutableList;

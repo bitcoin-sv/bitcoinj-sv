@@ -52,7 +52,8 @@ public abstract class PeerSocketHandler extends AbstractTimeoutHandler implement
     // If we close() before we know our writeTarget, set this to true to call writeTarget.closeConnection() right away.
     private boolean closePending = false;
     // writeTarget will be thread-safe, and may call into PeerGroup, which calls us, so we should call it unlocked
-    @VisibleForTesting protected MessageWriteTarget writeTarget = null;
+    @VisibleForTesting
+    public MessageWriteTarget writeTarget = null;
 
     // The ByteBuffers passed to us from the writeTarget are static in size, and usually smaller than some messages we
     // will receive. For SPV clients, this should be rare (ie we're mostly dealing with small transactions), but for

@@ -29,10 +29,7 @@ import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.*;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
-import org.bitcoinj.wallet.DefaultRiskAnalysis;
-import org.bitcoinj.wallet.DefaultRiskAnalysis.*;
-import org.bitcoinj.wallet.RiskAnalysis;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.DefaultRiskAnalysis.*;
 import org.junit.*;
 
 import java.util.*;

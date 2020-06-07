@@ -25,7 +25,6 @@ import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.*;
 import org.bitcoinj.moved.testing.*;
 import org.bitcoinj.temp.CoinSelection;
-import org.bitcoinj.wallet.DefaultCoinSelector;
 import org.junit.*;
 
 import java.net.*;

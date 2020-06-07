@@ -24,7 +24,7 @@ import org.bitcoinj.temp.WalletTransaction;
 import java.util.Map;
 
 /**
- * This interface is used to abstract the { org.bitcoinj.wallet.Wallet} and the {@link Transaction}
+ * This interface is used to abstract the { org.bitcoinj.moved.wallet.Wallet} and the {@link Transaction}
  */
 public interface TransactionBag {
     /** Returns true if this wallet contains a public key which hashes to the given hash. */

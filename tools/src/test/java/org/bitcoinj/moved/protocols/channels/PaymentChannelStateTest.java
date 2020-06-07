@@ -29,7 +29,7 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.moved.testing.TestWithWallet;
 import org.bitcoinj.temp.SendRequest;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;

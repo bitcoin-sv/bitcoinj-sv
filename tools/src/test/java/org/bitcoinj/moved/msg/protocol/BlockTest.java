@@ -28,8 +28,8 @@ import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.ScriptOpCodes;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.Wallet.BalanceType;
+import org.bitcoinj.moved.wallet.Wallet;
+import org.bitcoinj.moved.wallet.Wallet.BalanceType;
 import org.junit.Before;
 import org.junit.Test;
 

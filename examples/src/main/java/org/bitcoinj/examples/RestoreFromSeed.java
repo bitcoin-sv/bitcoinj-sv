@@ -21,8 +21,8 @@ import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.store.SPVBlockStore;
-import org.bitcoinj.wallet.DeterministicSeed;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.DeterministicSeed;
+import org.bitcoinj.moved.wallet.Wallet;
 
 import java.io.File;
 

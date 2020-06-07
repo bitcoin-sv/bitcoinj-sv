@@ -26,7 +26,6 @@ import org.bitcoinj.temp.KeyPurpose;
 import org.bitcoinj.temp.RedeemData;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.*;
 import org.bitcoinj.temp.listener.KeyChainEventListener;
 
 import com.google.common.collect.ImmutableList;

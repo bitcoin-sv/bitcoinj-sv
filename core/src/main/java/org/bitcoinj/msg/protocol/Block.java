@@ -136,7 +136,8 @@ public class Block extends Message {
     private List<Sha256Hash> txids = null;
 
     /** Special case constructor, used for the genesis node, cloneAsHeader and unit tests. */
-    Block(Net net, long setVersion) {
+    @VisibleForTesting
+    public Block(Net net, long setVersion) {
         super(net);
         // Set up a few basic things. We are not complete after this though.
         version = setVersion;
@@ -473,7 +474,8 @@ public class Block extends Message {
     }
 
     // default for testing
-    void writeHeader(OutputStream stream) throws IOException {
+    @VisibleForTesting
+    public void writeHeader(OutputStream stream) throws IOException {
         // try for cached write first
         if (headerBytesValid && payload != null && payload.length >= offset + HEADER_SIZE) {
             stream.write(payload, offset, HEADER_SIZE);
@@ -572,7 +574,8 @@ public class Block extends Message {
     }
 
     @Override
-    protected void unCache() {
+    @VisibleForTesting
+    public void unCache() {
         // Since we have alternate uncache methods to use internally this will only ever be called by a child
         // transaction so we only need to invalidate that part of the cache.
         unCacheTransactions();
@@ -1003,7 +1006,8 @@ public class Block extends Message {
     }
 
     /** Exists only for unit testing. */
-    void setMerkleRoot(Sha256Hash value) {
+    @VisibleForTesting
+    public void setMerkleRoot(Sha256Hash value) {
         unCacheHeader();
         merkleRoot = value;
         hash = null;
@@ -1015,7 +1019,8 @@ public class Block extends Message {
     }
 
     /** Adds a transaction to this block, with or without checking the sanity of doing so */
-    void addTransaction(Transaction t, boolean runSanityChecks) {
+    @VisibleForTesting
+    public void addTransaction(Transaction t, boolean runSanityChecks) {
         unCacheTransactions();
         if (transactions == null) {
             transactions = new ArrayList<Transaction>();
@@ -1046,7 +1051,8 @@ public class Block extends Message {
         return prevBlockHash;
     }
 
-    void setPrevBlockHash(Sha256Hash prevBlockHash) {
+    @VisibleForTesting
+    public void setPrevBlockHash(Sha256Hash prevBlockHash) {
         unCacheHeader();
         this.prevBlockHash = prevBlockHash;
         this.hash = null;
@@ -1111,6 +1117,16 @@ public class Block extends Message {
         this.hash = null;
     }
 
+    @VisibleForTesting
+    public void setTransactions(List<Transaction> transactions) {
+        unCache();
+        if (this.transactions != null) {
+            for (Transaction t: this.transactions)
+                t.setParent(null);
+        }
+        this.transactions = transactions;
+    }
+
     /** Returns an immutable list of transactions held in this block, or null if this object represents just a header. */
     @Nullable
     public List<Transaction> getTransactions() {
@@ -1149,7 +1165,7 @@ public class Block extends Message {
      * @param height block height, if known, or -1 otherwise.
      */
     @VisibleForTesting
-    void addCoinbaseTransaction(byte[] pubKeyTo, Coin value, final int height) {
+    public void addCoinbaseTransaction(byte[] pubKeyTo, Coin value, final int height) {
         unCacheTransactions();
         transactions = new ArrayList<Transaction>();
         Transaction coinbase = new Transaction(net);
@@ -1273,22 +1289,22 @@ public class Block extends Message {
     }
 
     @VisibleForTesting
-    boolean isParsedHeader() {
+    public boolean isParsedHeader() {
         return headerParsed;
     }
 
     @VisibleForTesting
-    boolean isParsedTransactions() {
+    public boolean isParsedTransactions() {
         return transactionsParsed;
     }
 
     @VisibleForTesting
-    boolean isHeaderBytesValid() {
+    public boolean isHeaderBytesValid() {
         return headerBytesValid;
     }
 
     @VisibleForTesting
-    boolean isTransactionBytesValid() {
+    public boolean isTransactionBytesValid() {
         return transactionBytesValid;
     }
 

@@ -24,8 +24,8 @@ import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletExtension;
+import org.bitcoinj.moved.wallet.Wallet;
+import org.bitcoinj.moved.wallet.WalletExtension;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.SettableFuture;

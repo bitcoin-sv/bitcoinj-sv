@@ -17,8 +17,8 @@ package org.bitcoinj.examples;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.wallet.DeterministicSeed;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.DeterministicSeed;
+import org.bitcoinj.moved.wallet.Wallet;
 
 /**
  * The following example shows you how to create a deterministic seed from a hierarchical deterministic wallet represented as a mnemonic code.

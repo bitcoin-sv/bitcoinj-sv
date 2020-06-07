@@ -32,7 +32,7 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.utils.ExchangeRate;
-//import org.bitcoinj.wallet.Wallet;
+//import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;

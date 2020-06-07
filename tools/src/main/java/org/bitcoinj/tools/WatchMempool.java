@@ -28,8 +28,8 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.wallet.DefaultRiskAnalysis;
-import org.bitcoinj.wallet.RiskAnalysis.Result;
+import org.bitcoinj.moved.wallet.DefaultRiskAnalysis;
+import org.bitcoinj.moved.wallet.RiskAnalysis.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

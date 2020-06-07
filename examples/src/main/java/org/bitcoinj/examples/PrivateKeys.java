@@ -23,7 +23,7 @@ import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.store.MemoryBlockStore;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.moved.wallet.Wallet;
 
 import java.math.BigInteger;
 import java.net.InetAddress;

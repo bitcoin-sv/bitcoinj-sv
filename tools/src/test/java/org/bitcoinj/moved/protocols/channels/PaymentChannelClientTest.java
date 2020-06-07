@@ -15,10 +15,8 @@
 package org.bitcoinj.moved.protocols.channels;
 
 import org.bitcoinj.core.*;
-import org.bitcoinj.moved.protocols.channels.IPaymentChannelClient;
-import org.bitcoinj.moved.protocols.channels.PaymentChannelClient;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletExtension;
+import org.bitcoinj.moved.wallet.Wallet;
+import org.bitcoinj.moved.wallet.WalletExtension;
 import org.bitcoin.paymentchannel.Protos;
 import org.easymock.Capture;
 import org.easymock.EasyMock;

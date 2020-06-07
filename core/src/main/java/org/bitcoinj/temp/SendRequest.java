@@ -60,7 +60,7 @@ public class SendRequest {
 
     /**
      * When emptyWallet is set, all coins selected by the coin selector are sent to the first output in tx
-     * (its value is ignored and set to { org.bitcoinj.wallet.Wallet#getBalance()} - the fees required
+     * (its value is ignored and set to { org.bitcoinj.moved.wallet.Wallet#getBalance()} - the fees required
      * for the transaction). Any additional outputs are removed.
      */
     public boolean emptyWallet = false;

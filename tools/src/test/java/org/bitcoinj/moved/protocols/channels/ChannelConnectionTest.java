@@ -23,10 +23,10 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.moved.testing.TestWithWallet;
 import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletExtension;
-import org.bitcoinj.wallet.WalletFiles;
-import org.bitcoinj.wallet.WalletProtobufSerializer;
+import org.bitcoinj.moved.wallet.Wallet;
+import org.bitcoinj.moved.wallet.WalletExtension;
+import org.bitcoinj.moved.wallet.WalletFiles;
+import org.bitcoinj.moved.wallet.WalletProtobufSerializer;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

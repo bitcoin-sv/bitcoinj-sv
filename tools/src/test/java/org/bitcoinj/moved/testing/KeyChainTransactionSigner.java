@@ -20,7 +20,7 @@ import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.crypto.ChildNumber;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.signers.CustomTransactionSigner;
-import org.bitcoinj.wallet.DeterministicKeyChain;
+import org.bitcoinj.moved.wallet.DeterministicKeyChain;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
