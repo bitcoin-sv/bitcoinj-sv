@@ -17,6 +17,9 @@
 package org.bitcoinj.wallet.listeners;
 
 import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
+import org.bitcoinj.temp.listener.KeyChainEventListener;
+import org.bitcoinj.temp.listener.ScriptsChangeEventListener;
+import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 
 /**
  * <p>Common interface for wallet changes and transactions.</p>

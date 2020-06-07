@@ -23,12 +23,13 @@ import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
+import org.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.testing.FakeTxBuilder;
 import org.bitcoinj.testing.InboundMessageQueuer;
 import org.bitcoinj.testing.TestWithNetworkConnections;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -88,7 +89,7 @@ public class PeerTest extends TestWithNetworkConnections {
         VersionMessage ver = new VersionMessage(NET, 100);
         InetSocketAddress address = new InetSocketAddress("127.0.0.1", 4000);
         peer = new Peer(PARAMS, ver, new PeerAddress(PARAMS, address), SPVBlockChain);
-        peer.addWallet(wallet);
+        peer.addTxEventListener(wallet);
     }
 
     @Override
@@ -291,7 +292,7 @@ public class PeerTest extends TestWithNetworkConnections {
         VersionMessage ver = new VersionMessage(NET, 100);
         InetSocketAddress address = new InetSocketAddress("127.0.0.1", 4242);
         Peer peer2 = new Peer(PARAMS, ver, new PeerAddress(PARAMS, address), SPVBlockChain);
-        peer2.addWallet(wallet);
+        peer2.addTxEventListener(wallet);
         VersionMessage peerVersion = new VersionMessage(NET, OTHER_PEER_CHAIN_HEIGHT);
         peerVersion.clientVersion = 70001;
         peerVersion.localServices = VersionMessage.NODE_NETWORK | VersionMessage.NODE_BITCOIN_CASH;
@@ -551,7 +552,7 @@ public class PeerTest extends TestWithNetworkConnections {
         final Transaction[] result = new Transaction[1];
         wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
-            public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+            public void onCoinsReceived(TransactionBag wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
                 result[0] = tx;
             }
         });
@@ -715,11 +716,11 @@ public class PeerTest extends TestWithNetworkConnections {
         // until we explicitly opt in to seeing those.
         Wallet wallet = new Wallet(PARAMS);
         ECKey key = wallet.freshReceiveKey();
-        peer.addWallet(wallet);
+        peer.addTxEventListener(wallet);
         final Transaction[] vtx = new Transaction[1];
         wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
-            public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+            public void onCoinsReceived(TransactionBag wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
                 vtx[0] = tx;
             }
         });
@@ -767,11 +768,11 @@ public class PeerTest extends TestWithNetworkConnections {
         Wallet wallet = new Wallet(PARAMS);
         ECKey key = wallet.freshReceiveKey();
         wallet.setAcceptRiskyTransactions(shouldAccept);
-        peer.addWallet(wallet);
+        peer.addTxEventListener(wallet);
         final Transaction[] vtx = new Transaction[1];
         wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
-            public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+            public void onCoinsReceived(TransactionBag wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
                 vtx[0] = tx;
             }
         });
@@ -852,7 +853,7 @@ public class PeerTest extends TestWithNetworkConnections {
     public void exceptionListener() throws Exception {
         wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
-            public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+            public void onCoinsReceived(TransactionBag wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
                 throw new NullPointerException("boo!");
             }
         });

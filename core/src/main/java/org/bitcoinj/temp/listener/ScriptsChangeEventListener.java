@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet.listeners;
+package org.bitcoinj.temp.listener;
 
 import org.bitcoinj.script.Script;
-import org.bitcoinj.wallet.Wallet;
 
 import java.util.List;
 
 /**
  * <p>Implementors are called when the contents of the wallet changes, for instance due to receiving/sending money
- * or a block chain re-organize. It may be convenient to derive from {@link AbstractWalletEventListener} instead.</p>
+ * or a block chain re-organize. It may be convenient to derive from { AbstractWalletEventListener} instead.</p>
  */
 public interface ScriptsChangeEventListener {
     /**
@@ -31,5 +30,5 @@ public interface ScriptsChangeEventListener {
      *
      * @param isAddingScripts will be true if added scripts, false if removed scripts.
      */
-    void onScriptsChanged(Wallet wallet, List<Script> scripts, boolean isAddingScripts);
+    void onScriptsChanged(List<Script> scripts, boolean isAddingScripts);
 }

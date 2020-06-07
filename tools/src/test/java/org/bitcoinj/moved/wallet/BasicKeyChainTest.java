@@ -23,12 +23,12 @@ import org.bitcoinj.crypto.KeyCrypter;
 import org.bitcoinj.crypto.KeyCrypterException;
 import org.bitcoinj.crypto.KeyCrypterScrypt;
 import org.bitcoinj.protos.Protos;
+import org.bitcoinj.temp.KeyPurpose;
 import org.bitcoinj.utils.Threading;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.bitcoinj.wallet.BasicKeyChain;
-import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.UnreadableWalletException;
 import org.bitcoinj.wallet.listeners.AbstractKeyChainEventListener;
 import org.junit.Before;
@@ -106,10 +106,10 @@ public class BasicKeyChainTest {
 
     @Test
     public void getKey() {
-        ECKey key1 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey key1 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
         assertTrue(onKeysAddedRan.getAndSet(false));
         assertEquals(key1, onKeysAdded.getAndSet(null).get(0));
-        ECKey key2 = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        ECKey key2 = chain.getKey(KeyPurpose.CHANGE);
         assertFalse(onKeysAddedRan.getAndSet(false));
         assertEquals(key2, key1);
     }
@@ -176,7 +176,7 @@ public class BasicKeyChainTest {
         final ECKey key1 = new ECKey();
         chain.importKeys(ImmutableList.of(key1));
         chain = chain.toEncrypted("foobar");
-        ECKey encryptedKey = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey encryptedKey = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
         assertTrue(encryptedKey.isEncrypted());
 
         BasicKeyChain chain2 = new BasicKeyChain();

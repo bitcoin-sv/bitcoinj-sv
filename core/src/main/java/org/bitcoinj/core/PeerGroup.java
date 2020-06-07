@@ -40,12 +40,13 @@ import org.bitcoinj.net.discovery.*;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.*;
+import org.bitcoinj.temp.TransactionBag;
+import org.bitcoinj.temp.TxEventListener;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.KeyChainEventListener;
-import org.bitcoinj.wallet.listeners.ScriptsChangeEventListener;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.bitcoinj.temp.listener.KeyChainEventListener;
+import org.bitcoinj.temp.listener.ScriptsChangeEventListener;
+import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -169,7 +170,7 @@ public class PeerGroup implements TransactionBroadcaster {
     @GuardedBy("lock") private boolean ipv6Unreachable = false;
 
     @GuardedBy("lock") private long fastCatchupTimeSecs;
-    private final CopyOnWriteArrayList<Wallet> wallets;
+    private final CopyOnWriteArrayList<TxEventListener> wallets;
     private final CopyOnWriteArrayList<PeerFilterProvider> peerFilterProviders;
 
     // This event listener is added to every peer. It's here so when we announce transactions via an "inv", every
@@ -178,7 +179,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     private int minBroadcastConnections = 0;
     private final ScriptsChangeEventListener walletScriptEventListener = new ScriptsChangeEventListener() {
-        @Override public void onScriptsChanged(Wallet wallet, List<Script> scripts, boolean isAddingScripts) {
+        @Override public void onScriptsChanged(List<Script> scripts, boolean isAddingScripts) {
             recalculateFastCatchupAndFilter(FilterRecalculateMode.SEND_IF_CHANGED);
         }
     };
@@ -191,7 +192,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     private final WalletCoinsReceivedEventListener walletCoinsReceivedEventListener = new WalletCoinsReceivedEventListener() {
         @Override
-        public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+        public void onCoinsReceived(TransactionBag wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
             // We received a relevant transaction. We MAY need to recalculate and resend the Bloom filter, but only
             // if we have received a transaction that includes a relevant pay-to-pubkey output.
             //
@@ -348,7 +349,7 @@ public class PeerGroup implements TransactionBroadcaster {
         this.net = params.getNet();
         this.chain = chain;
         fastCatchupTimeSecs = Genesis.getFor(params).getTimeSeconds();
-        wallets = new CopyOnWriteArrayList<Wallet>();
+        wallets = new CopyOnWriteArrayList<TxEventListener>();
         peerFilterProviders = new CopyOnWriteArrayList<PeerFilterProvider>();
         this.torClient = torClient;
 
@@ -571,7 +572,7 @@ public class PeerGroup implements TransactionBroadcaster {
             while (it.hasNext()) {
                 InventoryItem item = it.next();
                 // Check the wallets.
-                for (Wallet w : wallets) {
+                for (TxEventListener w : wallets) {
                     Transaction tx = w.getTransaction(item.hash);
                     if (tx == null) continue;
                     transactions.add(tx);
@@ -1180,9 +1181,9 @@ public class PeerGroup implements TransactionBroadcaster {
      * than the current chain head, the relevant parts of the chain won't be redownloaded for you.</p>
      *
      * <p>The Wallet will have an event listener registered on it, so to avoid leaks remember to use
-     * {@link PeerGroup#removeWallet(Wallet)} on it if you wish to keep the Wallet but lose the PeerGroup.</p>
+     * {@link PeerGroup#removeTxEventListener(TxEventListener)} (TxEventListener)} on it if you wish to keep the Wallet but lose the PeerGroup.</p>
      */
-    public void addWallet(Wallet wallet) {
+    public void addTxEventListener(TxEventListener wallet) {
         lock.lock();
         try {
             checkNotNull(wallet);
@@ -1194,7 +1195,7 @@ public class PeerGroup implements TransactionBroadcaster {
             wallet.addScriptChangeEventListener(Threading.SAME_THREAD, walletScriptEventListener);
             addPeerFilterProvider(wallet);
             for (Peer peer : peers) {
-                peer.addWallet(wallet);
+                peer.addTxEventListener(wallet);
             }
         } finally {
             lock.unlock();
@@ -1203,7 +1204,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     /**
      * <p>Link the given PeerFilterProvider to this PeerGroup. DO NOT use this for Wallets, use
-     * {@link PeerGroup#addWallet(Wallet)} instead.</p>
+     * {@link PeerGroup#addTxEventListener(TxEventListener)} instead.</p>
      *
      * <p>Note that this should be done before chain download commences because if you add a listener with keys earlier
      * than the current chain head, the relevant parts of the chain won't be redownloaded for you.</p>
@@ -1258,7 +1259,7 @@ public class PeerGroup implements TransactionBroadcaster {
     /**
      * Unlinks the given wallet so it no longer receives broadcast transactions or has its transactions announced.
      */
-    public void removeWallet(Wallet wallet) {
+    public void removeTxEventListener(TxEventListener wallet) {
         wallets.remove(checkNotNull(wallet));
         peerFilterProviders.remove(wallet);
         wallet.removeCoinsReceivedEventListener(walletCoinsReceivedEventListener);
@@ -1266,7 +1267,7 @@ public class PeerGroup implements TransactionBroadcaster {
         wallet.removeScriptChangeEventListener(walletScriptEventListener);
         wallet.setTransactionBroadcaster(null);
         for (Peer peer : peers) {
-            peer.removeWallet(wallet);
+            peer.removeTxEventListener(wallet);
         }        
     }
 
@@ -1562,8 +1563,8 @@ public class PeerGroup implements TransactionBroadcaster {
             if (bloomFilterMerger.getLastFilter() != null) peer.setBloomFilter(bloomFilterMerger.getLastFilter());
             peer.setDownloadData(false);
             // TODO: The peer should calculate the fast catchup time from the added wallets here.
-            for (Wallet wallet : wallets)
-                peer.addWallet(wallet);
+            for (TxEventListener wallet : wallets)
+                peer.addTxEventListener(wallet);
             if (downloadPeer == null) {
                 // Kick off chain download if we aren't already doing it.
                 setDownloadPeer(selectDownloadPeer(peers));
@@ -1689,7 +1690,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     /**
      * Returns the current fast catchup time. The contents of blocks before this time won't be downloaded as they
-     * cannot contain any interesting transactions. If you use {@link PeerGroup#addWallet(Wallet)} this just returns
+     * cannot contain any interesting transactions. If you use {@link PeerGroup#addTxEventListener(TxEventListener)} this just returns
      * the min of the wallets earliest key times.
      * @return a time in seconds since the epoch
      */
@@ -1753,8 +1754,8 @@ public class PeerGroup implements TransactionBroadcaster {
 
         peer.removeBlocksDownloadedEventListener(peerListener);
         peer.removeGetDataEventListener(peerListener);
-        for (Wallet wallet : wallets) {
-            peer.removeWallet(wallet);
+        for (TxEventListener wallet : wallets) {
+            peer.removeTxEventListener(wallet);
         }
 
         final int fNumConnectedPeers = numConnectedPeers;
@@ -2123,7 +2124,7 @@ public class PeerGroup implements TransactionBroadcaster {
                 // it already knows and will ignore this. If it's a transaction we received from
                 // somebody else via a side channel and are now broadcasting, this will put it into the
                 // wallet now we know it's valid.
-                for (Wallet wallet : wallets) {
+                for (TxEventListener wallet : wallets) {
                     // Assumption here is there are no dependencies of the created transaction.
                     //
                     // We may end up with two threads trying to do this in parallel - the wallet will

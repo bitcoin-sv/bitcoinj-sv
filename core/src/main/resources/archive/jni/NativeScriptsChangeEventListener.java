@@ -18,7 +18,7 @@ package archive.jni;
 
 import org.bitcoinj.script.Script;
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.ScriptsChangeEventListener;
+import org.bitcoinj.temp.listener.ScriptsChangeEventListener;
 
 import java.util.List;
 

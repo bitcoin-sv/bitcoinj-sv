@@ -20,7 +20,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.wallet.SendRequest;
+import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 
 import com.google.common.collect.ImmutableList;

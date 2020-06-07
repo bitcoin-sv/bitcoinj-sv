@@ -26,9 +26,11 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.temp.KeyChain;
+import org.bitcoinj.temp.KeyPurpose;
 import org.bitcoinj.temp.RedeemData;
 import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.listeners.KeyChainEventListener;
+import org.bitcoinj.temp.listener.KeyChainEventListener;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;

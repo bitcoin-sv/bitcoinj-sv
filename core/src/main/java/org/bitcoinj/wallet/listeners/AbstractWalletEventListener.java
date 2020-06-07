@@ -20,6 +20,7 @@ import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.wallet.Wallet;
 
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.List;
 @Deprecated
 public abstract class AbstractWalletEventListener extends AbstractKeyChainEventListener implements WalletEventListener {
     @Override
-    public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+    public void onCoinsReceived(TransactionBag wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
         onChange();
     }
 
@@ -45,7 +46,7 @@ public abstract class AbstractWalletEventListener extends AbstractKeyChainEventL
     }
 
     @Override
-    public void onTransactionConfidenceChanged(Wallet wallet, Transaction tx) {
+    public void onTransactionConfidenceChanged(Transaction tx) {
         onChange();
     }
 
@@ -55,7 +56,7 @@ public abstract class AbstractWalletEventListener extends AbstractKeyChainEventL
     }
 
     @Override
-    public void onScriptsChanged(Wallet wallet, List<Script> scripts, boolean isAddingScripts) {
+    public void onScriptsChanged(List<Script> scripts, boolean isAddingScripts) {
         onChange();
     }
 

@@ -27,9 +27,10 @@ import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.*;
 import org.bitcoinj.temp.KeyBag;
+import org.bitcoinj.temp.KeyPurpose;
 import org.bitcoinj.temp.RedeemData;
 import org.bitcoinj.utils.*;
-import org.bitcoinj.wallet.listeners.KeyChainEventListener;
+import org.bitcoinj.temp.listener.KeyChainEventListener;
 import org.slf4j.*;
 import org.spongycastle.crypto.params.*;
 
@@ -74,8 +75,8 @@ public class KeyChainGroup implements KeyBag {
     protected final LinkedList<DeterministicKeyChain> chains;
     // currentKeys is used for normal, non-multisig/married wallets. currentAddresses is used when we're handing out
     // P2SH addresses. They're mutually exclusive.
-    private final EnumMap<KeyChain.KeyPurpose, DeterministicKey> currentKeys;
-    private final EnumMap<KeyChain.KeyPurpose, Address> currentAddresses;
+    private final EnumMap<KeyPurpose, DeterministicKey> currentKeys;
+    private final EnumMap<KeyPurpose, Address> currentAddresses;
     @Nullable private KeyCrypter keyCrypter;
     private int lookaheadSize = -1;
     private int lookaheadThreshold = -1;
@@ -100,19 +101,19 @@ public class KeyChainGroup implements KeyBag {
 
     // Used for deserialization.
     private KeyChainGroup(NetworkParameters params, @Nullable BasicKeyChain basicKeyChain, List<DeterministicKeyChain> chains,
-                          @Nullable EnumMap<KeyChain.KeyPurpose, DeterministicKey> currentKeys, @Nullable KeyCrypter crypter) {
+                          @Nullable EnumMap<KeyPurpose, DeterministicKey> currentKeys, @Nullable KeyCrypter crypter) {
         this.params = params;
         this.basic = basicKeyChain == null ? new BasicKeyChain() : basicKeyChain;
         this.chains = new LinkedList<DeterministicKeyChain>(checkNotNull(chains));
         this.keyCrypter = crypter;
         this.currentKeys = currentKeys == null
-                ? new EnumMap<KeyChain.KeyPurpose, DeterministicKey>(KeyChain.KeyPurpose.class)
+                ? new EnumMap<KeyPurpose, DeterministicKey>(KeyPurpose.class)
                 : currentKeys;
-        this.currentAddresses = new EnumMap<KeyChain.KeyPurpose, Address>(KeyChain.KeyPurpose.class);
+        this.currentAddresses = new EnumMap<KeyPurpose, Address>(KeyPurpose.class);
         maybeLookaheadScripts();
 
         if (isMarried()) {
-            for (Map.Entry<KeyChain.KeyPurpose, DeterministicKey> entry : this.currentKeys.entrySet()) {
+            for (Map.Entry<KeyPurpose, DeterministicKey> entry : this.currentKeys.entrySet()) {
                 Address address = new Address(ScriptUtils.getToAddress(makeP2SHOutputScript(entry.getValue(), getActiveKeyChain()), params));
                 currentAddresses.put(entry.getKey(), address);
             }
@@ -151,15 +152,15 @@ public class KeyChainGroup implements KeyBag {
     /**
      * Returns a key that hasn't been seen in a transaction yet, and which is suitable for displaying in a wallet
      * user interface as "a convenient key to receive funds on" when the purpose parameter is
-     * {@link KeyChain.KeyPurpose#RECEIVE_FUNDS}. The returned key is stable until
+     * {@link KeyPurpose#RECEIVE_FUNDS}. The returned key is stable until
      * it's actually seen in a pending or confirmed transaction, at which point this method will start returning
      * a different key (for each purpose independently).
      * <p>This method is not supposed to be used for married keychains and will throw UnsupportedOperationException if
      * the active chain is married.
-     * For married keychains use {@link #currentAddress(KeyChain.KeyPurpose)}
+     * For married keychains use {@link #currentAddress(KeyPurpose)}
      * to get a proper P2SH address</p>
      */
-    public DeterministicKey currentKey(KeyChain.KeyPurpose purpose) {
+    public DeterministicKey currentKey(KeyPurpose purpose) {
         DeterministicKeyChain chain = getActiveKeyChain();
         if (chain.isMarried()) {
             throw new UnsupportedOperationException("Key is not suitable to receive coins for married keychains." +
@@ -174,9 +175,9 @@ public class KeyChainGroup implements KeyBag {
     }
 
     /**
-     * Returns address for a {@link #currentKey(KeyChain.KeyPurpose)}
+     * Returns address for a {@link #currentKey(KeyPurpose)}
      */
-    public Address currentAddress(KeyChain.KeyPurpose purpose) {
+    public Address currentAddress(KeyPurpose purpose) {
         DeterministicKeyChain chain = getActiveKeyChain();
         if (chain.isMarried()) {
             Address current = currentAddresses.get(purpose);
@@ -194,15 +195,15 @@ public class KeyChainGroup implements KeyBag {
      * Returns a key that has not been returned by this method before (fresh). You can think of this as being
      * a newly created key, although the notion of "create" is not really valid for a
      * {@link DeterministicKeyChain}. When the parameter is
-     * {@link KeyChain.KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
+     * {@link KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
      * into a receive coins wizard type UI. You should use this when the user is definitely going to hand this key out
      * to someone who wishes to send money.
      * <p>This method is not supposed to be used for married keychains and will throw UnsupportedOperationException if
      * the active chain is married.
-     * For married keychains use {@link #freshAddress(KeyChain.KeyPurpose)}
+     * For married keychains use {@link #freshAddress(KeyPurpose)}
      * to get a proper P2SH address</p>
      */
-    public DeterministicKey freshKey(KeyChain.KeyPurpose purpose) {
+    public DeterministicKey freshKey(KeyPurpose purpose) {
         return freshKeys(purpose, 1).get(0);
     }
 
@@ -210,15 +211,15 @@ public class KeyChainGroup implements KeyBag {
      * Returns a key/s that have not been returned by this method before (fresh). You can think of this as being
      * newly created key/s, although the notion of "create" is not really valid for a
      * {@link DeterministicKeyChain}. When the parameter is
-     * {@link KeyChain.KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
+     * {@link KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
      * into a receive coins wizard type UI. You should use this when the user is definitely going to hand this key out
      * to someone who wishes to send money.
      * <p>This method is not supposed to be used for married keychains and will throw UnsupportedOperationException if
      * the active chain is married.
-     * For married keychains use {@link #freshAddress(KeyChain.KeyPurpose)}
+     * For married keychains use {@link #freshAddress(KeyPurpose)}
      * to get a proper P2SH address</p>
      */
-    public List<DeterministicKey> freshKeys(KeyChain.KeyPurpose purpose, int numberOfKeys) {
+    public List<DeterministicKey> freshKeys(KeyPurpose purpose, int numberOfKeys) {
         DeterministicKeyChain chain = getActiveKeyChain();
         if (chain.isMarried()) {
             throw new UnsupportedOperationException("Key is not suitable to receive coins for married keychains." +
@@ -228,9 +229,9 @@ public class KeyChainGroup implements KeyBag {
     }
 
     /**
-     * Returns address for a {@link #freshKey(KeyChain.KeyPurpose)}
+     * Returns address for a {@link #freshKey(KeyPurpose)}
      */
-    public Address freshAddress(KeyChain.KeyPurpose purpose) {
+    public Address freshAddress(KeyPurpose purpose) {
         DeterministicKeyChain chain = getActiveKeyChain();
         if (chain.isMarried()) {
             Script outputScript = chain.freshOutputScript(purpose);
@@ -399,7 +400,7 @@ public class KeyChainGroup implements KeyBag {
     /** If the given P2SH address is "current", advance it to a new one. */
     private void maybeMarkCurrentAddressAsUsed(Address address) {
         checkArgument(address.isP2SHAddress());
-        for (Map.Entry<KeyChain.KeyPurpose, Address> entry : currentAddresses.entrySet()) {
+        for (Map.Entry<KeyPurpose, Address> entry : currentAddresses.entrySet()) {
             if (entry.getValue() != null && entry.getValue().equals(address)) {
                 log.info("Marking P2SH address as used: {}", address);
                 currentAddresses.put(entry.getKey(), freshAddress(entry.getKey()));
@@ -412,7 +413,7 @@ public class KeyChainGroup implements KeyBag {
     private void maybeMarkCurrentKeyAsUsed(DeterministicKey key) {
         // It's OK for currentKeys to be empty here: it means we're a married wallet and the key may be a part of a
         // rotating chain.
-        for (Map.Entry<KeyChain.KeyPurpose, DeterministicKey> entry : currentKeys.entrySet()) {
+        for (Map.Entry<KeyPurpose, DeterministicKey> entry : currentKeys.entrySet()) {
             if (entry.getValue() != null && entry.getValue().equals(key)) {
                 log.info("Marking key as used: {}", key);
                 currentKeys.put(entry.getKey(), freshKey(entry.getKey()));
@@ -652,7 +653,7 @@ public class KeyChainGroup implements KeyBag {
     public static KeyChainGroup fromProtobufUnencrypted(NetworkParameters params, List<Protos.Key> keys, KeyChainFactory factory) throws UnreadableWalletException {
         BasicKeyChain basicKeyChain = BasicKeyChain.fromProtobufUnencrypted(keys);
         List<DeterministicKeyChain> chains = DeterministicKeyChain.fromProtobuf(keys, null, factory);
-        EnumMap<KeyChain.KeyPurpose, DeterministicKey> currentKeys = null;
+        EnumMap<KeyPurpose, DeterministicKey> currentKeys = null;
         if (!chains.isEmpty())
             currentKeys = createCurrentKeysMap(chains);
         extractFollowingKeychains(chains);
@@ -668,7 +669,7 @@ public class KeyChainGroup implements KeyBag {
         checkNotNull(crypter);
         BasicKeyChain basicKeyChain = BasicKeyChain.fromProtobufEncrypted(keys, crypter);
         List<DeterministicKeyChain> chains = DeterministicKeyChain.fromProtobuf(keys, crypter, factory);
-        EnumMap<KeyChain.KeyPurpose, DeterministicKey> currentKeys = null;
+        EnumMap<KeyPurpose, DeterministicKey> currentKeys = null;
         if (!chains.isEmpty())
             currentKeys = createCurrentKeysMap(chains);
         extractFollowingKeychains(chains);
@@ -750,10 +751,10 @@ public class KeyChainGroup implements KeyBag {
         return basic.numKeys() > 0 && chains.isEmpty();
     }
 
-    private static EnumMap<KeyChain.KeyPurpose, DeterministicKey> createCurrentKeysMap(List<DeterministicKeyChain> chains) {
+    private static EnumMap<KeyPurpose, DeterministicKey> createCurrentKeysMap(List<DeterministicKeyChain> chains) {
         DeterministicKeyChain activeChain = chains.get(chains.size() - 1);
 
-        EnumMap<KeyChain.KeyPurpose, DeterministicKey> currentKeys = new EnumMap<KeyChain.KeyPurpose, DeterministicKey>(KeyChain.KeyPurpose.class);
+        EnumMap<KeyPurpose, DeterministicKey> currentKeys = new EnumMap<KeyPurpose, DeterministicKey>(KeyPurpose.class);
 
         // assuming that only RECEIVE and CHANGE keys are being used at the moment, we will treat latest issued external key
         // as current RECEIVE key and latest issued internal key as CHANGE key. This should be changed as soon as other
@@ -763,7 +764,7 @@ public class KeyChainGroup implements KeyBag {
                     HDUtils.append(
                             HDUtils.concat(activeChain.getAccountPath(), DeterministicKeyChain.EXTERNAL_SUBPATH),
                             new ChildNumber(activeChain.getIssuedExternalKeys() - 1)));
-            currentKeys.put(KeyChain.KeyPurpose.RECEIVE_FUNDS, currentExternalKey);
+            currentKeys.put(KeyPurpose.RECEIVE_FUNDS, currentExternalKey);
         }
 
         if (activeChain.getIssuedInternalKeys() > 0) {
@@ -771,7 +772,7 @@ public class KeyChainGroup implements KeyBag {
                     HDUtils.append(
                             HDUtils.concat(activeChain.getAccountPath(), DeterministicKeyChain.INTERNAL_SUBPATH),
                             new ChildNumber(activeChain.getIssuedInternalKeys() - 1)));
-            currentKeys.put(KeyChain.KeyPurpose.CHANGE, currentInternalKey);
+            currentKeys.put(KeyPurpose.CHANGE, currentInternalKey);
         }
         return currentKeys;
     }

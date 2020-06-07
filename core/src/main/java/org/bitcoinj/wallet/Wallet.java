@@ -47,10 +47,10 @@ import org.bitcoinj.temp.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.protos.Protos.Wallet.*;
 import org.bitcoinj.temp.WalletTransaction.*;
-import org.bitcoinj.wallet.listeners.KeyChainEventListener;
-import org.bitcoinj.wallet.listeners.ScriptsChangeEventListener;
+import org.bitcoinj.temp.listener.KeyChainEventListener;
+import org.bitcoinj.temp.listener.ScriptsChangeEventListener;
 import org.bitcoinj.wallet.listeners.WalletChangeEventListener;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 import org.bitcoinj.wallet.listeners.WalletCoinsSentEventListener;
 import org.bitcoinj.wallet.listeners.WalletEventListener;
 import org.bitcoinj.wallet.listeners.WalletReorganizeEventListener;
@@ -106,7 +106,7 @@ import static com.google.common.base.Preconditions.*;
  * for more information about this.</p>
  */
 public class Wallet extends BaseTaggableObject
-    implements PeerFilterProvider, KeyBag, TransactionBag, ChainEventListener {
+    implements PeerFilterProvider, KeyBag, TransactionBag, ChainEventListener, TxEventListener {
     private static final Logger log = LoggerFactory.getLogger(Wallet.class);
     private static final int MINIMUM_BLOOM_DATA_LENGTH = 8;
 
@@ -389,11 +389,11 @@ public class Wallet extends BaseTaggableObject
     /**
      * Returns a key that hasn't been seen in a transaction yet, and which is suitable for displaying in a wallet
      * user interface as "a convenient key to receive funds on" when the purpose parameter is
-     * {@link org.bitcoinj.wallet.KeyChain.KeyPurpose#RECEIVE_FUNDS}. The returned key is stable until
+     * {@link KeyPurpose#RECEIVE_FUNDS}. The returned key is stable until
      * it's actually seen in a pending or confirmed transaction, at which point this method will start returning
      * a different key (for each purpose independently).
      */
-    public DeterministicKey currentKey(KeyChain.KeyPurpose purpose) {
+    public DeterministicKey currentKey(KeyPurpose purpose) {
         keyChainGroupLock.lock();
         try {
             maybeUpgradeToHD();
@@ -404,17 +404,17 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * An alias for calling {@link #currentKey(org.bitcoinj.wallet.KeyChain.KeyPurpose)} with
-     * {@link org.bitcoinj.wallet.KeyChain.KeyPurpose#RECEIVE_FUNDS} as the parameter.
+     * An alias for calling {@link #currentKey(KeyPurpose)} with
+     * {@link KeyPurpose#RECEIVE_FUNDS} as the parameter.
      */
     public DeterministicKey currentReceiveKey() {
-        return currentKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        return currentKey(KeyPurpose.RECEIVE_FUNDS);
     }
 
     /**
-     * Returns address for a {@link #currentKey(org.bitcoinj.wallet.KeyChain.KeyPurpose)}
+     * Returns address for a {@link #currentKey(KeyPurpose)}
      */
-    public Address currentAddress(KeyChain.KeyPurpose purpose) {
+    public Address currentAddress(KeyPurpose purpose) {
         keyChainGroupLock.lock();
         try {
             maybeUpgradeToHD();
@@ -425,22 +425,22 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * An alias for calling {@link #currentAddress(org.bitcoinj.wallet.KeyChain.KeyPurpose)} with
-     * {@link org.bitcoinj.wallet.KeyChain.KeyPurpose#RECEIVE_FUNDS} as the parameter.
+     * An alias for calling {@link #currentAddress(KeyPurpose)} with
+     * {@link KeyPurpose#RECEIVE_FUNDS} as the parameter.
      */
     public Address currentReceiveAddress() {
-        return currentAddress(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        return currentAddress(KeyPurpose.RECEIVE_FUNDS);
     }
 
     /**
      * Returns a key that has not been returned by this method before (fresh). You can think of this as being
      * a newly created key, although the notion of "create" is not really valid for a
      * {@link org.bitcoinj.wallet.DeterministicKeyChain}. When the parameter is
-     * {@link org.bitcoinj.wallet.KeyChain.KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
+     * {@link KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
      * into a receive coins wizard type UI. You should use this when the user is definitely going to hand this key out
      * to someone who wishes to send money.
      */
-    public DeterministicKey freshKey(KeyChain.KeyPurpose purpose) {
+    public DeterministicKey freshKey(KeyPurpose purpose) {
         return freshKeys(purpose, 1).get(0);
     }
 
@@ -448,11 +448,11 @@ public class Wallet extends BaseTaggableObject
      * Returns a key/s that has not been returned by this method before (fresh). You can think of this as being
      * a newly created key/s, although the notion of "create" is not really valid for a
      * {@link org.bitcoinj.wallet.DeterministicKeyChain}. When the parameter is
-     * {@link org.bitcoinj.wallet.KeyChain.KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
+     * {@link KeyPurpose#RECEIVE_FUNDS} the returned key is suitable for being put
      * into a receive coins wizard type UI. You should use this when the user is definitely going to hand this key/s out
      * to someone who wishes to send money.
      */
-    public List<DeterministicKey> freshKeys(KeyChain.KeyPurpose purpose, int numberOfKeys) {
+    public List<DeterministicKey> freshKeys(KeyPurpose purpose, int numberOfKeys) {
         List<DeterministicKey> keys;
         keyChainGroupLock.lock();
         try {
@@ -468,17 +468,17 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * An alias for calling {@link #freshKey(org.bitcoinj.wallet.KeyChain.KeyPurpose)} with
-     * {@link org.bitcoinj.wallet.KeyChain.KeyPurpose#RECEIVE_FUNDS} as the parameter.
+     * An alias for calling {@link #freshKey(KeyPurpose)} with
+     * {@link KeyPurpose#RECEIVE_FUNDS} as the parameter.
      */
     public DeterministicKey freshReceiveKey() {
-        return freshKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        return freshKey(KeyPurpose.RECEIVE_FUNDS);
     }
 
     /**
-     * Returns address for a {@link #freshKey(org.bitcoinj.wallet.KeyChain.KeyPurpose)}
+     * Returns address for a {@link #freshKey(KeyPurpose)}
      */
-    public Address freshAddress(KeyChain.KeyPurpose purpose) {
+    public Address freshAddress(KeyPurpose purpose) {
         Address key;
         keyChainGroupLock.lock();
         try {
@@ -491,11 +491,11 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * An alias for calling {@link #freshAddress(org.bitcoinj.wallet.KeyChain.KeyPurpose)} with
-     * {@link org.bitcoinj.wallet.KeyChain.KeyPurpose#RECEIVE_FUNDS} as the parameter.
+     * An alias for calling {@link #freshAddress(KeyPurpose)} with
+     * {@link KeyPurpose#RECEIVE_FUNDS} as the parameter.
      */
     public Address freshReceiveAddress() {
-        return freshAddress(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        return freshAddress(KeyPurpose.RECEIVE_FUNDS);
     }
 
     /**
@@ -634,7 +634,7 @@ public class Wallet extends BaseTaggableObject
 
     /** Returns the address used for change outputs. Note: this will probably go away in future. */
     public Address currentChangeAddress() {
-        return currentAddress(KeyChain.KeyPurpose.CHANGE);
+        return currentAddress(KeyPurpose.CHANGE);
     }
     /**
      * @deprecated use {@link #currentChangeAddress()} instead.
@@ -1657,7 +1657,7 @@ public class Wallet extends BaseTaggableObject
      * be double spent as an optimization.</p>
      *
      * <p>This is the same as {@link Wallet#receivePending(Transaction, java.util.List)} but allows you to override the
-     * {@link Wallet#isPendingTransactionRelevant(Transaction)} sanity-check to keep track of transactions that are not
+     * {@link TxEventListener#isPendingTransactionRelevant(Transaction)} sanity-check to keep track of transactions that are not
      * spendable or spend our coins. This can be useful when you want to keep track of transaction confidence on
      * arbitrary transactions. Note that transactions added in this way will still be relayed to peers and appear in
      * transaction lists like any other pending transaction (even when not relevant).</p>
@@ -2716,12 +2716,12 @@ public class Wallet extends BaseTaggableObject
         checkState(lock.isHeldByCurrentThread());
         for (final ListenerRegistration<TransactionConfidenceEventListener> registration : transactionConfidenceListeners) {
             if (registration.executor == Threading.SAME_THREAD) {
-                registration.listener.onTransactionConfidenceChanged(this, tx);
+                registration.listener.onTransactionConfidenceChanged(tx);
             } else {
                 registration.executor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        registration.listener.onTransactionConfidenceChanged(Wallet.this, tx);
+                        registration.listener.onTransactionConfidenceChanged(tx);
                     }
                 });
             }
@@ -2786,7 +2786,7 @@ public class Wallet extends BaseTaggableObject
             registration.executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    registration.listener.onScriptsChanged(Wallet.this, scripts, isAddingScripts);
+                    registration.listener.onScriptsChanged(scripts, isAddingScripts);
                 }
             });
         }
@@ -3827,7 +3827,7 @@ public class Wallet extends BaseTaggableObject
 
     /**
      * Satisfies the given {@link SendRequest} using the default transaction broadcaster configured either via
-     * {@link PeerGroup#addWallet(Wallet)} or directly with {@link #setTransactionBroadcaster(TransactionBroadcaster)}.
+     * {@link PeerGroup#addTxEventListener(TxEventListener)} (Wallet)} or directly with {@link #setTransactionBroadcaster(TransactionBroadcaster)}.
      *
      * @param request the SendRequest that describes what to do, get one using static methods on SendRequest itself.
      * @return An object containing the transaction that was created, and a future for the broadcast of it.
@@ -5015,7 +5015,7 @@ public class Wallet extends BaseTaggableObject
      * to broadcast transactions itself.</p>
      *
      * <p>You don't normally need to call this. A {@link PeerGroup} will automatically set itself as the wallets
-     * broadcaster when you use {@link PeerGroup#addWallet(Wallet)}. A wallet can use the broadcaster when you ask
+     * broadcaster when you use {@link PeerGroup#addTxEventListener(TxEventListener)} (Wallet)}. A wallet can use the broadcaster when you ask
      * it to send money, but in future also at other times to implement various features that may require asynchronous
      * re-organisation of the wallet contents on the block chain. For instance, in future the wallet may choose to
      * optimise itself to reduce fees or improve privacy.</p>

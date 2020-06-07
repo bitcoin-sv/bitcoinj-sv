@@ -21,6 +21,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.temp.CoinSelection;
 import org.bitcoinj.temp.CoinSelector;
 
 import java.util.HashSet;

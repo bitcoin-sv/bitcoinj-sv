@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.bitcoinj.temp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -27,14 +27,10 @@ import org.bitcoin.protocols.payments.Protos.PaymentDetails;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.temp.CoinSelector;
 import org.bitcoinj.utils.ExchangeRate;
-import org.bitcoinj.wallet.KeyChain.KeyPurpose;
-import org.bitcoinj.temp.MissingSigsMode;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import com.google.common.base.MoreObjects;
@@ -57,14 +53,14 @@ public class SendRequest {
      *
      * <p>If there are already inputs to the transaction, make sure their out point has a connected output,
      * otherwise their value will be added to fee.  Also ensure they are either signed or are spendable by a wallet
-     * key, otherwise the behavior of {@link Wallet#completeTx(SendRequest)} is undefined (likely
+     * key, otherwise the behavior of { Wallet#completeTx(SendRequest)} is undefined (likely
      * RuntimeException).</p>
      */
     public Transaction tx;
 
     /**
      * When emptyWallet is set, all coins selected by the coin selector are sent to the first output in tx
-     * (its value is ignored and set to {@link org.bitcoinj.wallet.Wallet#getBalance()} - the fees required
+     * (its value is ignored and set to { org.bitcoinj.wallet.Wallet#getBalance()} - the fees required
      * for the transaction). Any additional outputs are removed.
      */
     public boolean emptyWallet = false;
@@ -146,7 +142,7 @@ public class SendRequest {
     public String memo = null;
 
     // Tracks if this has been passed to wallet.completeTx already: just a safety check.
-    boolean completed;
+    public boolean completed;
 
     private SendRequest() {}
 
@@ -197,31 +193,31 @@ public class SendRequest {
         return req;
     }
 
-    /**
-     * Construct a SendRequest for a CPFP (child-pays-for-parent) transaction. The resulting transaction is already
-     * completed, so you should directly proceed to signing and broadcasting/committing the transaction. CPFP is
-     * currently only supported by a few miners, so use with care.
-     */
-    public static SendRequest childPaysForParent(Wallet wallet, Transaction parentTransaction, Coin feeRaise) {
-        TransactionOutput outputToSpend = null;
-        for (final TransactionOutput output : parentTransaction.getOutputs()) {
-            if (TxHelper.isMine(output, wallet) && output.isAvailableForSpending()
-                    && output.getValue().isGreaterThan(feeRaise)) {
-                outputToSpend = output;
-                break;
-            }
-        }
-        // TODO spend another confirmed output of own wallet if needed
-        checkNotNull(outputToSpend, "Can't find adequately sized output that spends to us");
-
-        final Transaction tx = new Transaction(parentTransaction.getNet());
-        tx.addInput(outputToSpend);
-        tx.addOutput(outputToSpend.getValue().subtract(feeRaise), wallet.freshAddress(KeyPurpose.CHANGE));
-        tx.setPurpose(Transaction.Purpose.RAISE_FEE);
-        final SendRequest req = forTx(tx);
-        req.completed = true;
-        return req;
-    }
+//    /**
+//     * Construct a SendRequest for a CPFP (child-pays-for-parent) transaction. The resulting transaction is already
+//     * completed, so you should directly proceed to signing and broadcasting/committing the transaction. CPFP is
+//     * currently only supported by a few miners, so use with care.
+//     */
+//    public static SendRequest childPaysForParent(Wallet wallet, Transaction parentTransaction, Coin feeRaise) {
+//        TransactionOutput outputToSpend = null;
+//        for (final TransactionOutput output : parentTransaction.getOutputs()) {
+//            if (TxHelper.isMine(output, wallet) && output.isAvailableForSpending()
+//                    && output.getValue().isGreaterThan(feeRaise)) {
+//                outputToSpend = output;
+//                break;
+//            }
+//        }
+//        // TODO spend another confirmed output of own wallet if needed
+//        checkNotNull(outputToSpend, "Can't find adequately sized output that spends to us");
+//
+//        final Transaction tx = new Transaction(parentTransaction.getNet());
+//        tx.addInput(outputToSpend);
+//        tx.addOutput(outputToSpend.getValue().subtract(feeRaise), wallet.freshAddress(KeyPurpose.CHANGE));
+//        tx.setPurpose(Transaction.Purpose.RAISE_FEE);
+//        final SendRequest req = forTx(tx);
+//        req.completed = true;
+//        return req;
+//    }
 
     public static SendRequest toCLTVPaymentChannel(NetworkParameters params, Date releaseTime, ECKey from, ECKey to, Coin value) {
         long time = releaseTime.getTime() / 1000L;

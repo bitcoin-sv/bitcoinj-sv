@@ -254,7 +254,7 @@ public class PeerGroupTest extends TestWithPeerGroup {
         ECKey key2 = wallet2.freshReceiveKey();
         Address address2 = key2.toAddress(PARAMS);
         
-        peerGroup.addWallet(wallet2);
+        peerGroup.addTxEventListener(wallet2);
         SPVBlockChain.addChainEventListener(wallet2);
 
         assertEquals(BloomFilter.class, waitForOutbound(p1).getClass());
@@ -430,7 +430,7 @@ public class PeerGroupTest extends TestWithPeerGroup {
         ECKey key1 = new ECKey();
         key1.setCreationTimeSeconds(now - 86400);  // One day ago.
         w2.importKey(key1);
-        peerGroup.addWallet(w2);
+        peerGroup.addTxEventListener(w2);
         peerGroup.waitForJobQueue();
         assertEquals(peerGroup.getFastCatchupTimeSecs(), now - 86400 - WEEK);
         // Adding a key to the wallet should update the fast catchup time, but asynchronously and in the background

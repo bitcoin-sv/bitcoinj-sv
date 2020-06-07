@@ -33,9 +33,9 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.temp.TxEventListener;
 import org.bitcoinj.utils.ListenerRegistration;
 import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.Wallet;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
@@ -104,7 +104,7 @@ public class Peer extends PeerSocketHandler {
     // message. This method can go wrong if the peer re-orgs onto a shorter (but harder) chain, however, this is rare.
     private final AtomicInteger blocksAnnounced = new AtomicInteger();
     // Each wallet added to the peer will be notified of downloaded transaction data.
-    private final CopyOnWriteArrayList<Wallet> wallets;
+    private final CopyOnWriteArrayList<TxEventListener> txEventListeners;
     // A time before which we only download block headers, after that point we download block bodies.
     @GuardedBy("lock") private long fastCatchupTimeSecs;
     // Whether we are currently downloading headers only or block bodies. Starts at true. If the fast catchup time is
@@ -248,7 +248,7 @@ public class Peer extends PeerSocketHandler {
         this.fastCatchupTimeSecs = Genesis.getFor(params).getTimeSeconds();
         this.pendingPings = new CopyOnWriteArrayList<PendingPing>();
         this.vMinProtocolVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG);
-        this.wallets = new CopyOnWriteArrayList<Wallet>();
+        this.txEventListeners = new CopyOnWriteArrayList<TxEventListener>();
         this.context = Context.get();
 
         this.versionHandshakeFuture.addListener(new Runnable() {
@@ -801,14 +801,14 @@ public class Peer extends PeerSocketHandler {
                     endFilteredBlock(currentFilteredBlock);
                     currentFilteredBlock = null;
                 }
-                // Don't tell wallets or listeners about this tx as they'll learn about it when the filtered block is
+                // Don't tell txEventListeners or listeners about this tx as they'll learn about it when the filtered block is
                 // fully downloaded instead.
                 return;
             }
-            // It's a broadcast transaction. Tell all wallets about this tx so they can check if it's relevant or not.
-            for (final Wallet wallet : wallets) {
+            // It's a broadcast transaction. Tell all txEventListeners about this tx so they can check if it's relevant or not.
+            for (final TxEventListener txEventListener : txEventListeners) {
                 try {
-                    if (wallet.isPendingTransactionRelevant(tx)) {
+                    if (txEventListener.isPendingTransactionRelevant(tx)) {
                         if (vDownloadTxDependencyDepth > 0) {
                             // This transaction seems interesting to us, so let's download its dependencies. This has
                             // several purposes: we can check that the sender isn't attacking us by engaging in protocol
@@ -830,7 +830,7 @@ public class Peer extends PeerSocketHandler {
                                 public void onSuccess(List<Transaction> dependencies) {
                                     try {
                                         log.info("{}: Dependency download complete!", getAddress());
-                                        wallet.receivePending(tx, dependencies);
+                                        txEventListener.receivePending(tx, dependencies);
                                     } catch (VerificationException e) {
                                         log.error("{}: Wallet failed to process pending transaction {}", getAddress(), tx.getHash());
                                         log.error("Error was: ", e);
@@ -846,7 +846,7 @@ public class Peer extends PeerSocketHandler {
                                 }
                             });
                         } else {
-                            wallet.receivePending(tx, null);
+                            txEventListener.receivePending(tx, null);
                         }
                     }
                 } catch (VerificationException e) {
@@ -1151,7 +1151,7 @@ public class Peer extends PeerSocketHandler {
 
     private boolean checkForFilterExhaustion(FilteredBlock m) {
         boolean exhausted = false;
-        for (Wallet wallet : wallets) {
+        for (TxEventListener wallet : txEventListeners) {
             exhausted |= wallet.checkForFilterExhaustion(m);
         }
         return exhausted;
@@ -1369,7 +1369,7 @@ public class Peer extends PeerSocketHandler {
      * transactions relevant to the wallet will therefore not be found, but if you know your wallet has no such
      * transactions it doesn't matter and can save a lot of bandwidth and processing time. Note that the times of blocks
      * isn't known until their headers are available and they are requested in chunks, so some headers may be downloaded
-     * twice using this scheme, but this optimization can still be a large win for newly created wallets.
+     * twice using this scheme, but this optimization can still be a large win for newly created txEventListeners.
      *
      * @param secondsSinceEpoch Time in seconds since the epoch or 0 to reset to always downloading block bodies.
      */
@@ -1397,13 +1397,13 @@ public class Peer extends PeerSocketHandler {
      * them and use the {@link PeerGroup#addWallet(Wallet)} method instead of registering the wallet with each peer
      * independently, otherwise the wallet will receive duplicate notifications.
      */
-    public void addWallet(Wallet wallet) {
-        wallets.add(wallet);
+    public void addTxEventListener(TxEventListener txEventListener) {
+        txEventListeners.add(txEventListener);
     }
 
-    /** Unlinks the given wallet from peer. See {@link Peer#addWallet(Wallet)}. */
-    public void removeWallet(Wallet wallet) {
-        wallets.remove(wallet);
+    /** Unlinks the given wallet from peer. See {@link Peer#addTxEventListener(TxEventListener)}. */
+    public void removeTxEventListener(TxEventListener txEventListener) {
+        txEventListeners.remove(txEventListener);
     }
 
     // Keep track of the last request we made to the peer in blockChainDownloadLocked so we can avoid redundant and harmful
@@ -1716,9 +1716,9 @@ public class Peer extends PeerSocketHandler {
      * vDownloadData property is true, a {@link MemoryPoolMessage} is sent as well to trigger downloading of any
      * pending transactions that may be relevant.</p>
      *
-     * <p>The Peer does not automatically request filters from any wallets added using {@link Peer#addWallet(Wallet)}.
+     * <p>The Peer does not automatically request filters from any txEventListeners added using {@link Peer#addTxEventListener(TxEventListener)}.
      * This is to allow callers to avoid redundantly recalculating the same filter repeatedly when using multiple peers
-     * and multiple wallets together.</p>
+     * and multiple txEventListeners together.</p>
      *
      * <p>Therefore, you should not use this method if your app uses a {@link PeerGroup}. It is called for you.</p>
      *
@@ -1734,9 +1734,9 @@ public class Peer extends PeerSocketHandler {
      * remote peer and if requested, a {@link MemoryPoolMessage} is sent as well to trigger downloading of any
      * pending transactions that may be relevant.</p>
      *
-     * <p>The Peer does not automatically request filters from any wallets added using {@link Peer#addWallet(Wallet)}.
+     * <p>The Peer does not automatically request filters from any txEventListeners added using {@link Peer#addTxEventListener(TxEventListener)}.
      * This is to allow callers to avoid redundantly recalculating the same filter repeatedly when using multiple peers
-     * and multiple wallets together.</p>
+     * and multiple txEventListeners together.</p>
      *
      * <p>Therefore, you should not use this method if your app uses a {@link PeerGroup}. It is called for you.</p>
      *

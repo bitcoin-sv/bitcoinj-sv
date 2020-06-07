@@ -24,6 +24,7 @@ import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.protos.Protos;
+import org.bitcoinj.temp.KeyPurpose;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.*;
@@ -59,9 +60,9 @@ public class DeterministicKeyChainTest {
 
     @Test
     public void derive() throws Exception {
-        ECKey key1 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey key1 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
         assertFalse(key1.isPubKeyOnly());
-        ECKey key2 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey key2 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
         assertFalse(key2.isPubKeyOnly());
 
         final Address address = Address.fromBase58(UnitTestParams.get(), "n1bQNoEx8uhmCzzA5JPG6sFdtsUQhwiQJV");
@@ -73,7 +74,7 @@ public class DeterministicKeyChainTest {
         key1.sign(Sha256Hash.ZERO_HASH);
         assertFalse(key1.isPubKeyOnly());
 
-        ECKey key3 = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        ECKey key3 = chain.getKey(KeyPurpose.CHANGE);
         assertFalse(key3.isPubKeyOnly());
         assertEquals("mqumHgVDqNzuXNrszBmi7A2UpmwaPMx4HQ", key3.toAddress(UnitTestParams.get()).toString());
         key3.sign(Sha256Hash.ZERO_HASH);
@@ -82,8 +83,8 @@ public class DeterministicKeyChainTest {
 
     @Test
     public void getKeys() throws Exception {
-        chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        chain.getKey(KeyPurpose.RECEIVE_FUNDS);
+        chain.getKey(KeyPurpose.CHANGE);
         chain.maybeLookAhead();
         assertEquals(2, chain.getKeys(false).size());
     }
@@ -92,8 +93,8 @@ public class DeterministicKeyChainTest {
     public void deriveAccountOne() throws Exception {
         long secs = 1389353062L;
         DeterministicKeyChain chain1 = new AccountOneChain(ENTROPY, "", secs);
-        ECKey key1 = chain1.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        ECKey key2 = chain1.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey key1 = chain1.getKey(KeyPurpose.RECEIVE_FUNDS);
+        ECKey key2 = chain1.getKey(KeyPurpose.RECEIVE_FUNDS);
 
         final Address address = Address.fromBase58(UnitTestParams.get(), "n2nHHRHs7TiZScTuVhZUkzZfTfVgGYwy6X");
         assertEquals(address, key1.toAddress(UnitTestParams.get()));
@@ -103,7 +104,7 @@ public class DeterministicKeyChainTest {
 
         key1.sign(Sha256Hash.ZERO_HASH);
 
-        ECKey key3 = chain1.getKey(KeyChain.KeyPurpose.CHANGE);
+        ECKey key3 = chain1.getKey(KeyPurpose.CHANGE);
         assertEquals("mpjRhk13rvV7vmnszcUQVYVQzy4HLTPTQU", key3.toAddress(UnitTestParams.get()).toString());
         key3.sign(Sha256Hash.ZERO_HASH);
     }
@@ -128,7 +129,7 @@ public class DeterministicKeyChainTest {
     public void serializeAccountOne() throws Exception {
         long secs = 1389353062L;
         DeterministicKeyChain chain1 = new AccountOneChain(ENTROPY, "", secs);
-        ECKey key1 = chain1.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey key1 = chain1.getKey(KeyPurpose.RECEIVE_FUNDS);
 
         final Address address = Address.fromBase58(UnitTestParams.get(), "n2nHHRHs7TiZScTuVhZUkzZfTfVgGYwy6X");
         assertEquals(address, key1.toAddress(UnitTestParams.get()));
@@ -150,14 +151,14 @@ public class DeterministicKeyChainTest {
 
         chain1 = DeterministicKeyChain.fromProtobuf(keys, null, factory).get(0);
 
-        ECKey key2 = chain1.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey key2 = chain1.getKey(KeyPurpose.RECEIVE_FUNDS);
         assertEquals("mnp2j9za5zMuz44vNxrJCXXhZsCdh89QXn", key2.toAddress(UnitTestParams.get()).toString());
         assertEquals(key1, chain1.findKeyFromPubHash(address.getHash160()));
         assertEquals(key2, chain1.findKeyFromPubKey(key2.getPubKey()));
 
         key1.sign(Sha256Hash.ZERO_HASH);
 
-        ECKey key3 = chain1.getKey(KeyChain.KeyPurpose.CHANGE);
+        ECKey key3 = chain1.getKey(KeyPurpose.CHANGE);
         assertEquals("mpjRhk13rvV7vmnszcUQVYVQzy4HLTPTQU", key3.toAddress(UnitTestParams.get()).toString());
         key3.sign(Sha256Hash.ZERO_HASH);
 
@@ -166,7 +167,7 @@ public class DeterministicKeyChainTest {
 
     @Test
     public void signMessage() throws Exception {
-        ECKey key = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        ECKey key = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
         key.verifyMessage("test", key.signMessage("test"));
     }
 
@@ -185,7 +186,7 @@ public class DeterministicKeyChainTest {
         assertEquals(0, listenerKeys.size());
         chain.setLookaheadSize(5);
         assertEquals(0, listenerKeys.size());
-        ECKey key = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        ECKey key = chain.getKey(KeyPurpose.CHANGE);
         assertEquals(1, listenerKeys.size());  // 1 event
         final List<ECKey> firstEvent = listenerKeys.get(0);
         assertEquals(1, firstEvent.size());
@@ -197,12 +198,12 @@ public class DeterministicKeyChainTest {
         assertEquals(12, secondEvent.size());  // (5 lookahead keys, +1 lookahead threshold) * 2 chains
         listenerKeys.clear();
 
-        chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        chain.getKey(KeyPurpose.CHANGE);
         // At this point we've entered the threshold zone so more keys won't immediately trigger more generations.
         assertEquals(0, listenerKeys.size());  // 1 event
         final int lookaheadThreshold = chain.getLookaheadThreshold() + chain.getLookaheadSize();
         for (int i = 0; i < lookaheadThreshold; i++)
-            chain.getKey(KeyChain.KeyPurpose.CHANGE);
+            chain.getKey(KeyPurpose.CHANGE);
         assertEquals(1, listenerKeys.size());  // 1 event
         assertEquals(1, listenerKeys.get(0).size());  // 1 key.
     }
@@ -213,16 +214,16 @@ public class DeterministicKeyChainTest {
         // a fixed seed to be deterministic.
         chain = new DeterministicKeyChain(new SecureRandom(), 384);
         chain.setLookaheadSize(10);
-        chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS).sign(Sha256Hash.ZERO_HASH);
-        chain.getKey(KeyChain.KeyPurpose.CHANGE).sign(Sha256Hash.ZERO_HASH);
+        chain.getKey(KeyPurpose.RECEIVE_FUNDS).sign(Sha256Hash.ZERO_HASH);
+        chain.getKey(KeyPurpose.CHANGE).sign(Sha256Hash.ZERO_HASH);
     }
 
     @Test
     public void serializeUnencrypted() throws UnreadableWalletException {
         chain.maybeLookAhead();
-        DeterministicKey key1 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        DeterministicKey key2 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        DeterministicKey key3 = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        DeterministicKey key1 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey key2 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey key3 = chain.getKey(KeyPurpose.CHANGE);
         List<Protos.Key> keys = chain.serializeToProtobuf();
         // 1 mnemonic/seed, 1 master key, 1 account key, 2 internal keys, 3 derived, 20 lookahead and 5 lookahead threshold.
         int numItems =
@@ -235,7 +236,7 @@ public class DeterministicKeyChainTest {
         assertEquals(numItems, keys.size());
 
         // Get another key that will be lost during round-tripping, to ensure we can derive it again.
-        DeterministicKey key4 = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        DeterministicKey key4 = chain.getKey(KeyPurpose.CHANGE);
 
         final String EXPECTED_SERIALIZATION = checkSerialization(keys, "deterministic-wallet-serialization.txt");
 
@@ -246,7 +247,7 @@ public class DeterministicKeyChainTest {
         assertEquals(key1, chain.findKeyFromPubHash(key1.getPubKeyHash()));
         assertEquals(key2, chain.findKeyFromPubHash(key2.getPubKeyHash()));
         assertEquals(key3, chain.findKeyFromPubHash(key3.getPubKeyHash()));
-        assertEquals(key4, chain.getKey(KeyChain.KeyPurpose.CHANGE));
+        assertEquals(key4, chain.getKey(KeyPurpose.CHANGE));
         key1.sign(Sha256Hash.ZERO_HASH);
         key2.sign(Sha256Hash.ZERO_HASH);
         key3.sign(Sha256Hash.ZERO_HASH);
@@ -268,7 +269,7 @@ public class DeterministicKeyChainTest {
     private void checkEncryptedKeyChain(DeterministicKeyChain encChain, DeterministicKey key1) {
         // Check we can look keys up and extend the chain without the AES key being provided.
         DeterministicKey encKey1 = encChain.findKeyFromPubKey(key1.getPubKey());
-        DeterministicKey encKey2 = encChain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey encKey2 = encChain.getKey(KeyPurpose.RECEIVE_FUNDS);
         assertFalse(key1.isEncrypted());
         assertTrue(encKey1.isEncrypted());
         assertEquals(encKey1.getPubKeyPoint(), key1.getPubKeyPoint());
@@ -282,7 +283,7 @@ public class DeterministicKeyChainTest {
 
     @Test
     public void encryption() throws UnreadableWalletException {
-        DeterministicKey key1 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey key1 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
         DeterministicKeyChain encChain = chain.toEncrypted("open secret");
         DeterministicKey encKey1 = encChain.findKeyFromPubKey(key1.getPubKey());
         checkEncryptedKeyChain(encChain, key1);
@@ -299,7 +300,7 @@ public class DeterministicKeyChainTest {
         encChain = chains.get(1);
         checkEncryptedKeyChain(encChain, chain.findKeyFromPubKey(key1.getPubKey()));
 
-        DeterministicKey encKey2 = encChain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey encKey2 = encChain.getKey(KeyPurpose.RECEIVE_FUNDS);
         // Decrypt and check the keys match.
         DeterministicKeyChain decChain = encChain.toDecrypted("open secret");
         DeterministicKey decKey1 = decChain.findKeyFromPubHash(encKey1.getPubKeyHash());
@@ -310,17 +311,17 @@ public class DeterministicKeyChainTest {
         assertFalse(decKey2.isEncrypted());
         assertNotEquals(encKey1.getParent(), decKey1.getParent());   // parts of a different hierarchy
         // Check we can once again derive keys from the decrypted chain.
-        decChain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS).sign(Sha256Hash.ZERO_HASH);
-        decChain.getKey(KeyChain.KeyPurpose.CHANGE).sign(Sha256Hash.ZERO_HASH);
+        decChain.getKey(KeyPurpose.RECEIVE_FUNDS).sign(Sha256Hash.ZERO_HASH);
+        decChain.getKey(KeyPurpose.CHANGE).sign(Sha256Hash.ZERO_HASH);
     }
 
     @Test
     public void watchingChain() throws UnreadableWalletException {
         Utils.setMockClock();
-        DeterministicKey key1 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        DeterministicKey key2 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        DeterministicKey key3 = chain.getKey(KeyChain.KeyPurpose.CHANGE);
-        DeterministicKey key4 = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        DeterministicKey key1 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey key2 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey key3 = chain.getKey(KeyPurpose.CHANGE);
+        DeterministicKey key4 = chain.getKey(KeyPurpose.CHANGE);
 
         NetworkParameters params = MainNetParams.get();
         DeterministicKey watchingKey = chain.getWatchingKey();
@@ -333,9 +334,9 @@ public class DeterministicKeyChainTest {
         chain.setLookaheadSize(10);
         chain.maybeLookAhead();
 
-        assertEquals(key1.getPubKeyPoint(), chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS).getPubKeyPoint());
-        assertEquals(key2.getPubKeyPoint(), chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS).getPubKeyPoint());
-        final DeterministicKey key = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        assertEquals(key1.getPubKeyPoint(), chain.getKey(KeyPurpose.RECEIVE_FUNDS).getPubKeyPoint());
+        assertEquals(key2.getPubKeyPoint(), chain.getKey(KeyPurpose.RECEIVE_FUNDS).getPubKeyPoint());
+        final DeterministicKey key = chain.getKey(KeyPurpose.CHANGE);
         assertEquals(key3.getPubKeyPoint(), key.getPubKeyPoint());
         try {
             // Can't sign with a key from a watching chain.
@@ -348,7 +349,7 @@ public class DeterministicKeyChainTest {
         List<Protos.Key> serialization = chain.serializeToProtobuf();
         checkSerialization(serialization, "watching-wallet-serialization.txt");
         chain = DeterministicKeyChain.fromProtobuf(serialization, null).get(0);
-        final DeterministicKey rekey4 = chain.getKey(KeyChain.KeyPurpose.CHANGE);
+        final DeterministicKey rekey4 = chain.getKey(KeyPurpose.CHANGE);
         assertEquals(key4.getPubKeyPoint(), rekey4.getPubKeyPoint());
     }
 
@@ -361,8 +362,8 @@ public class DeterministicKeyChainTest {
 
     @Test
     public void bloom1() {
-        DeterministicKey key2 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        DeterministicKey key1 = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey key2 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
+        DeterministicKey key1 = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
 
         int numEntries =
                 (((chain.getLookaheadSize() + chain.getLookaheadThreshold()) * 2)   // * 2 because of internal/external
@@ -384,7 +385,7 @@ public class DeterministicKeyChainTest {
         // Verify that if when we watch a key, the filter contains at least 100 keys.
         DeterministicKey[] keys = new DeterministicKey[100];
         for (int i = 0; i < keys.length; i++)
-            keys[i] = chain.getKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+            keys[i] = chain.getKey(KeyPurpose.RECEIVE_FUNDS);
         chain = DeterministicKeyChain.watch(chain.getWatchingKey().dropPrivateBytes().dropParent());
         int e = chain.numBloomFilterEntries();
         BloomFilter filter = chain.getFilter(e, 0.001, 1);

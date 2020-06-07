@@ -21,6 +21,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import com.google.common.annotations.VisibleForTesting;
+import org.bitcoinj.temp.CoinSelection;
 import org.bitcoinj.temp.CoinSelector;
 
 import java.math.BigInteger;

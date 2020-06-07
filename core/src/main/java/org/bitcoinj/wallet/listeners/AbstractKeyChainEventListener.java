@@ -15,6 +15,7 @@
 package org.bitcoinj.wallet.listeners;
 
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.temp.listener.KeyChainEventListener;
 
 import java.util.List;
 

@@ -36,10 +36,11 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.moved.testing.FooWalletExtension;
+import org.bitcoinj.temp.KeyPurpose;
+import org.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.DeterministicKeyChain;
-import org.bitcoinj.wallet.KeyChain;
 import com.google.protobuf.ByteString;
 
 import org.bitcoinj.wallet.MarriedKeyChain;
@@ -50,7 +51,7 @@ import org.bitcoinj.wallet.WalletExtension;
 import org.bitcoinj.wallet.WalletProtobufSerializer;
 import org.bitcoinj.temp.WalletTransaction;
 import org.bitcoinj.temp.WalletTransaction.Pool;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -249,7 +250,7 @@ public class WalletProtobufSerializerTest {
         final ArrayList<Transaction> txns = new ArrayList<Transaction>(2);
         myWallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
-            public void onCoinsReceived(Wallet wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
+            public void onCoinsReceived(TransactionBag wallet, Transaction tx, Coin prevBalance, Coin newBalance) {
                 txns.add(tx);
             }
         });
@@ -362,13 +363,13 @@ public class WalletProtobufSerializerTest {
                 .threshold(2).build();
         myWallet.addAndActivateHDChain(chain);
 
-        myAddress = myWallet.currentAddress(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+        myAddress = myWallet.currentAddress(KeyPurpose.RECEIVE_FUNDS);
 
         Wallet wallet1 = roundTrip(myWallet);
         assertEquals(0, wallet1.getTransactions(true).size());
         assertEquals(Coin.ZERO, wallet1.getBalance());
         assertEquals(2, wallet1.getActiveKeyChain().getSigsRequiredToSpend());
-        assertEquals(myAddress, wallet1.currentAddress(KeyChain.KeyPurpose.RECEIVE_FUNDS));
+        assertEquals(myAddress, wallet1.currentAddress(KeyPurpose.RECEIVE_FUNDS));
     }
 
     @Test

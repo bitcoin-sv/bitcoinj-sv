@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.bitcoinj.temp;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.msg.protocol.TransactionOutput;

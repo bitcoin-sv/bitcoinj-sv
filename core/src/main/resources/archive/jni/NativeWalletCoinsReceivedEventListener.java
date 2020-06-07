@@ -17,7 +17,7 @@
 package archive.jni;
 
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.msg.protocol.Transaction;
 

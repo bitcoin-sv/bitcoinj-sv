@@ -32,7 +32,7 @@ import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.FullPrunedBlockStore;
 import org.bitcoinj.utils.BlockFileLoader;
 import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.wallet.SendRequest;
+import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.temp.WalletTransaction;
 import org.junit.Before;

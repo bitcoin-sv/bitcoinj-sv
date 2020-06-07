@@ -28,7 +28,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.testing.*;
 import org.bitcoinj.utils.*;
-import org.bitcoinj.wallet.SendRequest;
+import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 import org.junit.*;
 import org.junit.runner.*;
@@ -178,8 +178,8 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         assertFalse(sendResult.broadcastComplete.isDone());
 
         // p1 eats it :( A bit later the PeerGroup is taken down.
-        peerGroup.removeWallet(wallet);
-        peerGroup.addWallet(wallet);
+        peerGroup.removeTxEventListener(wallet);
+        peerGroup.addTxEventListener(wallet);
 
         // We want to hear about it again. Now, because we've disabled the randomness for the unit tests it will
         // re-appear on p1 again. Of course in the real world it would end up with a different set of peers and
@@ -209,7 +209,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         final Transaction[] transactions = new Transaction[1];
         wallet.addTransactionConfidenceEventListener(new TransactionConfidenceEventListener() {
             @Override
-            public void onTransactionConfidenceChanged(Wallet wallet, Transaction tx) {
+            public void onTransactionConfidenceChanged(Transaction tx) {
                 transactions[0] = tx;
             }
         });
@@ -251,12 +251,12 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         assertNull(outbound(p1));
 
         // Do the same thing with an offline transaction.
-        peerGroup.removeWallet(wallet);
+        peerGroup.removeTxEventListener(wallet);
         SendRequest req = SendRequest.to(dest, valueOf(2, 0));
         Transaction t3 = checkNotNull(wallet.sendCoinsOffline(req));
         assertNull(outbound(p1));  // Nothing sent.
         // Add the wallet to the peer group (simulate initialization). Transactions should be announced.
-        peerGroup.addWallet(wallet);
+        peerGroup.addTxEventListener(wallet);
         // Transaction announced to the first peer. No extra Bloom filter because no change address was needed.
         assertEquals(t3.getHash(), outbound(p1).getHash());
     }

@@ -66,7 +66,7 @@ public class RestoreFromSeed {
 
         // Now we need to hook the wallet up to the blockchain and the peers. This registers event listeners that notify our wallet about new transactions.
         chain.addChainEventListener(wallet);
-        peers.addWallet(wallet);
+        peers.addTxEventListener(wallet);
 
         DownloadProgressTracker bListener = new DownloadProgressTracker() {
             @Override
