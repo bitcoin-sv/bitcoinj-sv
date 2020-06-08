@@ -29,6 +29,7 @@ import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.moved.wallet.AllowUnconfirmedCoinSelector;
 import org.bitcoinj.moved.wallet.Wallet;
@@ -235,14 +236,14 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
             throws VerificationException {
         checkNotNull(theirSignature);
         stateMachine.checkState(State.WAITING_FOR_SIGNED_REFUND);
-        TransactionSignature theirSig = TransactionSignature.decodeFromBitcoin(theirSignature, true);
+        TransactionSignature theirSig = TransactionSignature.decodeFromBitcoin(theirSignature, true, false);
         if (theirSig.sigHashMode() != SigHash.NONE || !theirSig.anyoneCanPay())
             throw new VerificationException("Refund signature was not SIGHASH_NONE|SIGHASH_ANYONECANPAY");
         // Sign the refund transaction ourselves.
         final TransactionOutput multisigContractOutput = multisigContract.getOutput(0);
         try {
             multisigScript = multisigContractOutput.getScriptPubKey();
-        } catch (ScriptException e) {
+        } catch (ScriptExecutionException e) {
             throw new RuntimeException(e);  // Cannot happen: we built this ourselves.
         }
         TransactionSignature ourSignature = refundTx.getVersion() >= Transaction.FORKID_VERSION ?

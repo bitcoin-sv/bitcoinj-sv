@@ -1,10 +1,11 @@
 package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
-import org.bitcoinj.msg.bitcoin.Translator;
+import org.bitcoinj.msg.Translate;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
+import org.bitcoinj.script.interpreter.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -54,7 +55,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
         System.out.println("\n***Executing scriptPubKey***\n");
         script = new SimpleScriptStream(scriptPubKey);
-        Interpreter.executeDebugScript(Translator.toTx(tx1), 0, script, stack, Coin.ZERO, ScriptVerifyFlag.ALL_VERIFY_FLAGS, listener);
+        Interpreter.executeDebugScript(Translate.toTx(tx1), 0, script, stack, Coin.ZERO, ScriptVerifyFlag.ALL_VERIFY_FLAGS, listener);
 
 //        TextScriptParser parser = new TextScriptParser(false, null);
 //        parser.addVariable("barry", "0x00112233");
@@ -147,7 +148,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
     }
 
     @Override
-    public void onExceptionThrown(ScriptException exception) {
+    public void onExceptionThrown(ScriptExecutionException exception) {
         System.out.println("Exception thrown: ");
     }
 

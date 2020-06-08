@@ -1,7 +1,7 @@
 package org.bitcoinj.temp;
 
 import org.bitcoinj.core.PeerFilterProvider;
-import org.bitcoinj.core.ScriptException;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.TransactionBroadcaster;
 import org.bitcoinj.exception.VerificationException;
@@ -21,7 +21,7 @@ public interface TxEventListener extends PeerFilterProvider {
 
     void receivePending(Transaction tx, @Nullable List<Transaction> dependencies) throws VerificationException;
 
-    boolean isPendingTransactionRelevant(Transaction tx) throws ScriptException;
+    boolean isPendingTransactionRelevant(Transaction tx) throws ScriptExecutionException;
 
     Transaction getTransaction(Sha256Hash hash);
 

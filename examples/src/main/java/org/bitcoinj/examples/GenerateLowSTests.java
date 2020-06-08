@@ -28,7 +28,7 @@ import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.ScriptException;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -36,12 +36,10 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.ScriptChunk;
+import org.bitcoinj.script.*;
+
 import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 
-import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.signers.LocalTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner.ProposedTransaction;
 import org.bitcoinj.temp.KeyBag;
@@ -99,7 +97,7 @@ public class GenerateLowSTests {
         final TransactionInput input = proposedTransaction.partialTx.getInput(0);
 
         TxHelper.verify(input, output);
-        input.getScriptSig().correctlySpends(outputTransaction, 0, output.getScriptPubKey(),
+        ScriptUtils.correctlySpends(input.getScriptSig(), outputTransaction, 0, output.getScriptPubKey(),
             EnumSet.of(ScriptVerifyFlag.DERSIG, ScriptVerifyFlag.P2SH));
 
         final Script scriptSig = input.getScriptSig();
@@ -117,7 +115,7 @@ public class GenerateLowSTests {
         final BigInteger highS = HIGH_S_DIFFERENCE.subtract(signature.s);
         final TransactionSignature highSig = new TransactionSignature(signature.r, highS);
         input.setScriptSig(new ScriptBuilder().data(highSig.encodeToBitcoin()).data(scriptSig.getChunks().get(1).data()).build());
-        input.getScriptSig().correctlySpends(outputTransaction, 0, output.getScriptPubKey(),
+        ScriptUtils.correctlySpends(input.getScriptSig(), outputTransaction, 0, output.getScriptPubKey(),
             EnumSet.of(ScriptVerifyFlag.P2SH));
 
         // A high-S transaction without the LOW_S flag, for the tx_valid.json set
@@ -139,7 +137,7 @@ public class GenerateLowSTests {
             + ScriptVerifyFlag.P2SH.name() + "," + ScriptVerifyFlag.LOW_S.name() + "\"],");
     }
 
-    private static void addOutputs(final Transaction outputTransaction, final KeyBag bag) throws ScriptException {
+    private static void addOutputs(final Transaction outputTransaction, final KeyBag bag) throws ScriptExecutionException {
         int numInputs = outputTransaction.getInputs().size();
         for (int i = 0; i < numInputs; i++) {
             TransactionInput txIn = outputTransaction.getInput(i);

@@ -1,4 +1,4 @@
-package org.bitcoinj.script;
+package org.bitcoinj.script.interpreter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

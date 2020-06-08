@@ -26,6 +26,7 @@ import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.temp.KeyBag;
 import org.bitcoinj.temp.RedeemData;
@@ -75,10 +76,10 @@ public abstract class CustomTransactionSigner extends StatelessTransactionSigner
                 // We assume if its already signed, its hopefully got a SIGHASH type that will not invalidate when
                 // we sign missing pieces (to check this would require either assuming any signatures are signing
                 // standard output types or a way to get processed signatures out of script execution)
-                txIn.getScriptSig().correctlySpends(tx, i, txIn.getConnectedOutput().getScriptPubKey());
+                ScriptUtils.correctlySpends(txIn.getScriptSig(), tx, i, txIn.getConnectedOutput().getScriptPubKey());
                 log.warn("Input {} already correctly spends output, assuming SIGHASH type used will be safe and skipping signing.", i);
                 continue;
-            } catch (ScriptException e) {
+            } catch (ScriptExecutionException e) {
                 // Expected.
             }
 

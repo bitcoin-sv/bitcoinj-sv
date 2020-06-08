@@ -1,5 +1,8 @@
-package org.bitcoinj.script;
+package org.bitcoinj.script.interpreter;
 
+
+import org.bitcoinj.script.Script;
+import org.bitcoinj.script.ScriptChunk;
 
 import java.util.*;
 

@@ -6,10 +6,8 @@ import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.ScriptUtils;
-import org.bitcoinj.script.ScriptVerifyFlag;
+import org.bitcoinj.script.*;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.temp.KeyBag;
 import org.bitcoinj.temp.RedeemData;
 import org.bitcoinj.temp.TransactionBag;
@@ -37,10 +35,10 @@ public class TxHelper {
      * to understand the values of sigHash and anyoneCanPay: otherwise you can use the other form of this method
      * that sets them to typical defaults.
      *
-     * @throws ScriptException if the scriptPubKey is not a pay to address or pay to pubkey script.
+     * @throws ScriptExecutionException if the scriptPubKey is not a pay to address or pay to pubkey script.
      */
     public static TransactionInput addSignedInput(Transaction transaction, TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey,
-                                                  SigHash sigHash, boolean anyoneCanPay) throws ScriptException {
+                                                  SigHash sigHash, boolean anyoneCanPay) throws ScriptExecutionException {
         // Verify the API user didn't try to do operations out of order.
         checkState(!transaction.getOutputs().isEmpty(), "Attempting to sign tx without outputs.");
         TransactionInput input = new TransactionInput(transaction.getNet(), transaction, new byte[]{}, prevOut);
@@ -53,7 +51,7 @@ public class TxHelper {
         else if (scriptPubKey.isSentToAddress())
             input.setScriptSig(ScriptBuilder.createInputScript(txSig, sigKey));
         else
-            throw new ScriptException("Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
+            throw new ScriptExecutionException("Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
         return input;
     }
 
@@ -61,7 +59,7 @@ public class TxHelper {
      * Same as {addSignedInput(TransactionOutPoint, Script, ECKey, SigHash, boolean)}
      * but defaults to {@link SigHash#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
      */
-    public static TransactionInput addSignedInput(Transaction transaction, TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey) throws ScriptException {
+    public static TransactionInput addSignedInput(Transaction transaction, TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey) throws ScriptExecutionException {
         return addSignedInput(transaction, prevOut, scriptPubKey, sigKey, SigHash.ALL, false);
     }
 
@@ -73,7 +71,7 @@ public class TxHelper {
      * @return a RedeemData or null if the connected data cannot be found in the wallet.
      */
     @Nullable
-    public static RedeemData getConnectedRedeemData(TransactionOutPoint transactionOutPoint, KeyBag keyBag) throws ScriptException {
+    public static RedeemData getConnectedRedeemData(TransactionOutPoint transactionOutPoint, KeyBag keyBag) throws ScriptExecutionException {
         TransactionOutput connectedOutput = transactionOutPoint.getConnectedOutput();
         checkNotNull(connectedOutput, "Input is not connected so cannot retrieve key");
         Script connectedScript = connectedOutput.getScriptPubKey();
@@ -87,7 +85,7 @@ public class TxHelper {
             byte[] scriptHash = connectedScript.getPubKeyHash();
             return keyBag.findRedeemDataFromScriptHash(scriptHash);
         } else {
-            throw new ScriptException("Could not understand form of connected output script: " + connectedScript);
+            throw new ScriptExecutionException("Could not understand form of connected output script: " + connectedScript);
         }
     }
 
@@ -97,7 +95,7 @@ public class TxHelper {
      *
      * @param transactionInput
      * @param output the output that this input is supposed to spend.
-     * @throws ScriptException If the script doesn't verify.
+     * @throws ScriptExecutionException If the script doesn't verify.
      * @throws VerificationException If the outpoint doesn't match the given output.
      */
     public static void verify(TransactionInput transactionInput, TransactionOutput output, Set<ScriptVerifyFlag> verifyFlags) throws VerificationException {
@@ -110,7 +108,7 @@ public class TxHelper {
         Script pubKey = output.getScriptPubKey();
         int myIndex = transactionInput.getParentTransaction().getInputs().indexOf(transactionInput);
         //this is used in tests for CLTV so we have to be more liberal about disabled opcodes than usual.
-        transactionInput.getScriptSig().correctlySpends(transactionInput.getParentTransaction(), myIndex, pubKey, verifyFlags);
+        ScriptUtils.correctlySpends(transactionInput.getScriptSig(), transactionInput.getParentTransaction(), myIndex, pubKey, verifyFlags);
     }
 
     /**
@@ -119,7 +117,7 @@ public class TxHelper {
      *
      * @param transactionInput
      * @param output the output that this input is supposed to spend.
-     * @throws ScriptException If the script doesn't verify.
+     * @throws ScriptExecutionException If the script doesn't verify.
      * @throws VerificationException If the outpoint doesn't match the given output.
      */
     public static void verify(TransactionInput transactionInput, TransactionOutput output) throws VerificationException {
@@ -130,7 +128,7 @@ public class TxHelper {
      * Alias for getOutpoint().getConnectedRedeemData(keyBag)
      */
     @Nullable
-    public static RedeemData getConnectedRedeemData(TransactionInput transactionInput, KeyBag keyBag) throws ScriptException {
+    public static RedeemData getConnectedRedeemData(TransactionInput transactionInput, KeyBag keyBag) throws ScriptExecutionException {
         return getConnectedRedeemData(transactionInput.getOutpoint(), keyBag);
     }
 
@@ -184,7 +182,7 @@ public class TxHelper {
 
     /**
      * For a connected transaction, runs the script against the connected pubkey and verifies they are correct.
-     * @throws ScriptException if the script did not verify.
+     * @throws ScriptExecutionException if the script did not verify.
      * @throws VerificationException If the outpoint doesn't match the given output.
      * @param transactionInput
      */
@@ -207,7 +205,7 @@ public class TxHelper {
      * @return an address made out of the public key hash
      */
     @Nullable
-    public static Addressable getAddressFromP2PKHScript(TransactionOutput transactionOutput, NetworkParameters networkParameters) throws ScriptException{
+    public static Addressable getAddressFromP2PKHScript(TransactionOutput transactionOutput, NetworkParameters networkParameters) throws ScriptExecutionException {
         if (transactionOutput.getScriptPubKey().isSentToAddress())
             return ScriptUtils.getToAddress(transactionOutput.getScriptPubKey(), networkParameters);
 
@@ -228,7 +226,7 @@ public class TxHelper {
      * @return an address that belongs to the redeem script
      */
     @Nullable
-    public static Addressable getAddressFromP2SH(TransactionOutput transactionOutput, NetworkParameters networkParameters) throws ScriptException{
+    public static Addressable getAddressFromP2SH(TransactionOutput transactionOutput, NetworkParameters networkParameters) throws ScriptExecutionException {
         if (transactionOutput.getScriptPubKey().isPayToScriptHash())
             return ScriptUtils.getToAddress(transactionOutput.getScriptPubKey(), networkParameters);
 
@@ -249,7 +247,7 @@ public class TxHelper {
         try {
             Script script = transactionOutput.getScriptPubKey();
             return transactionBag.isWatchedScript(script);
-        } catch (ScriptException e) {
+        } catch (ScriptExecutionException e) {
             // Just means we didn't understand the output of this transaction: ignore it.
             log.debug("Could not parse tx output script: {}", e.toString());
             return false;
@@ -271,7 +269,7 @@ public class TxHelper {
                 byte[] pubkeyHash = script.getPubKeyHash();
                 return transactionBag.isPubKeyHashMine(pubkeyHash);
             }
-        } catch (ScriptException e) {
+        } catch (ScriptParseException e) {
             // Just means we didn't understand the output of this transaction: ignore it.
             log.debug("Could not parse tx {} output script: {}", transactionOutput.getParent() != null ? transactionOutput.getParent().getHash() : "(no parent)", e.toString());
             return false;
@@ -303,7 +301,7 @@ public class TxHelper {
      *
      * @return sum of the inputs that are spending coins with keys in the wallet
      */
-    public static Coin getValueSentFromMe(Transaction transaction, TransactionBag wallet) throws ScriptException {
+    public static Coin getValueSentFromMe(Transaction transaction, TransactionBag wallet) throws ScriptExecutionException {
         // This is tested in WalletTest.
         Coin v = Coin.ZERO;
         for (TransactionInput input : transaction.getInputs()) {
@@ -341,7 +339,7 @@ public class TxHelper {
     /**
      * Returns the difference of {@link TxHelper#getValueSentToMe(Transaction, TransactionBag)} and {@link TxHelper#getValueSentFromMe(Transaction, TransactionBag)}.
      */
-    public static Coin getValue(Transaction transaction, TransactionBag wallet) throws ScriptException {
+    public static Coin getValue(Transaction transaction, TransactionBag wallet) throws ScriptExecutionException {
         // FIXME: TEMP PERF HACK FOR ANDROID - this crap can go away once we have a real payments API.
         boolean isAndroid = Utils.isAndroidRuntime();
         Coin result = getValueSentToMe(transaction, wallet).subtract(getValueSentFromMe(transaction, wallet));

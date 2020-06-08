@@ -1,4 +1,4 @@
-package org.bitcoinj.msg.protocol;
+package org.bitcoinj.script;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
@@ -7,16 +7,16 @@ import org.bitcoinj.core.VarInt;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.msg.bitcoin.*;
-import org.bitcoinj.script.Interpreter;
-import org.bitcoinj.script.ScriptOpCodes;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.bitcoinj.core.Utils.uint32ToByteStreamLE;
 import static org.bitcoinj.core.Utils.uint64ToByteStreamLE;
+import static org.bitcoinj.script.ScriptOpCodes.*;
 
 public class SigHashCalculator {
 
@@ -32,7 +32,7 @@ public class SigHashCalculator {
             byte[] hashPrevouts = new byte[32];
             byte[] hashSequence = new byte[32];
             byte[] hashOutputs = new byte[32];
-            anyoneCanPay = (sigHashType & Transaction.SIGHASH_ANYONECANPAY_VALUE) == Transaction.SIGHASH_ANYONECANPAY_VALUE;
+            anyoneCanPay = (sigHashType & SigHash.ANYONECANPAY.value) == SigHash.ANYONECANPAY.value;
 
             if (!anyoneCanPay) {
                 ByteArrayOutputStream bosHashPrevouts = new UnsafeByteArrayOutputStream(256);
@@ -123,7 +123,7 @@ public class SigHashCalculator {
             // OP_CODESEPARATOR instruction having no purpose as it was only meant to be used internally, not actually
             // ever put into scripts. Deleting OP_CODESEPARATOR is a step that should never be required but if we don't
             // do it, we could split off the main chain.
-            connectedScript = Interpreter.removeAllInstancesOfOp(connectedScript, ScriptOpCodes.OP_CODESEPARATOR);
+            connectedScript = removeAllInstancesOfOp(connectedScript, ScriptOpCodes.OP_CODESEPARATOR);
 
             // Set the input to the script of its output. Bitcoin Core does this but the step has no obvious purpose as
             // the signature covers the hash of the prevout transaction which obviously includes the output script
@@ -185,5 +185,60 @@ public class SigHashCalculator {
         } catch (IOException e) {
             throw new RuntimeException(e);  // Cannot happen.
         }
+    }
+
+    /**
+     * Returns the script bytes of inputScript with all instances of the given op code removed
+     */
+    public static byte[] removeAllInstancesOfOp(byte[] inputScript, int opCode) {
+        return removeAllInstancesOf(inputScript, new byte[]{(byte) opCode});
+    }
+
+    /**
+     * Returns the script bytes of inputScript with all instances of the specified script object removed
+     */
+    public static byte[] removeAllInstancesOf(byte[] inputScript, byte[] chunkToRemove) {
+        // We usually don't end up removing anything
+        UnsafeByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(inputScript.length);
+
+        int cursor = 0;
+        while (cursor < inputScript.length) {
+            boolean skip = equalsRange(inputScript, cursor, chunkToRemove);
+
+            int opcode = inputScript[cursor++] & 0xFF;
+            int additionalBytes = 0;
+            if (opcode >= 0 && opcode < OP_PUSHDATA1) {
+                additionalBytes = opcode;
+            } else if (opcode == OP_PUSHDATA1) {
+                additionalBytes = (0xFF & inputScript[cursor]) + 1;
+            } else if (opcode == OP_PUSHDATA2) {
+                additionalBytes = ((0xFF & inputScript[cursor]) |
+                        ((0xFF & inputScript[cursor + 1]) << 8)) + 2;
+            } else if (opcode == OP_PUSHDATA4) {
+                additionalBytes = ((0xFF & inputScript[cursor]) |
+                        ((0xFF & inputScript[cursor + 1]) << 8) |
+                        ((0xFF & inputScript[cursor + 1]) << 16) |
+                        ((0xFF & inputScript[cursor + 1]) << 24)) + 4;
+            }
+            if (!skip) {
+                try {
+                    bos.write(opcode);
+                    bos.write(Arrays.copyOfRange(inputScript, cursor, cursor + additionalBytes));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            cursor += additionalBytes;
+        }
+        return bos.toByteArray();
+    }
+
+    private static boolean equalsRange(byte[] a, int start, byte[] b) {
+        if (start + b.length > a.length)
+            return false;
+        for (int i = 0; i < b.length; i++)
+            if (a[i + start] != b[i])
+                return false;
+        return true;
     }
 }

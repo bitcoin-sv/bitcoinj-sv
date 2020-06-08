@@ -42,6 +42,7 @@ import org.bitcoinj.crypto.*;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.*;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.signers.*;
 import org.bitcoinj.temp.*;
 import org.bitcoinj.utils.*;
@@ -1064,7 +1065,7 @@ public class Wallet extends BaseTaggableObject
                         Address a = Address.fromP2SHScript(tx.getParams(), script);
                         keyChainGroup.markP2SHAddressAsUsed(a);
                     }
-                } catch (ScriptException e) {
+                } catch (ScriptExecutionException e) {
                     // Just means we didn't understand the output of this transaction: ignore it.
                     log.warn("Could not parse tx output script: {}", e.toString());
                 }
@@ -1752,7 +1753,7 @@ public class Wallet extends BaseTaggableObject
      * risky it is. If this method returns true then {@link Wallet#receivePending(Transaction, java.util.List)}
      * will soon be called with the transactions dependencies as well.
      */
-    public boolean isPendingTransactionRelevant(Transaction tx) throws ScriptException {
+    public boolean isPendingTransactionRelevant(Transaction tx) throws ScriptExecutionException {
         lock.lock();
         try {
             // Ignore it if we already know about this transaction. Receiving a pending transaction never moves it
@@ -1784,7 +1785,7 @@ public class Wallet extends BaseTaggableObject
      * <p>Note that if the tx has inputs containing one of our keys, but the connected transaction is not in the wallet,
      * it will not be considered relevant.</p>
      */
-    public boolean isTransactionRelevant(Transaction tx) throws ScriptException {
+    public boolean isTransactionRelevant(Transaction tx) throws ScriptExecutionException {
         lock.lock();
         try {
             return TxHelper.getValueSentFromMe(tx, this).signum() > 0 ||
@@ -2462,7 +2463,7 @@ public class Wallet extends BaseTaggableObject
                     queueOnCoinsSent(tx, balance, newBalance);
 
                 maybeQueueOnWalletChanged();
-            } catch (ScriptException e) {
+            } catch (ScriptExecutionException e) {
                 // Cannot happen as we just created this transaction ourselves.
                 throw new RuntimeException(e);
             }
@@ -3026,7 +3027,7 @@ public class Wallet extends BaseTaggableObject
                         Script scriptPubKey = output.getScriptPubKey();
                         if (!watchedScripts.contains(scriptPubKey)) continue;
                         candidates.add(output);
-                    } catch (ScriptException e) {
+                    } catch (ScriptExecutionException e) {
                         // Ignore
                     }
                 }
@@ -3263,7 +3264,7 @@ public class Wallet extends BaseTaggableObject
                 builder.append(" and receives ");
                 builder.append(TxHelper.getValueSentToMe(tx, this).toFriendlyString());
                 builder.append(")\n");
-            } catch (ScriptException e) {
+            } catch (ScriptExecutionException e) {
                 // Ignore and don't print this line.
             }
             if (tx.hasConfidence())
@@ -3934,7 +3935,7 @@ public class Wallet extends BaseTaggableObject
                 for (TransactionOutput output : req.tx.getOutputs()) {
                     if (output.isDust())
                         throw new DustySendRequested();
-                    if (output.getScriptPubKey().isOpReturn())
+                    if (output.getScriptPubKey().isOpReturnBeforeGenesis())
                         ++opReturnCount;
                 }
                 if (opReturnCount > 1) // Only 1 OP_RETURN per transaction allowed.
@@ -4039,10 +4040,10 @@ public class Wallet extends BaseTaggableObject
                     // We assume if its already signed, its hopefully got a SIGHASH type that will not invalidate when
                     // we sign missing pieces (to check this would require either assuming any signatures are signing
                     // standard output types or a way to get processed signatures out of script execution)
-                    txIn.getScriptSig().correctlySpends(tx, i, txIn.getConnectedOutput().getScriptPubKey());
+                    ScriptUtils.correctlySpends(txIn.getScriptSig(), tx, i, txIn.getConnectedOutput().getScriptPubKey());
                     log.warn("Input {} already correctly spends output, assuming SIGHASH type used will be safe and skipping signing.", i);
                     continue;
-                } catch (ScriptException e) {
+                } catch (ScriptExecutionException e) {
                     log.debug("Input contained an incorrect signature", e);
                     // Expected.
                 }
@@ -4485,7 +4486,7 @@ public class Wallet extends BaseTaggableObject
                     log.info("  tx {}", pair.tx.getHash());
                     try {
                         receive(pair.tx, block, SPVBlockChain.NewBlockType.BEST_CHAIN, pair.offset);
-                    } catch (ScriptException e) {
+                    } catch (ScriptExecutionException e) {
                         throw new RuntimeException(e);  // Cannot happen as these blocks were already verified.
                     }
                 }
@@ -4551,7 +4552,7 @@ public class Wallet extends BaseTaggableObject
                 try {
                     if (isTxOutputBloomFilterable(out))
                         bloomOutPoints.add(out.getOutPointFor());
-                } catch (ScriptException e) {
+                } catch (ScriptExecutionException e) {
                     // If it is ours, we parsed the script correctly, so this shouldn't happen.
                     throw new RuntimeException(e);
                 }
@@ -4984,8 +4985,8 @@ public class Wallet extends BaseTaggableObject
                     redeemScript = findRedeemDataFromScriptHash(script.getPubKeyHash()).redeemScript;
                     checkNotNull(redeemScript, "Coin selection includes unspendable outputs");
                 }
-                size += script.getNumberOfBytesRequiredToSpend(key, redeemScript);
-            } catch (ScriptException e) {
+                size += script.getNumberOfBytesRequiredToSpend(key == null ? -1 : key.getPubKey().length, redeemScript);
+            } catch (ScriptExecutionException e) {
                 // If this happens it means an output script in a wallet tx could not be understood. That should never
                 // happen, if it does it means the wallet has got into an inconsistent state.
                 throw new IllegalStateException(e);

@@ -38,6 +38,7 @@ import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.script.ScriptUtils;
 import org.iq80.leveldb.*;
 import org.slf4j.Logger;
@@ -897,7 +898,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
             if (instrument)
                 endMethod("removeUnspentTransactionOutput");
             return;
-        } catch (ScriptException e) {
+        } catch (ScriptExecutionException e) {
             if (instrument)
                 endMethod("removeUnspentTransactionOutput");
             return;

@@ -26,10 +26,11 @@ import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.bitcoin.*;
+import org.bitcoinj.msg.Translate;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.utils.ExchangeRate;
 //import org.bitcoinj.moved.wallet.Wallet;
@@ -47,7 +48,6 @@ import java.util.*;
 import static org.bitcoinj.core.Utils.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import java.math.BigInteger;
 
 /**
  * <p>A transaction represents the movement of coins from some addresses to some other addresses. It can also represent
@@ -65,7 +65,7 @@ import java.math.BigInteger;
  *
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class Transaction extends ChildMessage implements ITransaction {
+public class Transaction extends ChildMessage {
     /**
      * A comparator that can be used to sort transactions by their updateTime field. The ordering goes from most recent
      * into the past.
@@ -102,11 +102,6 @@ public class Transaction extends ChildMessage implements ITransaction {
 
     // smaller size so tests don't take forever
     public static final int MAX_TRANSACTION_SIZE_FOR_TESTS = 100 * 1000 * 1000;
-
-    /** Threshold for lockTime: below this value it is interpreted as block number, otherwise as timestamp. **/
-    public static final int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
-    /** Same but as a BigInteger for CHECKLOCKTIMEVERIFY */
-    public static final BigInteger LOCKTIME_THRESHOLD_BIG = BigInteger.valueOf(LOCKTIME_THRESHOLD);
 
     /** How many bytes a transaction can be before it won't be relayed anymore. Currently 100kb. */
     public static final int MAX_STANDARD_TX_SIZE = 100000;
@@ -257,14 +252,12 @@ public class Transaction extends ChildMessage implements ITransaction {
         this.hash = hash;
     }
 
-    @Override
     public String getHashAsString() {
         return getHash().toString();
     }
     /**
      * Gets the sum of the inputs, regardless of who owns them.
      */
-    @Override
     public Coin getInputSum() {
         Coin inputTotal = Coin.ZERO;
 
@@ -337,7 +330,6 @@ public class Transaction extends ChildMessage implements ITransaction {
      * Gets the sum of the outputs of the transaction. If the outputs are less than the inputs, it does not count the fee.
      * @return the sum of the outputs regardless of who owns them.
      */
-    @Override
     public Coin getOutputSum() {
         Coin totalOut = Coin.ZERO;
 
@@ -354,7 +346,6 @@ public class Transaction extends ChildMessage implements ITransaction {
      *
      * @return fee, or null if it cannot be determined
      */
-    @Override
     public Coin getFee() {
         Coin fee = Coin.ZERO;
         for (TransactionInput input : inputs) {
@@ -546,7 +537,6 @@ public class Transaction extends ChildMessage implements ITransaction {
      * transaction is 50 coins, but in future it will be less. A coinbase transaction is defined not only by its
      * position in a block but by the data in the inputs.
      */
-    @Override
     public boolean isCoinBase() {
         maybeParse();
         return inputs.size() == 1 && inputs.get(0).isCoinBase();
@@ -585,7 +575,7 @@ public class Transaction extends ChildMessage implements ITransaction {
             s.append("  version ").append(version).append('\n');
         if (isTimeLocked()) {
             s.append("  time locked until ");
-            if (lockTime < LOCKTIME_THRESHOLD) {
+            if (lockTime < BitcoinJ.LOCKTIME_THRESHOLD) {
                 s.append("block ").append(lockTime);
                 if (chain != null) {
                     s.append(" (estimated to be reached at ")
@@ -609,7 +599,7 @@ public class Transaction extends ChildMessage implements ITransaction {
             try {
                 script = inputs.get(0).getScriptSig().toString();
                 script2 = outputs.get(0).getScriptPubKey().toString();
-            } catch (ScriptException e) {
+            } catch (ScriptExecutionException e) {
                 script = "???";
                 script2 = "???";
             }
@@ -800,7 +790,7 @@ public class Transaction extends ChildMessage implements ITransaction {
             SigHash hashType,
             boolean anyoneCanPay)
     {
-        Sha256Hash hash = SigHashCalculator.hashForForkIdSignature(Translator.toTx(this), inputIndex, redeemScript, value, hashType, anyoneCanPay);
+        Sha256Hash hash = SigHashCalculator.hashForForkIdSignature(Translate.toTx(this), inputIndex, redeemScript, value, hashType, anyoneCanPay);
         return new TransactionSignature(key.sign(hash), hashType, anyoneCanPay, true);
     }
     /**
@@ -829,7 +819,7 @@ public class Transaction extends ChildMessage implements ITransaction {
             SigHash hashType,
             boolean anyoneCanPay)
     {
-        Sha256Hash hash = SigHashCalculator.hashForForkIdSignature(Translator.toTx(this), inputIndex, redeemScript.getProgram(), value, hashType, anyoneCanPay);
+        Sha256Hash hash = SigHashCalculator.hashForForkIdSignature(Translate.toTx(this), inputIndex, redeemScript.getProgram(), value, hashType, anyoneCanPay);
         return new TransactionSignature(key.sign(hash), hashType, anyoneCanPay, true);
     }
 
@@ -851,7 +841,7 @@ public class Transaction extends ChildMessage implements ITransaction {
     public static Sha256Hash hashForLegacySignature(Transaction transaction, int inputIndex, byte[] redeemScript,
                                                     SigHash type, boolean anyoneCanPay) {
         byte sigHashType = (byte) TransactionSignature.calcSigHashValue(type, anyoneCanPay);
-        return SigHashCalculator.hashForLegacySignature(Translator.toTx(transaction), inputIndex, redeemScript, sigHashType);
+        return SigHashCalculator.hashForLegacySignature(Translate.toTx(transaction), inputIndex, redeemScript, sigHashType);
     }
 
     /**
@@ -872,7 +862,7 @@ public class Transaction extends ChildMessage implements ITransaction {
     public static Sha256Hash hashForLegacySignature(Transaction transaction, int inputIndex, Script redeemScript,
                                                     SigHash type, boolean anyoneCanPay) {
         int sigHash = TransactionSignature.calcSigHashValue(type, anyoneCanPay);
-        return SigHashCalculator.hashForLegacySignature(Translator.toTx(transaction), inputIndex, redeemScript.getProgram(), (byte) sigHash);
+        return SigHashCalculator.hashForLegacySignature(Translate.toTx(transaction), inputIndex, redeemScript.getProgram(), (byte) sigHash);
     }
 
     /**
@@ -898,7 +888,7 @@ public class Transaction extends ChildMessage implements ITransaction {
             boolean anyoneCanPay)
     {
         byte[] connectedScript = scriptCode.getProgram();
-        return SigHashCalculator.hashForForkIdSignature(Translator.toTx(this), inputIndex, connectedScript, prevValue, type, anyoneCanPay);
+        return SigHashCalculator.hashForForkIdSignature(Translate.toTx(this), inputIndex, connectedScript, prevValue, type, anyoneCanPay);
     }
 
     @Override
@@ -920,7 +910,6 @@ public class Transaction extends ChildMessage implements ITransaction {
      * since Bitcoin 0.8+ a transaction that did not end its lock period (non final) is considered to be non
      * standard and won't be relayed or included in the memory pool either.
      */
-    @Override
     public long getLockTime() {
         maybeParse();
         return lockTime;
@@ -949,7 +938,6 @@ public class Transaction extends ChildMessage implements ITransaction {
         this.lockTime = lockTime;
     }
 
-    @Override
     public long getVersion() {
         maybeParse();
         return version;
@@ -960,27 +948,23 @@ public class Transaction extends ChildMessage implements ITransaction {
         this.version = version;
     }
 
-    @Override
-    public <TI extends ITransactionInput> void setInputs(List<TI> inputs) {
+    public void setInputs(List<TransactionInput> inputs) {
         unCache();
         this.inputs = (List<TransactionInput>) inputs;
     }
 
-    @Override
     public void setOutputs(List<TransactionOutput> outputs) {
         unCache();
         this.outputs = outputs;
     }
 
     /** Returns an unmodifiable view of all inputs. */
-    @Override
     public List<TransactionInput> getInputs() {
         maybeParse();
         return Collections.unmodifiableList(inputs);
     }
 
     /** Returns an unmodifiable view of all outputs. */
-    @Override
     public List<TransactionOutput> getOutputs() {
         maybeParse();
         return Collections.unmodifiableList(outputs);
@@ -993,14 +977,12 @@ public class Transaction extends ChildMessage implements ITransaction {
     }
 
     /** Same as getInputs().get(index). */
-    @Override
     public TransactionInput getInput(long index) {
         maybeParse();
         return inputs.get((int)index);
     }
 
     /** Same as getOutputs().get(index) */
-    @Override
     public TransactionOutput getOutput(long index) {
         maybeParse();
         return outputs.get((int)index);
@@ -1051,7 +1033,7 @@ public class Transaction extends ChildMessage implements ITransaction {
     /**
      * Gets the count of regular SigOps in this transactions
      */
-    public int getSigOpCount() throws ScriptException {
+    public int getSigOpCount() throws ScriptExecutionException {
         maybeParse();
         int sigOps = 0;
         for (TransactionInput input : inputs)
@@ -1146,7 +1128,6 @@ public class Transaction extends ChildMessage implements ITransaction {
      * <p>To check if this transaction is final at a given height and time, see {@link Transaction#isFinal(int, long)}
      * </p>
      */
-    @Override
     public boolean isTimeLocked() {
         if (getLockTime() == 0)
             return false;
@@ -1176,10 +1157,9 @@ public class Transaction extends ChildMessage implements ITransaction {
      * <p>Note that currently the replacement feature is disabled in Bitcoin Core and will need to be
      * re-activated before this functionality is useful.</p>
      */
-    @Override
     public boolean isFinal(int height, long blockTimeSeconds) {
         long time = getLockTime();
-        return time < (time < LOCKTIME_THRESHOLD ? height : blockTimeSeconds) || !isTimeLocked();
+        return time < (time < BitcoinJ.LOCKTIME_THRESHOLD ? height : blockTimeSeconds) || !isTimeLocked();
     }
 
     /**
@@ -1187,7 +1167,7 @@ public class Transaction extends ChildMessage implements ITransaction {
      * the current head block if it was specified as a block time.
      */
     public Date estimateLockTime(AbstractBlockChain chain) {
-        if (lockTime < LOCKTIME_THRESHOLD)
+        if (lockTime < BitcoinJ.LOCKTIME_THRESHOLD)
             return chain.estimateBlockTime((int)getLockTime());
         else
             return new Date(getLockTime()*1000);

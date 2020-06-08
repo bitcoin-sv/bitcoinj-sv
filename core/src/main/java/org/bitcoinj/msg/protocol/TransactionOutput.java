@@ -20,10 +20,10 @@ package org.bitcoinj.msg.protocol;
 import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
-import org.bitcoinj.msg.bitcoin.Output;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -38,7 +38,7 @@ import static com.google.common.base.Preconditions.*;
  * 
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class TransactionOutput extends ChildMessage implements ITransactionOutput {
+public class TransactionOutput extends ChildMessage {
     private static final Logger log = LoggerFactory.getLogger(TransactionOutput.class);
 
     // The output's value is kept as a native type in order to save class instances.
@@ -115,8 +115,7 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
         setLength(8 + VarInt.sizeOf(scriptBytes.length) + scriptBytes.length);
     }
 
-    @Override
-    public Script getScriptPubKey() throws ScriptException {
+    public Script getScriptPubKey() throws ScriptExecutionException {
         if (scriptPubKey == null) {
             maybeParse();
             scriptPubKey = new Script(scriptBytes);
@@ -150,7 +149,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
      * Returns the value of this output. This is the amount of currency that the destination address
      * receives.
      */
-    @Override
     public Coin getValue() {
         maybeParse();
         try {
@@ -173,7 +171,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
      * Gets the index of this output in the parent transaction, or throws if this output is free standing. Iterates
      * over the parents list to discover this.
      */
-    @Override
     public int getIndex() {
         List<TransactionOutput> outputs = getParentTransaction().getOutputs();
         for (int i = 0; i < outputs.size(); i++) {
@@ -186,10 +183,9 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
     /**
      * Will this transaction be relayable and mined by default miners?
      */
-    @Override
     public boolean isDust() {
         // Transactions that are OP_RETURN can't be dust regardless of their value.
-        if (getScriptPubKey().isOpReturn())
+        if (getScriptPubKey().isOpReturnBeforeGenesis())
             return false;
         return getValue().isLessThan(getMinNonDustValue());
     }
@@ -267,7 +263,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
      * The backing script bytes which can be turned into a Script object.
      * @return the scriptBytes
     */
-    @Override
     public byte[] getScriptBytes() {
         maybeParse();
         return scriptBytes;
@@ -292,7 +287,7 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
                 buf.append(" (unknown type)");
             buf.append(" script:").append(script);
             return buf.toString();
-        } catch (ScriptException e) {
+        } catch (ScriptExecutionException e) {
             throw new RuntimeException(e);
         }
     }
@@ -308,7 +303,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
     /**
      * Returns the transaction that owns this output.
      */
-    @Override
     @Nullable
     public Transaction getParentTransaction() {
         return (Transaction)parent;
@@ -317,7 +311,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
     /**
      * Returns the transaction hash that owns this output.
      */
-    @Override
     @Nullable
     public Sha256Hash getParentTransactionHash() {
         return parent == null ? null : parent.getHash();
@@ -327,7 +320,6 @@ public class TransactionOutput extends ChildMessage implements ITransactionOutpu
      * Returns a new {@link TransactionOutPoint}, which is essentially a structure pointing to this output.
      * Requires that this output is not detached.
      */
-    @Override
     public TransactionOutPoint getOutPointFor() {
         return new TransactionOutPoint(net, getIndex(), getParentTransaction());
     }

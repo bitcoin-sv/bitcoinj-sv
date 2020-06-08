@@ -32,7 +32,7 @@ import java.io.*;
  * 
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class TransactionOutPoint extends ChildMessage implements ITransactionOutPoint {
+public class TransactionOutPoint extends ChildMessage {
 
     static final int MESSAGE_LENGTH = 36;
 
@@ -150,7 +150,6 @@ public class TransactionOutPoint extends ChildMessage implements ITransactionOut
         this.hash = hash;
     }
 
-    @Override
     public long getIndex() {
         maybeParse();
         return index;

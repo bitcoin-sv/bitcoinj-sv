@@ -22,6 +22,7 @@ import static org.bitcoinj.script.ScriptOpCodes.OP_PUSHDATA4;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.bitcoinj.script.interpreter.Interpreter;
 import org.junit.Test;
 
 public class ScriptChunkTest {

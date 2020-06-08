@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Simple interface for script data byte arrays
  */
-public interface ScriptBytes {
+public interface ScriptData {
 
     byte[] data();
 
@@ -17,16 +17,16 @@ public interface ScriptBytes {
      * Returns a clone. Implementations MUST return a COPY of the backing bytes
      * @return
      */
-    default ScriptBytes copy() {
+    default ScriptData copy() {
         byte[] copy = Arrays.copyOf(data(), length());
         return new SimpleScriptBytes(copy);
     }
 
-    static ScriptBytes of(byte[] data) {
+    static ScriptData of(byte[] data) {
         return new SimpleScriptBytes(data);
     }
 
-    class SimpleScriptBytes implements ScriptBytes {
+    class SimpleScriptBytes implements ScriptData {
 
         private final byte[] data;
 

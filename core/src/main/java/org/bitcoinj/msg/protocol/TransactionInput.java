@@ -19,14 +19,13 @@ package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
-import org.bitcoinj.msg.bitcoin.Input;
-import org.bitcoinj.msg.bitcoin.OutPoint;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -46,7 +45,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * 
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class TransactionInput extends ChildMessage implements ITransactionInput {
+public class TransactionInput extends ChildMessage {
     /** Magic sequence number that indicates there is no sequence number. */
     public static final long NO_SEQUENCE = 0xFFFFFFFFL;
     private static final byte[] EMPTY_ARRAY = new byte[0];
@@ -160,7 +159,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
     /**
      * Coinbase transactions have special inputs with hashes of zero. If this is such an input, returns true.
      */
-    @Override
     public boolean isCoinBase() {
         maybeParse();
         return outpoint.getHash().equals(Sha256Hash.ZERO_HASH) &&
@@ -171,8 +169,7 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
      * Returns the script that is fed to the referenced output (scriptPubKey) script in order to satisfy it: usually
      * contains signatures and maybe keys, but can contain arbitrary data if the output script accepts it.
      */
-    @Override
-    public Script getScriptSig() throws ScriptException {
+    public Script getScriptSig() throws ScriptExecutionException {
         // Transactions that generate new coins don't actually have a script. Instead this
         // parameter is overloaded to be something totally different.
         Script script = scriptSig == null ? null : scriptSig.get();
@@ -197,7 +194,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
      * in nodes memory pools if the existing version is time locked. See the Contracts page on the Bitcoin wiki for
      * examples of how you can use this feature to build contract protocols.
      */
-    @Override
     public long getSequenceNumber() {
         maybeParse();
         return sequence;
@@ -218,7 +214,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
      * @return The previous output transaction reference, as an OutPoint structure.  This contains the 
      * data needed to connect to the output of the transaction we're gathering coins from.
      */
-    @Override
     public TransactionOutPoint getOutpoint() {
         maybeParse();
         return outpoint;
@@ -230,7 +225,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
      * don't care about much. The bytes are turned into a Script object (cached below) on demand via a getter.
      * @return the scriptBytes
      */
-    @Override
     public byte[] getScriptBytes() {
         maybeParse();
         return scriptBytes;
@@ -257,7 +251,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
     /**
      * @return The Transaction that owns this input.
      */
-    @Override
     public Transaction getParentTransaction() {
         return (Transaction) parent;
     }
@@ -265,7 +258,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
     /**
      * @return Value of the output connected to this input, if known. Null if unknown.
      */
-    @Override
     @Nullable
     public Coin getValue() {
         return value;
@@ -330,7 +322,6 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
     /**
      * @return true if this transaction's sequence number is set (ie it may be a part of a time-locked transaction)
      */
-    @Override
     public boolean hasSequence() {
         return sequence != NO_SEQUENCE;
     }
@@ -400,7 +391,7 @@ public class TransactionInput extends ChildMessage implements ITransactionInput 
                     s.append(" (").append(flags).append(')');
             }
             return s.toString();
-        } catch (ScriptException e) {
+        } catch (ScriptExecutionException e) {
             throw new RuntimeException(e);
         }
     }

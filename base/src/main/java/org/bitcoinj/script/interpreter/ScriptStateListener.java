@@ -1,10 +1,9 @@
-package org.bitcoinj.script;
+package org.bitcoinj.script.interpreter;
 
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.msg.bitcoin.Tx;
-import org.bitcoinj.msg.protocol.ITransaction;
-import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.script.ScriptChunk;
+import org.bitcoinj.script.ScriptVerifyFlag;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -77,7 +76,7 @@ public abstract class ScriptStateListener {
      * Used in conjunction with Script.executeDebugScript(...).  This will be called if any ScriptExceptions are thrown before rethrowing the exception.
       * @param exception
      */
-    public abstract void onExceptionThrown(ScriptException exception);
+    public abstract void onExceptionThrown(ScriptExecutionException exception);
 
     /**
      * Called at the very end of the script.  If this method is called the script has completed successfuly.

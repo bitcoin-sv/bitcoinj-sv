@@ -1,8 +1,9 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg;
 
+import org.bitcoinj.msg.bitcoin.*;
 import org.bitcoinj.msg.protocol.*;
 
-public class Translator {
+public class Translate {
 
 
     public static Tx toTx(Transaction tx) {

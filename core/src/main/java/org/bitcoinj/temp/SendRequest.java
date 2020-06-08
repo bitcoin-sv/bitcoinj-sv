@@ -221,12 +221,12 @@ public class SendRequest {
 
     public static SendRequest toCLTVPaymentChannel(NetworkParameters params, Date releaseTime, ECKey from, ECKey to, Coin value) {
         long time = releaseTime.getTime() / 1000L;
-        checkArgument(time >= Transaction.LOCKTIME_THRESHOLD, "Release time was too small");
+        checkArgument(time >= BitcoinJ.LOCKTIME_THRESHOLD, "Release time was too small");
         return toCLTVPaymentChannel(params, BigInteger.valueOf(time), from, to, value);
     }
 
     public static SendRequest toCLTVPaymentChannel(NetworkParameters params, int releaseBlock, ECKey from, ECKey to, Coin value) {
-        checkArgument(0 <= releaseBlock && releaseBlock < Transaction.LOCKTIME_THRESHOLD, "Block number was too large");
+        checkArgument(0 <= releaseBlock && releaseBlock < BitcoinJ.LOCKTIME_THRESHOLD, "Block number was too large");
         return toCLTVPaymentChannel(params, BigInteger.valueOf(releaseBlock), from, to, value);
     }
 

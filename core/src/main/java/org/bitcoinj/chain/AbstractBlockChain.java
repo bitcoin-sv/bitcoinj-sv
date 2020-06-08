@@ -33,6 +33,7 @@ import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.pow.AbstractPowRulesChecker;
 import org.bitcoinj.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.pow.factory.RuleCheckerFactory;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.store.*;
 import org.bitcoinj.utils.*;
 import org.slf4j.*;
@@ -874,7 +875,7 @@ public abstract class AbstractBlockChain {
                 if (clone)
                     tx = Serializer.forMessage(tx).makeTransaction(tx.bitcoinSerialize());
                 listener.receiveFromBlock(tx, block, blockType, relativityOffset++);
-            } catch (ScriptException e) {
+            } catch (ScriptExecutionException e) {
                 // We don't want scripts we don't understand to break the block chain so just note that this tx was
                 // not scanned here and continue.
                 log.warn("Failed to parse a script: " + e.toString());

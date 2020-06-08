@@ -81,7 +81,7 @@ public class ScriptBuilder {
     /** Adds the given opcode to the given index in the program */
     public ScriptBuilder op(int index, int opcode, Object context) {
         checkArgument(opcode > OP_PUSHDATA4);
-        return addChunk(index, new ScriptChunk(opcode, (ScriptBytes) null, context));
+        return addChunk(index, new ScriptChunk(opcode, (ScriptData) null, context));
     }
 
     /** Adds a copy of the given byte array as a data element (i.e. PUSHDATA) at the end of the program. */
@@ -91,11 +91,11 @@ public class ScriptBuilder {
 
     /** Adds a copy of the given byte array as a data element (i.e. PUSHDATA) at the end of the program. */
     public ScriptBuilder data(byte[] data, Object context) {
-        return data(ScriptBytes.of(data), context);
+        return data(ScriptData.of(data), context);
     }
 
         /** Adds a copy of the given byte array as a data element (i.e. PUSHDATA) at the end of the program. */
-    public ScriptBuilder data(ScriptBytes data, Object context) {
+    public ScriptBuilder data(ScriptData data, Object context) {
         if (data.length() == 0)
             return smallNum(0, context);
         else
@@ -103,30 +103,30 @@ public class ScriptBuilder {
     }
 
     public ScriptBuilder data(int index, byte[] data) {
-        return data(index, ScriptBytes.of(data));
+        return data(index, ScriptData.of(data));
     }
 
     /** Adds a copy of the given byte array as a data element (i.e. PUSHDATA) at the given index in the program. */
-    public ScriptBuilder data(int index, ScriptBytes data) {
+    public ScriptBuilder data(int index, ScriptData data) {
         return data(index, data, null);
     }
 
     /** Adds a copy of the given byte array as a data element (i.e. PUSHDATA) at the given index in the program. */
     public ScriptBuilder data(int index, byte[] data, Object context) {
-        return data(index, ScriptBytes.of(data), context);
+        return data(index, ScriptData.of(data), context);
     }
 
     /** Adds a copy of the given byte array as a data element (i.e. PUSHDATA) at the given index in the program. */
-    public ScriptBuilder data(int index, ScriptBytes data, Object context) {
+    public ScriptBuilder data(int index, ScriptData data, Object context) {
         // implements BIP62
-        ScriptBytes copy = data.copy();
+        ScriptData copy = data.copy();
         int opcode;
         if (data.length() == 0) {
-            return addChunk(index, new ScriptChunk(OP_0, (ScriptBytes) null, context));
+            return addChunk(index, new ScriptChunk(OP_0, (ScriptData) null, context));
         } else if (data.length() == 1) {
             byte b = data.data()[0];
             if (b >= 1 && b <= 16)
-                return addChunk(index, new ScriptChunk(Interpreter.encodeToOpN(b), (ScriptBytes) null,context));
+                return addChunk(index, new ScriptChunk(encodeToOpN(b), (ScriptData) null,context));
             else
                 opcode = 1;
         } else if (data.length() < OP_PUSHDATA1) {
@@ -181,7 +181,7 @@ public class ScriptBuilder {
          */
     public ScriptBuilder number(int index, long num, Object context) {
         if (num >= 0 && num <= 16) {
-            return addChunk(index, new ScriptChunk(Interpreter.encodeToOpN((int) num), (ScriptBytes) null, context));
+            return addChunk(index, new ScriptChunk(encodeToOpN((int) num), (ScriptData) null, context));
         } else {
             return bigNum(index, num, context);
         }
@@ -248,7 +248,7 @@ public class ScriptBuilder {
     public ScriptBuilder smallNum(int index, int num, Object context) {
         checkArgument(num >= 0, "Cannot encode negative numbers with smallNum");
         checkArgument(num <= 16, "Cannot encode numbers larger than 16 with smallNum");
-        return addChunk(index, new ScriptChunk(Interpreter.encodeToOpN(num), (ScriptBytes) null, context));
+        return addChunk(index, new ScriptChunk(encodeToOpN(num), (ScriptData) null, context));
     }
 
     /**

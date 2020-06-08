@@ -19,6 +19,8 @@ package org.bitcoinj.script;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Various constants that define the assembly-like scripting language that forms part of the Bitcoin protocol.
  * See {org.bitcoinj.script.Script} for details. Also provides a method to convert them to a string.
@@ -515,5 +517,35 @@ public class ScriptOpCodes {
             return opCodeNameMap.get(opCodeName);
 
         return OP_INVALIDOPCODE;
+    }
+
+    /**
+     * Return the numeric value associated with a push op from OP_1NEGATE to OP_16
+     * @param opcode
+     * @return
+     */
+    public static int decodeFromOpN(int opcode) {
+        checkArgument((opcode == OP_0 || opcode == OP_1NEGATE) || (opcode >= OP_1 && opcode <= OP_16), "decodeFromOpN called on non OP_N opcode");
+        if (opcode == OP_0)
+            return 0;
+        else if (opcode == OP_1NEGATE)
+            return -1;
+        else
+            return opcode + 1 - OP_1;
+    }
+
+    /**
+     * Return the opcode required to push a numeric between -1 and 16
+     * @param value
+     * @return
+     */
+    static int encodeToOpN(int value) {
+        checkArgument(value >= -1 && value <= 16, "encodeToOpN called for " + value + " which we cannot encode in an opcode.");
+        if (value == 0)
+            return OP_0;
+        else if (value == -1)
+            return OP_1NEGATE;
+        else
+            return value - 1 + OP_1;
     }
 }

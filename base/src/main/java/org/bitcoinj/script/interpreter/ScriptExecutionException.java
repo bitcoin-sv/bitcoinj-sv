@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.script.interpreter;
 
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.script.Interpreter;
 
 @SuppressWarnings("serial")
-public class ScriptException extends VerificationException {
+public class ScriptExecutionException extends VerificationException {
 
     private Interpreter.ScriptExecutionState state;
 
-    public ScriptException(Interpreter.ScriptExecutionState state, String msg) {
+    public ScriptExecutionException(Interpreter.ScriptExecutionState state, String msg) {
         super(msg);
         this.state = state;
     }
 
-    public ScriptException(String msg) {
+    public ScriptExecutionException(String msg) {
         super(msg);
         state = (Interpreter.ScriptExecutionState) Interpreter.SCRIPT_STATE_THREADLOCAL.get();
     }
-
-//    public ScriptException(String msg, Exception e) {
-//        super(msg, e);
-//    }
 
     public Interpreter.ScriptExecutionState getState() {
         return state;

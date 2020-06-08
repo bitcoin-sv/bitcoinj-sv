@@ -1,6 +1,7 @@
-package org.bitcoinj.script;
+package org.bitcoinj.script.interpreter;
 
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.script.ScriptData;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -10,7 +11,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class StackItem<C> {
 
-    private final ScriptBytes bytes;
+    private final ScriptData bytes;
     private final int length;
     private final Type type;
     private final C context;
@@ -20,7 +21,7 @@ public class StackItem<C> {
      */
     private final boolean derived;
 
-    static final ScriptBytes[] SMALL_NUM_STACKBYTES = new ScriptBytes[17];
+    static final ScriptData[] SMALL_NUM_STACKBYTES = new ScriptData[17];
 
     static {
         for (int i = 0; i < SMALL_NUM_STACKBYTES.length; i++) {
@@ -30,7 +31,7 @@ public class StackItem<C> {
             } else {
                 bytes = Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(i), false));
             }
-            SMALL_NUM_STACKBYTES[i] = ScriptBytes.of(bytes);
+            SMALL_NUM_STACKBYTES[i] = ScriptData.of(bytes);
         }
     }
 
@@ -50,11 +51,11 @@ public class StackItem<C> {
      * @return
      */
     public static StackItem wrap(byte[] bytes) {
-        return new StackItem(ScriptBytes.of(bytes), Type.BYTES, false);
+        return new StackItem(ScriptData.of(bytes), Type.BYTES, false);
     }
 
     public static StackItem wrapDerived(byte[] bytes, boolean derived) {
-        return new StackItem(ScriptBytes.of(bytes), Type.BYTES, true);
+        return new StackItem(ScriptData.of(bytes), Type.BYTES, true);
     }
 
     public static StackItem from(StackItem from, StackItem ... derivedFrom) {
@@ -62,22 +63,22 @@ public class StackItem<C> {
     }
 
     public static StackItem forBytes(byte[] bytes, Type type, boolean derived) {
-        return new StackItem(ScriptBytes.of(bytes), type, derived);
+        return new StackItem(ScriptData.of(bytes), type, derived);
     }
 
     public static StackItem forBytes(byte[] bytes, StackItem ... derivedFrom) {
-        return new StackItem(ScriptBytes.of(bytes), Type.BYTES, false, derivedFrom);
+        return new StackItem(ScriptData.of(bytes), Type.BYTES, false, derivedFrom);
     }
 
-    public static StackItem forBytes(ScriptBytes bytes, Type type, boolean derived) {
+    public static StackItem forBytes(ScriptData bytes, Type type, boolean derived) {
         return new StackItem(bytes, type, derived);
     }
 
-    public static StackItem forBytes(ScriptBytes bytes, Type type, StackItem ... derivedFrom) {
+    public static StackItem forBytes(ScriptData bytes, Type type, StackItem ... derivedFrom) {
         return new StackItem(bytes, type, false, derivedFrom);
     }
 
-    private StackItem(ScriptBytes bytes, Type type, boolean derived, StackItem ... derivedFrom) {
+    private StackItem(ScriptData bytes, Type type, boolean derived, StackItem ... derivedFrom) {
         this.bytes = bytes;
         this.type = type;
         this.length = bytes.length();
@@ -131,7 +132,7 @@ public class StackItem<C> {
         return bytes.data();
     }
 
-    public ScriptBytes wrappedBytes() {
+    public ScriptData wrappedBytes() {
         return bytes;
     }
 

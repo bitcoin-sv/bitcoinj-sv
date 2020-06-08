@@ -29,6 +29,8 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.*;
 import com.google.common.base.Preconditions;
+import org.bitcoinj.script.interpreter.Interpreter;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -167,7 +169,7 @@ public class FullBlockTestGenerator {
         Utils.setMockClock();
     }
 
-    public RuleList getBlocksToTest(boolean runBarelyExpensiveTests, boolean runExpensiveTests, File blockStorageFile) throws ScriptException, ProtocolException, IOException {
+    public RuleList getBlocksToTest(boolean runBarelyExpensiveTests, boolean runExpensiveTests, File blockStorageFile) throws ScriptExecutionException, ProtocolException, IOException {
         final FileOutputStream outStream = blockStorageFile != null ? new FileOutputStream(blockStorageFile) : null;
 
         final Script OP_TRUE_SCRIPT = new ScriptBuilder().op(OP_TRUE).build();
@@ -691,7 +693,7 @@ public class FullBlockTestGenerator {
         {
             ByteArrayOutputStream p2shScriptPubKey = new UnsafeByteArrayOutputStream();
             try {
-                ScriptUtil.writeBytes(p2shScriptPubKey, coinbaseOutKeyPubKey);
+                ScriptChunk.writeBytes(p2shScriptPubKey, coinbaseOutKeyPubKey);
                 p2shScriptPubKey.write(OP_2DUP);
                 p2shScriptPubKey.write(OP_CHECKSIGVERIFY);
                 p2shScriptPubKey.write(OP_2DUP);
@@ -712,7 +714,7 @@ public class FullBlockTestGenerator {
             UnsafeByteArrayOutputStream scriptPubKey = new UnsafeByteArrayOutputStream(scriptHash.length + 3);
             scriptPubKey.write(OP_HASH160);
             try {
-                ScriptUtil.writeBytes(scriptPubKey, scriptHash);
+                ScriptChunk.writeBytes(scriptPubKey, scriptHash);
             } catch (IOException e) {
                 throw new RuntimeException(e);  // Cannot happen.
             }
@@ -787,9 +789,9 @@ public class FullBlockTestGenerator {
                         byte[] signature = bos.toByteArray();
 
                         ByteArrayOutputStream scriptSigBos = new UnsafeByteArrayOutputStream(signature.length + b39p2shScriptPubKey.length + 3);
-                        ScriptUtil.writeBytes(scriptSigBos, new byte[] {(byte) OP_CHECKSIG});
+                        ScriptChunk.writeBytes(scriptSigBos, new byte[] {(byte) OP_CHECKSIG});
                         scriptSigBos.write(ScriptUtils.createInputScript(signature));
-                        ScriptUtil.writeBytes(scriptSigBos, b39p2shScriptPubKey);
+                        ScriptChunk.writeBytes(scriptSigBos, b39p2shScriptPubKey);
 
                         scriptSig = scriptSigBos.toByteArray();
                     } catch (IOException e) {
@@ -860,11 +862,11 @@ public class FullBlockTestGenerator {
                             ByteArrayOutputStream scriptSigBos = new UnsafeByteArrayOutputStream(
                                     signature.length
                                             + b39p2shScriptPubKey.length + 3);
-                            ScriptUtil.writeBytes(scriptSigBos,
+                            ScriptChunk.writeBytes(scriptSigBos,
                                     new byte[] { (byte) OP_CHECKSIG});
                             scriptSigBos.write(ScriptUtils
                                     .createInputScript(signature));
-                            ScriptUtil.writeBytes(scriptSigBos, b39p2shScriptPubKey);
+                            ScriptChunk.writeBytes(scriptSigBos, b39p2shScriptPubKey);
 
                             scriptSig = scriptSigBos.toByteArray();
                         } catch (IOException e) {
@@ -1785,7 +1787,7 @@ public class FullBlockTestGenerator {
 
     private byte uniquenessCounter = 0;
     private NewBlock createNextBlock(Block baseBlock, int nextBlockHeight, @Nullable TransactionOutPointWithValue prevOut,
-                                     Coin additionalCoinbaseValue) throws ScriptException {
+                                     Coin additionalCoinbaseValue) throws ScriptExecutionException {
         Integer height = blockToHeightMap.get(baseBlock.getHash());
         if (height != null)
             checkState(height == nextBlockHeight - 1);
@@ -1806,19 +1808,19 @@ public class FullBlockTestGenerator {
         return new NewBlock(block, prevOut == null ? null : new TransactionOutPointWithValue(t, 1));
     }
     private NewBlock createNextBlock(NewBlock baseBlock, int nextBlockHeight, @Nullable TransactionOutPointWithValue prevOut,
-                                     Coin additionalCoinbaseValue) throws ScriptException {
+                                     Coin additionalCoinbaseValue) throws ScriptExecutionException {
         return createNextBlock(baseBlock.block, nextBlockHeight, prevOut, additionalCoinbaseValue);
     }
 
-    private void addOnlyInputToTransaction(Transaction t, NewBlock block) throws ScriptException {
+    private void addOnlyInputToTransaction(Transaction t, NewBlock block) throws ScriptExecutionException {
         addOnlyInputToTransaction(t, block.getSpendableOutput(), TransactionInput.NO_SEQUENCE);
     }
 
-    private void addOnlyInputToTransaction(Transaction t, TransactionOutPointWithValue prevOut) throws ScriptException {
+    private void addOnlyInputToTransaction(Transaction t, TransactionOutPointWithValue prevOut) throws ScriptExecutionException {
         addOnlyInputToTransaction(t, prevOut, TransactionInput.NO_SEQUENCE);
     }
 
-    private void addOnlyInputToTransaction(Transaction t, TransactionOutPointWithValue prevOut, long sequence) throws ScriptException {
+    private void addOnlyInputToTransaction(Transaction t, TransactionOutPointWithValue prevOut, long sequence) throws ScriptExecutionException {
         TransactionInput input = new TransactionInput(net, t, new byte[]{}, prevOut.outpoint);
         input.setSequenceNumber(sequence);
         t.addInput(input);

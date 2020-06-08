@@ -21,6 +21,7 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.script.Script;
 import com.google.common.collect.Lists;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.temp.CoinSelection;
 import org.bitcoinj.temp.CoinSelector;
 import org.slf4j.Logger;
@@ -82,7 +83,7 @@ public class KeyTimeCoinSelector implements CoinSelector {
                 }
             }
             return new CoinSelection(valueGathered, gathered);
-        } catch (ScriptException e) {
+        } catch (ScriptExecutionException e) {
             throw new RuntimeException(e);  // We should never have problems understanding scripts in our wallet.
         }
     }

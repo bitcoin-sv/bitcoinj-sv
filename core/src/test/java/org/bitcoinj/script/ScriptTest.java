@@ -25,7 +25,7 @@ import org.bitcoinj.ecc.ECDSASignature;
 import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.bitcoin.Translator;
+import org.bitcoinj.msg.Translate;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.ecc.TransactionSignature;
@@ -40,6 +40,9 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import org.bitcoinj.script.interpreter.Interpreter;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
+import org.bitcoinj.script.interpreter.ScriptStack;
 import org.hamcrest.core.IsNot;
 import org.junit.Assert;
 import org.junit.Test;
@@ -244,7 +247,7 @@ public class ScriptTest {
         Script script = new ScriptBuilder().smallNum(0).build();
 
         ScriptStack stack = new ScriptStack();
-        Interpreter.executeScript(Translator.toTx(tx), 0, script, stack, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+        Interpreter.executeScript(Translate.toTx(tx), 0, script, stack, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
         assertEquals("OP_0 push length", 0, stack.get(0).length());
     }
 
@@ -261,16 +264,16 @@ public class ScriptTest {
                 // Number
                 long val = Long.parseLong(w);
                 if (val >= -1 && val <= 16)
-                    out.write(Interpreter.encodeToOpN((int)val));
+                    out.write(ScriptOpCodes.encodeToOpN((int)val));
                 else
-                    ScriptUtil.writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(val), false)));
+                    ScriptChunk.writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(val), false)));
             } else if (w.matches("^0x[0-9a-fA-F]*$")) {
                 // Raw hex data, inserted NOT pushed onto stack:
                 out.write(HEX.decode(w.substring(2).toLowerCase()));
             } else if (w.length() >= 2 && w.startsWith("'") && w.endsWith("'")) {
                 // Single-quoted string, pushed as data. NOTE: this is poor-man's
                 // parsing, spaces/tabs/newlines in single-quoted strings won't work.
-                ScriptUtil.writeBytes(out, w.substring(1, w.length() - 1).getBytes(Charset.forName("UTF-8")));
+                ScriptChunk.writeBytes(out, w.substring(1, w.length() - 1).getBytes(Charset.forName("UTF-8")));
             } else if (ScriptOpCodes.getOpCode(w) != OP_INVALIDOPCODE) {
                 // opcode, e.g. OP_ADD or OP_1:
                 out.write(ScriptOpCodes.getOpCode(w));
@@ -308,8 +311,8 @@ public class ScriptTest {
             Script scriptPubKey = parseScriptString(test.get(1).asText());
             Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
             try {
-                scriptSig.correctlySpends(new Transaction(NET), 0, scriptPubKey, verifyFlags);
-            } catch (ScriptException e) {
+                ScriptUtils.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
+            } catch (ScriptExecutionException e) {
                 System.err.println(test);
                 System.err.flush();
                 throw e;
@@ -326,7 +329,7 @@ public class ScriptTest {
                 Script scriptSig = parseScriptString(test.get(0).asText());
                 Script scriptPubKey = parseScriptString(test.get(1).asText());
                 Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
-                scriptSig.correctlySpends(new Transaction(NET), 0, scriptPubKey, verifyFlags);
+                ScriptUtils.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
                 System.err.println(test);
                 System.err.flush();
                 fail();
@@ -367,7 +370,7 @@ public class ScriptTest {
                     if (input.getOutpoint().getIndex() == 0xffffffffL)
                         input.getOutpoint().setIndex(-1);
                     assertTrue(scriptPubKeys.containsKey(input.getOutpoint()));
-                    input.getScriptSig().correctlySpends(transaction, i, scriptPubKeys.get(input.getOutpoint()),
+                    ScriptUtils.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
                             verifyFlags);
                 }
             } catch (Exception e) {
@@ -410,7 +413,7 @@ public class ScriptTest {
                 TransactionInput input = transaction.getInputs().get(i);
                 assertTrue(scriptPubKeys.containsKey(input.getOutpoint()));
                 try {
-                    input.getScriptSig().correctlySpends(transaction, i, scriptPubKeys.get(input.getOutpoint()),
+                    ScriptUtils.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
                             verifyFlags);
                 } catch (VerificationException e) {
                     valid = false;
@@ -442,7 +445,7 @@ public class ScriptTest {
         assertEquals(scriptAddress.toBase58(), ScriptUtils.getToAddress(p2shScript, PARAMS, true).toBase58());
     }
 
-    @Test(expected = ScriptException.class)
+    @Test(expected = ScriptExecutionException.class)
     public void getToAddressNoPubKey() throws Exception {
         ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(new ECKey()), PARAMS, false);
     }
@@ -569,7 +572,7 @@ public class ScriptTest {
         ScriptStack stack = new ScriptStack();
         EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
         verifyFlags.add(ScriptVerifyFlag.MONOLITH_OPCODES);
-        Interpreter.executeScript(Translator.toTx(new Transaction(NET)), 0, script, stack, Coin.ZERO, verifyFlags);
+        Interpreter.executeScript(Translate.toTx(new Transaction(NET)), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
         return stack.peekLast().bytes();
     }

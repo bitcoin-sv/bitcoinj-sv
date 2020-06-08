@@ -39,9 +39,12 @@ public class ScriptChunk<C> {
      * empty. Null for non-push operations.
      */
     @Nullable
-    public final ScriptBytes data;
+    public final ScriptData data;
     private int startLocationInProgram;
 
+    /**
+     * user provided context object for attaching meta data to a ScriptChunk
+     */
     public final C context;
 
     public ScriptChunk(int opcode, byte[] data) {
@@ -49,22 +52,44 @@ public class ScriptChunk<C> {
     }
 
     public ScriptChunk(int opcode, byte[] data, C context) {
-        this(opcode, ScriptBytes.of(data), -1, context);
+        this(opcode, ScriptData.of(data), -1, context);
     }
 
-    public ScriptChunk(int opcode, ScriptBytes data, C context) {
+    public ScriptChunk(int opcode, ScriptData data, C context) {
         this(opcode, data, -1, context);
     }
 
     public ScriptChunk(int opcode, byte[] data, int startLocationInProgram) {
-        this(opcode, ScriptBytes.of(data), startLocationInProgram, null);
+        this(opcode, ScriptData.of(data), startLocationInProgram, null);
     }
 
-    public ScriptChunk(int opcode, ScriptBytes data, int startLocationInProgram, C context) {
+    public ScriptChunk(int opcode, ScriptData data, int startLocationInProgram, C context) {
         this.opcode = opcode;
         this.data = data;
         this.startLocationInProgram = startLocationInProgram;
         this.context = context;
+    }
+
+    /**
+     * Writes out the given byte buffer to the output stream with the correct opcode prefix
+     * To write an integer call writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(val, false)));
+     */
+    public static void writeBytes(OutputStream os, byte[] buf) throws IOException {
+        if (buf.length < OP_PUSHDATA1) {
+            os.write(buf.length);
+            os.write(buf);
+        } else if (buf.length < 256) {
+            os.write(OP_PUSHDATA1);
+            os.write(buf.length);
+            os.write(buf);
+        } else if (buf.length < 65536) {
+            os.write(OP_PUSHDATA2);
+            os.write(0xFF & (buf.length));
+            os.write(0xFF & (buf.length >> 8));
+            os.write(buf);
+        } else {
+            throw new RuntimeException("Unimplemented");
+        }
     }
 
     public byte[] data() {
@@ -97,7 +122,7 @@ public class ScriptChunk<C> {
     /** If this chunk is an OP_N opcode returns the equivalent integer value. */
     public int decodeOpN() {
         checkState(isOpCode());
-        return Interpreter.decodeFromOpN(opcode);
+        return decodeFromOpN(opcode);
     }
 
     /**
@@ -167,7 +192,7 @@ public class ScriptChunk<C> {
             buf.append(getPushDataName(opcode)).append("[").append(Utils.HEX.encode(data())).append("]");
         } else {
             // Small num
-            buf.append(Interpreter.decodeFromOpN(opcode));
+            buf.append(decodeFromOpN(opcode));
         }
         return buf.toString();
     }

@@ -1,4 +1,6 @@
-package org.bitcoinj.script;
+package org.bitcoinj.script.interpreter;
+
+import org.bitcoinj.script.ScriptChunk;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

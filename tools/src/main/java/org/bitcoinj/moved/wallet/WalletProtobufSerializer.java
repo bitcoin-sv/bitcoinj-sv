@@ -29,6 +29,7 @@ import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.signers.LocalTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.temp.WalletTransaction;
@@ -489,7 +490,7 @@ public class WalletProtobufSerializer {
                         new Script(protoScript.getProgram().toByteArray(),
                                 protoScript.getCreationTimestamp() / 1000);
                 scripts.add(script);
-            } catch (ScriptException e) {
+            } catch (ScriptExecutionException e) {
                 throw new UnreadableWalletException("Unparseable script in wallet");
             }
         }

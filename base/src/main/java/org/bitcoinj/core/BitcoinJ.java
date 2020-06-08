@@ -1,5 +1,7 @@
 package org.bitcoinj.core;
 
+import java.math.BigInteger;
+
 /**
  * Placeholder for constants that are commonly referenced but don't necessarilly need to require a dependency on the original class
  */
@@ -21,4 +23,9 @@ public class BitcoinJ {
      * If feePerKb is lower than this, Bitcoin Core will treat it as if there were no fee.
      */
     public static final Coin REFERENCE_DEFAULT_MIN_TX_FEE = Coin.valueOf(1000); // 0.01 mBTC
+
+    /** Threshold for lockTime: below this value it is interpreted as block number, otherwise as timestamp. **/
+    public static final int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+    /** Same but as a BigInteger for CHECKLOCKTIMEVERIFY */
+    public static final BigInteger LOCKTIME_THRESHOLD_BIG = BigInteger.valueOf(LOCKTIME_THRESHOLD);
 }
