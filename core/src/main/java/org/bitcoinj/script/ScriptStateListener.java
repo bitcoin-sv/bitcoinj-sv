@@ -2,6 +2,7 @@ package org.bitcoinj.script;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ScriptException;
+import org.bitcoinj.msg.bitcoin.Tx;
 import org.bitcoinj.msg.protocol.ITransaction;
 import org.bitcoinj.msg.protocol.Transaction;
 
@@ -26,7 +27,7 @@ import java.util.Set;
  */
 public abstract class ScriptStateListener {
 
-    private ITransaction txContainingThis;
+    private Tx txContainingThis;
     private long index;
     private ScriptStream script;
     private List<StackItem> stack;
@@ -40,7 +41,7 @@ public abstract class ScriptStateListener {
     private List<ScriptChunk> scriptChunks;
 
 
-    void setInitialState(@Nullable ITransaction txContainingThis, long index,
+    void setInitialState(@Nullable Tx txContainingThis, long index,
                          ScriptStream script, List<StackItem> stack, List<StackItem> altstack, List<Boolean> ifStack, Coin value, Set<ScriptVerifyFlag> verifyFlags) {
         this.chunkIndex = -1;
         this.txContainingThis = txContainingThis;
@@ -83,7 +84,7 @@ public abstract class ScriptStateListener {
      */
     public abstract void onScriptComplete();
 
-    public ITransaction getTxContainingThis() {
+    public Tx getTxContainingThis() {
         return txContainingThis;
     }
 

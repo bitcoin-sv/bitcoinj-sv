@@ -25,6 +25,7 @@ import org.bitcoinj.ecc.ECDSASignature;
 import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Serializer;
+import org.bitcoinj.msg.bitcoin.Translator;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.ecc.TransactionSignature;
@@ -152,7 +153,7 @@ public class ScriptTest {
         Script outputScript = ScriptBuilder.createOutputScript(address);
         spendTx.addOutput(output.getValue(), outputScript);
         spendTx.addInput(output);
-        Sha256Hash sighash = spendTx.hashForSignature(0, multisigScript, SigHash.ALL, false);
+        Sha256Hash sighash = Transaction.hashForLegacySignature(spendTx, 0, multisigScript, SigHash.ALL, false);
         ECDSASignature party1Signature = key1.sign(sighash);
         ECDSASignature party2Signature = key2.sign(sighash);
         TransactionSignature party1TransactionSignature = new TransactionSignature(party1Signature, SigHash.ALL, false);
@@ -243,7 +244,7 @@ public class ScriptTest {
         Script script = new ScriptBuilder().smallNum(0).build();
 
         ScriptStack stack = new ScriptStack();
-        Interpreter.executeScript(tx, 0, script, stack, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+        Interpreter.executeScript(Translator.toTx(tx), 0, script, stack, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
         assertEquals("OP_0 push length", 0, stack.get(0).length());
     }
 
@@ -568,7 +569,7 @@ public class ScriptTest {
         ScriptStack stack = new ScriptStack();
         EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
         verifyFlags.add(ScriptVerifyFlag.MONOLITH_OPCODES);
-        Interpreter.executeScript(new Transaction(NET), 0, script, stack, Coin.ZERO, verifyFlags);
+        Interpreter.executeScript(Translator.toTx(new Transaction(NET)), 0, script, stack, Coin.ZERO, verifyFlags);
         Assert.assertEquals("Stack size must be 1", stack.size(), 1);
         return stack.peekLast().bytes();
     }

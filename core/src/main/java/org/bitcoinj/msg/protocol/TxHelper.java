@@ -45,7 +45,7 @@ public class TxHelper {
         checkState(!transaction.getOutputs().isEmpty(), "Attempting to sign tx without outputs.");
         TransactionInput input = new TransactionInput(transaction.getNet(), transaction, new byte[]{}, prevOut);
         transaction.addInput(input);
-        Sha256Hash hash = transaction.hashForSignature(transaction.getInputs().size() - 1, scriptPubKey, sigHash, anyoneCanPay);
+        Sha256Hash hash = Transaction.hashForLegacySignature(transaction, transaction.getInputs().size() - 1, scriptPubKey, sigHash, anyoneCanPay);
         ECDSASignature ecSig = sigKey.sign(hash);
         TransactionSignature txSig = new TransactionSignature(ecSig, sigHash, anyoneCanPay, false);
         if (scriptPubKey.isSentToRawPubKey())

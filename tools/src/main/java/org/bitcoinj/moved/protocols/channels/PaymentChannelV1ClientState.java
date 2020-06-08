@@ -246,9 +246,9 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
             throw new RuntimeException(e);  // Cannot happen: we built this ourselves.
         }
         TransactionSignature ourSignature = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
-                refundTx.calculateWitnessSignature(0, myKey.maybeDecrypt(userKey),
+                refundTx.calculateForkIdSignature(0, myKey.maybeDecrypt(userKey),
                         multisigScript, refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.ALL, false) :
-                refundTx.calculateSignature(0, myKey.maybeDecrypt(userKey),
+                refundTx.calculateLegacySignature(0, myKey.maybeDecrypt(userKey),
                         multisigScript, SigHash.ALL, false);
         // Insert the signatures.
         Script scriptSig = ScriptBuilder.createMultiSigInputScript(ourSignature, theirSig);

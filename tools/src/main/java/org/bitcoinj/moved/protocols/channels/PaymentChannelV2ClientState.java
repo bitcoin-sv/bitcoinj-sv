@@ -148,9 +148,9 @@ public class PaymentChannelV2ClientState extends PaymentChannelClientState {
         }
 
         TransactionSignature refundSignature = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
-                refundTx.calculateWitnessSignature(0, myKey.maybeDecrypt(userKey),
+                refundTx.calculateForkIdSignature(0, myKey.maybeDecrypt(userKey),
                         getSignedScript(), refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.ALL, false) :
-                refundTx.calculateSignature(0, myKey.maybeDecrypt(userKey),
+                refundTx.calculateLegacySignature(0, myKey.maybeDecrypt(userKey),
                         getSignedScript(), SigHash.ALL, false);
         refundTx.getInput(0).setScriptSig(ScriptBuilder.createCLTVPaymentChannelP2SHRefund(refundSignature, redeemScript));
 

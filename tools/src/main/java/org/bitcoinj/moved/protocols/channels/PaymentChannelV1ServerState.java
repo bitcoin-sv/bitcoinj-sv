@@ -155,8 +155,8 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
         // We are really only signing the fact that the transaction has a proper lock time and don't care about anything
         // else, so we sign SIGHASH_NONE and SIGHASH_ANYONECANPAY.
         TransactionSignature sig = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
-                refundTx.calculateWitnessSignature(0, serverKey, multisigPubKey, refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.NONE, true):
-                refundTx.calculateSignature(0, serverKey, multisigPubKey, SigHash.NONE, true);
+                refundTx.calculateForkIdSignature(0, serverKey, multisigPubKey, refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.NONE, true):
+                refundTx.calculateLegacySignature(0, serverKey, multisigPubKey, SigHash.NONE, true);
         log.info("Signed refund transaction.");
         this.clientOutput = refundTx.getOutput(0);
         stateMachine.transition(State.WAITING_FOR_MULTISIG_CONTRACT);
@@ -175,8 +175,8 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
     private void signMultisigInput(Transaction tx, SigHash hashType, boolean anyoneCanPay) {
         //TransactionSignature signature = tx.calculateSignature(0, serverKey, getContractScript(), hashType, anyoneCanPay, true);
         TransactionSignature signature = tx.getVersion() >= Transaction.FORKID_VERSION ?
-                tx.calculateWitnessSignature(0, serverKey, getContractScript(), tx.getInput(0).getConnectedOutput().getValue(), SigHash.NONE, true):
-                tx.calculateSignature(0, serverKey, getContractScript(), hashType, true);
+                tx.calculateForkIdSignature(0, serverKey, getContractScript(), tx.getInput(0).getConnectedOutput().getValue(), SigHash.NONE, true):
+                tx.calculateLegacySignature(0, serverKey, getContractScript(), hashType, true);
         byte[] mySig = signature.encodeToBitcoin();
         Script scriptSig = ScriptBuilder.createMultiSigInputScriptBytes(ImmutableList.of(bestValueSignature, mySig));
         tx.getInput(0).setScriptSig(scriptSig);

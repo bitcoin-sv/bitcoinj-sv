@@ -19,6 +19,8 @@ package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
+import org.bitcoinj.msg.bitcoin.Input;
+import org.bitcoinj.msg.bitcoin.OutPoint;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;

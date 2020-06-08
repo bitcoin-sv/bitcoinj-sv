@@ -107,8 +107,8 @@ public class LocalTransactionSigner extends StatelessTransactionSigner {
             byte[] script = redeemData.redeemScript.getProgram();
             try {
                 TransactionSignature signature = propTx.useForkId ?
-                        tx.calculateWitnessSignature(i, key, script, tx.getInput(i).getConnectedOutput().getValue(), SigHash.ALL, false) :
-                        tx.calculateSignature(i, key, script, SigHash.ALL, false);
+                        tx.calculateForkIdSignature(i, key, script, tx.getInput(i).getConnectedOutput().getValue(), SigHash.ALL, false) :
+                        tx.calculateLegacySignature(i, key, script, SigHash.ALL, false);
 
                 // at this point we have incomplete inputScript with OP_0 in place of one or more signatures. We already
                 // have calculated the signature using the local key and now need to insert it in the correct place

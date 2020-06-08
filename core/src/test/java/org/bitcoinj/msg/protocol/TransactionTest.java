@@ -26,6 +26,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.Serializer;
+import org.bitcoinj.msg.bitcoin.Translator;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.*;
 import org.bitcoinj.testing.*;
@@ -184,11 +185,11 @@ public class TransactionTest {
         tx.getInput(0).setSequenceNumber(0);
         tx.setLockTime(time.subtract(BigInteger.ONE).longValue());
         TransactionSignature fromSig =
-                tx.calculateSignature(0, from, outputScript, SigHash.SINGLE, false);
+                tx.calculateLegacySignature(0, from, outputScript, SigHash.SINGLE, false);
         TransactionSignature toSig =
-                tx.calculateSignature(0, to, outputScript, SigHash.SINGLE, false);
+                tx.calculateLegacySignature(0, to, outputScript, SigHash.SINGLE, false);
         TransactionSignature incorrectSig =
-                tx.calculateSignature(0, incorrect, outputScript, SigHash.SINGLE, false);
+                tx.calculateLegacySignature(0, incorrect, outputScript, SigHash.SINGLE, false);
         Script scriptSig =
                 ScriptBuilder.createCLTVPaymentChannelInput(fromSig, toSig);
         Script refundSig =
@@ -231,9 +232,9 @@ public class TransactionTest {
         tx.getInput(0).setSequenceNumber(0);
         tx.setLockTime(time.add(BigInteger.ONE).longValue());
         TransactionSignature fromSig =
-                tx.calculateSignature(0, from, outputScript, SigHash.SINGLE, false);
+                tx.calculateLegacySignature(0, from, outputScript, SigHash.SINGLE, false);
         TransactionSignature incorrectSig =
-                tx.calculateSignature(0, incorrect, outputScript, SigHash.SINGLE, false);
+                tx.calculateLegacySignature(0, incorrect, outputScript, SigHash.SINGLE, false);
         Script scriptSig =
                 ScriptBuilder.createCLTVPaymentChannelRefund(fromSig);
         Script invalidScriptSig =
@@ -400,14 +401,14 @@ public class TransactionTest {
 
         final Transaction tx = block1.getTransactions().get(1);
         final String txHash = tx.getHashAsString();
-        final String txNormalizedHash = Transaction.hashForSignature(tx, 0, new byte[0], SigHash.ALL.byteValue()).toString();
+        final String txNormalizedHash = SigHashCalculator.hashForLegacySignature(Translator.toTx(tx), 0, new byte[0], SigHash.ALL.byteValue()).toString();
 
         for (int i = 0; i < 100; i++) {
             // ensure the transaction object itself was not modified; if it was, the hash will change
             assertEquals(txHash, tx.getHashAsString());
             new Thread(){
                 public void run() {
-                    assertEquals(txNormalizedHash, Transaction.hashForSignature(tx, 0, new byte[0], SigHash.ALL.byteValue()).toString());
+                    assertEquals(txNormalizedHash, SigHashCalculator.hashForLegacySignature(Translator.toTx(tx), 0, new byte[0], SigHash.ALL.byteValue()).toString());
                 }
             };
         }

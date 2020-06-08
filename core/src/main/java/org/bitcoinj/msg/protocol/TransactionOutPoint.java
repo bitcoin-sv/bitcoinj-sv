@@ -20,13 +20,12 @@ import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.msg.bitcoin.OutPoint;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 
 import javax.annotation.*;
 import java.io.*;
-
-import static com.google.common.base.Preconditions.*;
 
 /**
  * <p>This message is a reference or pointer to an output of a different transaction.</p>
@@ -115,6 +114,7 @@ public class TransactionOutPoint extends ChildMessage implements ITransactionOut
     public void bitcoinSerializeToStream(OutputStream stream) throws IOException {
         stream.write(hash.getReversedBytes());
         Utils.uint32ToByteStreamLE(index, stream);
+
     }
 
     /**

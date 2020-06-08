@@ -24,9 +24,12 @@ import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.msg.Serializer;
+import org.bitcoinj.msg.bitcoin.Translator;
+import org.bitcoinj.msg.bitcoin.Tx;
 import org.bitcoinj.msg.protocol.ITransaction;
 
 import com.google.common.collect.Lists;
+import org.bitcoinj.msg.protocol.Transaction;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -475,13 +478,13 @@ public class Script {
      * are added.
      */
     @Deprecated
-    public void correctlySpends(ITransaction txContainingThis, long scriptSigIndex, Script scriptPubKey)
+    public void correctlySpends(Transaction txContainingThis, long scriptSigIndex, Script scriptPubKey)
             throws ScriptException {
         correctlySpends(txContainingThis, scriptSigIndex, scriptPubKey, Coin.ZERO, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
     }
 
     @Deprecated
-    public void correctlySpends(ITransaction txContainingThis, long scriptSigIndex, Script scriptPubKey,
+    public void correctlySpends(Transaction txContainingThis, long scriptSigIndex, Script scriptPubKey,
                                 Set<ScriptVerifyFlag> verifyFlags)
             throws ScriptException {
         correctlySpends(txContainingThis, scriptSigIndex, scriptPubKey, Coin.ZERO, verifyFlags);
@@ -494,10 +497,10 @@ public class Script {
      *                         Accessing txContainingThis from another thread while this method runs results in undefined behavior.
      * @param scriptSigIndex   The index in txContainingThis of the scriptSig (note: NOT the index of the scriptPubKey).
      * @param scriptPubKey     The connected scriptPubKey containing the conditions needed to claim the value.
-     * @param verifyFlags      Each flag enables one validation rule. If in doubt, use {@link #correctlySpends(ITransaction, long, Script)}
+     * @param verifyFlags      Each flag enables one validation rule. If in doubt, use { #correctlySpends(Tx, long, Script)}
      *                         which sets all flags.
      */
-    public void correctlySpends(ITransaction txContainingThis, long scriptSigIndex, Script scriptPubKey, Coin value,
+    public void correctlySpends(Transaction txContainingThis, long scriptSigIndex, Script scriptPubKey, Coin value,
                                 Set<ScriptVerifyFlag> verifyFlags) throws ScriptException {
         // Clone the transaction because executing the script involves editing it, and if we die, we'll leave
         // the tx half broken (also it's not so thread safe to work on it directly.
@@ -514,10 +517,10 @@ public class Script {
 
         Interpreter.ScriptExecutionState state = new Interpreter.ScriptExecutionState();
 
-        Interpreter.executeScript(txContainingThis, scriptSigIndex, this, stack, value, verifyFlags);
+        Interpreter.executeScript(Translator.toTx(txContainingThis), scriptSigIndex, this, stack, value, verifyFlags);
         if (verifyFlags.contains(ScriptVerifyFlag.P2SH))
             p2shStack = new ScriptStack(stack);
-        Interpreter.executeScript(txContainingThis, scriptSigIndex, scriptPubKey, stack, value, verifyFlags);
+        Interpreter.executeScript(Translator.toTx(txContainingThis), scriptSigIndex, scriptPubKey, stack, value, verifyFlags);
 
         if (stack.size() == 0)
             throw new ScriptException("Stack empty at end of script execution.");
@@ -546,7 +549,7 @@ public class Script {
             StackItem scriptPubKeyBytes = p2shStack.pollLast();
             Script scriptPubKeyP2SH = new Script(scriptPubKeyBytes.bytes());
 
-            Interpreter.executeScript(txContainingThis, scriptSigIndex, scriptPubKeyP2SH, p2shStack, value, verifyFlags);
+            Interpreter.executeScript(Translator.toTx(txContainingThis), scriptSigIndex, scriptPubKeyP2SH, p2shStack, value, verifyFlags);
 
             if (p2shStack.size() == 0)
                 throw new ScriptException("P2SH stack empty at end of script execution.");

@@ -20,7 +20,6 @@ package org.bitcoinj.msg.protocol;
 import com.google.common.annotations.*;
 import com.google.common.base.*;
 import com.google.common.collect.*;
-import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.BitcoinSerializer;
@@ -50,7 +49,7 @@ import static org.bitcoinj.core.Sha256Hash.*;
  * more detail on blocks. <p/>
  *
  * <p>To get a block, you can either build one from the raw bytes you can get from another implementation, or request one
- * specifically using {@link Peer#getBlock(Sha256Hash)}, or grab one from a downloaded {@link SPVBlockChain}.</p>
+ * specifically using {@link Peer#getBlock(Sha256Hash)}, or grab one from a downloaded { SPVBlockChain}.</p>
  *
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
@@ -1081,7 +1080,7 @@ public class Block extends Message {
     }
 
     /**
-     * Returns the difficulty of the proof of work that this block should meet encoded <b>in compact form</b>. The {@link
+     * Returns the difficulty of the proof of work that this block should meet encoded <b>in compact form</b>. The {
      * SPVBlockChain} verifies that this is not too easy by looking at the length of the chain when the block is added.
      * To find the actual value the hash should be compared against, use
      * {@link Block#getDifficultyTargetAsInteger()}. Note that this is <b>not</b> the same as

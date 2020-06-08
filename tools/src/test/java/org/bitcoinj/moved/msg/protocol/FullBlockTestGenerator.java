@@ -777,7 +777,7 @@ public class FullBlockTestGenerator {
 
                 if (scriptSig == null) {
                     // Exploit the SigHash.SINGLE bug to avoid having to make more than one signature
-                    Sha256Hash hash = tx.hashForSignature(1, b39p2shScriptPubKey, SigHash.SINGLE, false);
+                    Sha256Hash hash = Transaction.hashForLegacySignature(tx, 1, b39p2shScriptPubKey, SigHash.SINGLE, false);
 
                     // Sign input
                     try {
@@ -846,7 +846,7 @@ public class FullBlockTestGenerator {
 
                     if (scriptSig == null) {
                         // Exploit the SigHash.SINGLE bug to avoid having to make more than one signature
-                        Sha256Hash hash = tx.hashForSignature(1,
+                        Sha256Hash hash = Transaction.hashForLegacySignature(tx, 1,
                                 b39p2shScriptPubKey, SigHash.SINGLE, false);
 
                         // Sign input
@@ -1828,7 +1828,7 @@ public class FullBlockTestGenerator {
         } else {
             // Sign input
             checkState(prevOut.scriptPubKey.isSentToRawPubKey());
-            Sha256Hash hash = t.hashForSignature(0, prevOut.scriptPubKey, SigHash.ALL, false);
+            Sha256Hash hash = Transaction.hashForLegacySignature(t, 0, prevOut.scriptPubKey, SigHash.ALL, false);
             input.setScriptSig(ScriptBuilder.createInputScript(
                             new TransactionSignature(coinbaseOutKey.sign(hash), SigHash.ALL, false))
             );

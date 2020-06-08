@@ -1,6 +1,7 @@
 package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.msg.bitcoin.Translator;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
@@ -53,7 +54,7 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
         System.out.println("\n***Executing scriptPubKey***\n");
         script = new SimpleScriptStream(scriptPubKey);
-        Interpreter.executeDebugScript(tx1, 0, script, stack, Coin.ZERO, ScriptVerifyFlag.ALL_VERIFY_FLAGS, listener);
+        Interpreter.executeDebugScript(Translator.toTx(tx1), 0, script, stack, Coin.ZERO, ScriptVerifyFlag.ALL_VERIFY_FLAGS, listener);
 
 //        TextScriptParser parser = new TextScriptParser(false, null);
 //        parser.addVariable("barry", "0x00112233");

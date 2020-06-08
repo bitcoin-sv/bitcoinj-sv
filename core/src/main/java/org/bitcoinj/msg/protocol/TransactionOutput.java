@@ -20,6 +20,7 @@ package org.bitcoinj.msg.protocol;
 import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
+import org.bitcoinj.msg.bitcoin.Output;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
