@@ -24,10 +24,7 @@ import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.*;
 import org.bitcoinj.msg.p2p.*;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutPoint;
+import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.net.StreamConnection;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
@@ -789,7 +786,7 @@ public class Peer extends PeerSocketHandler {
             // we can stop holding a reference to the confidence object ourselves. It's up to event listeners on the
             // Peer to stash the tx object somewhere if they want to keep receiving updates about network propagation
             // and so on.
-            TransactionConfidence confidence = tx.getConfidence();
+            TransactionConfidence confidence = TxHelper.getConfidence(tx);
             confidence.setSource(TransactionConfidence.Source.NETWORK);
             pendingTxDownloads.remove(confidence);
             if (maybeHandleRequestedData(tx)) {
@@ -886,7 +883,7 @@ public class Peer extends PeerSocketHandler {
      * <p>Note that dependencies downloaded this way will not trigger the onTransaction method of event listeners.</p>
      */
     public ListenableFuture<List<Transaction>> downloadDependencies(Transaction tx) {
-        TransactionConfidence.ConfidenceType txConfidence = tx.getConfidence().getConfidenceType();
+        TransactionConfidence.ConfidenceType txConfidence = TxHelper.getConfidence(tx).getConfidenceType();
         Preconditions.checkArgument(txConfidence != TransactionConfidence.ConfidenceType.BUILDING);
         log.info("{}: Downloading dependencies of {}", getAddress(), tx.getHashAsString());
         final LinkedList<Transaction> results = new LinkedList<Transaction>();

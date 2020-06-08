@@ -19,6 +19,7 @@ package org.bitcoinj.core;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.*;
 import org.bitcoinj.testing.*;
 import org.bitcoinj.utils.*;
@@ -59,9 +60,9 @@ public class TxConfidenceTableTest {
         Transaction tx = Serializer.defaultFor(NET).makeTransaction(tx1.bitcoinSerialize());
         Sha256Hash hash = tx.getHash();
         table.seen(hash, address1);
-        assertEquals(1, tx.getConfidence().numBroadcastPeers());
+        assertEquals(1, TxHelper.getConfidence(tx).numBroadcastPeers());
         final int[] seen = new int[1];
-        tx.getConfidence().addEventListener(Threading.SAME_THREAD, new TransactionConfidence.Listener() {
+        TxHelper.getConfidence(tx).addEventListener(Threading.SAME_THREAD, new TransactionConfidence.Listener() {
             @Override
             public void onConfidenceChanged(TransactionConfidence confidence, ChangeReason reason) {
                 seen[0] = confidence.numBroadcastPeers();
@@ -76,7 +77,7 @@ public class TxConfidenceTableTest {
     @Test
     public void events() throws Exception {
         final TransactionConfidence.Listener.ChangeReason[] run = new TransactionConfidence.Listener.ChangeReason[1];
-        tx1.getConfidence().addEventListener(Threading.SAME_THREAD, new TransactionConfidence.Listener() {
+        TxHelper.getConfidence(tx1).addEventListener(Threading.SAME_THREAD, new TransactionConfidence.Listener() {
             @Override
             public void onConfidenceChanged(TransactionConfidence confidence, ChangeReason reason) {
                 run[0] = reason;
@@ -97,10 +98,10 @@ public class TxConfidenceTableTest {
         assertEquals(1, table.numBroadcastPeers(tx1.getHash()));
         table.seen(tx1.getHash(), address2);
         assertEquals(2, table.numBroadcastPeers(tx1.getHash()));
-        assertEquals(2, tx2.getConfidence().numBroadcastPeers());
+        assertEquals(2, TxHelper.getConfidence(tx2).numBroadcastPeers());
         // And now we see another inv.
         table.seen(tx1.getHash(), address3);
-        assertEquals(3, tx2.getConfidence().numBroadcastPeers());
+        assertEquals(3, TxHelper.getConfidence(tx2).numBroadcastPeers());
         assertEquals(3, table.numBroadcastPeers(tx1.getHash()));
     }
 }

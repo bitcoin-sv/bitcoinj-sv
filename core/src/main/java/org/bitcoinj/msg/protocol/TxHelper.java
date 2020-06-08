@@ -2,7 +2,6 @@ package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.ECDSASignature;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.params.NetworkParameters;
@@ -38,7 +37,7 @@ public class TxHelper {
      * @throws ScriptExecutionException if the scriptPubKey is not a pay to address or pay to pubkey script.
      */
     public static TransactionInput addSignedInput(Transaction transaction, TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey,
-                                                  SigHash sigHash, boolean anyoneCanPay) throws ScriptExecutionException {
+                                                  SigHash.Flags sigHash, boolean anyoneCanPay) throws ScriptExecutionException {
         // Verify the API user didn't try to do operations out of order.
         checkState(!transaction.getOutputs().isEmpty(), "Attempting to sign tx without outputs.");
         TransactionInput input = new TransactionInput(transaction.getNet(), transaction, new byte[]{}, prevOut);
@@ -57,10 +56,10 @@ public class TxHelper {
 
     /**
      * Same as {addSignedInput(TransactionOutPoint, Script, ECKey, SigHash, boolean)}
-     * but defaults to {@link SigHash#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
+     * but defaults to {@link SigHash.Flags#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
      */
     public static TransactionInput addSignedInput(Transaction transaction, TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey) throws ScriptExecutionException {
-        return addSignedInput(transaction, prevOut, scriptPubKey, sigKey, SigHash.ALL, false);
+        return addSignedInput(transaction, prevOut, scriptPubKey, sigKey, SigHash.Flags.ALL, false);
     }
 
     /**
@@ -286,7 +285,7 @@ public class TxHelper {
      */
     public static int getParentTransactionDepthInBlocks(TransactionOutput transactionOutput) {
         if (transactionOutput.getParentTransaction() != null) {
-            TransactionConfidence confidence = transactionOutput.getParentTransaction().getConfidence();
+            TransactionConfidence confidence = getConfidence(transactionOutput.getParentTransaction());
             if (confidence.getConfidenceType() == TransactionConfidence.ConfidenceType.BUILDING) {
                 return confidence.getDepthInBlocks();
             }
@@ -375,5 +374,37 @@ public class TxHelper {
         }
 
         return walletOutputs;
+    }
+
+    /**
+     * Returns the confidence object for this transaction from the {@link TxConfidenceTable}
+     * referenced by the implicit {@link Context}.
+     * @param transaction
+     */
+    public static TransactionConfidence getConfidence(Transaction transaction) {
+        return getConfidence(transaction, Context.get());
+    }
+
+    /**
+     * Returns the confidence object for this transaction from the {@link TxConfidenceTable}
+     * referenced by the given {@link Context}.
+     */
+    public static TransactionConfidence getConfidence(Transaction transaction, Context context) {
+        return getConfidence(transaction, context.getConfidenceTable());
+    }
+
+    /**
+     * Returns the confidence object for this transaction from the {@link TxConfidenceTable}
+     */
+    public static TransactionConfidence getConfidence(Transaction transaction, TxConfidenceTable table) {
+        if (transaction.confidence == null)
+            transaction.confidence = table.getOrCreate(transaction.getHash()) ;
+        return transaction.confidence;
+    }
+
+    /** Check if the transaction has a known confidence
+     * @param transaction*/
+    public static boolean hasConfidence(Transaction transaction) {
+        return getConfidence(transaction).getConfidenceType() != TransactionConfidence.ConfidenceType.UNKNOWN;
     }
 }

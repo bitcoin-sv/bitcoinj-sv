@@ -17,7 +17,6 @@ package org.bitcoinj.moved.msg.protocol;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.Serializer;
@@ -779,13 +778,13 @@ public class FullBlockTestGenerator {
 
                 if (scriptSig == null) {
                     // Exploit the SigHash.SINGLE bug to avoid having to make more than one signature
-                    Sha256Hash hash = Transaction.hashForLegacySignature(tx, 1, b39p2shScriptPubKey, SigHash.SINGLE, false);
+                    Sha256Hash hash = Transaction.hashForLegacySignature(tx, 1, b39p2shScriptPubKey, SigHash.Flags.SINGLE, false);
 
                     // Sign input
                     try {
                         ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(73);
                         bos.write(coinbaseOutKey.sign(hash).encodeToDER());
-                        bos.write(SigHash.SINGLE.value);
+                        bos.write(SigHash.Flags.SINGLE.value);
                         byte[] signature = bos.toByteArray();
 
                         ByteArrayOutputStream scriptSigBos = new UnsafeByteArrayOutputStream(signature.length + b39p2shScriptPubKey.length + 3);
@@ -849,14 +848,14 @@ public class FullBlockTestGenerator {
                     if (scriptSig == null) {
                         // Exploit the SigHash.SINGLE bug to avoid having to make more than one signature
                         Sha256Hash hash = Transaction.hashForLegacySignature(tx, 1,
-                                b39p2shScriptPubKey, SigHash.SINGLE, false);
+                                b39p2shScriptPubKey, SigHash.Flags.SINGLE, false);
 
                         // Sign input
                         try {
                             ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(
                                     73);
                             bos.write(coinbaseOutKey.sign(hash).encodeToDER());
-                            bos.write(SigHash.SINGLE.value);
+                            bos.write(SigHash.Flags.SINGLE.value);
                             byte[] signature = bos.toByteArray();
 
                             ByteArrayOutputStream scriptSigBos = new UnsafeByteArrayOutputStream(
@@ -1830,9 +1829,9 @@ public class FullBlockTestGenerator {
         } else {
             // Sign input
             checkState(prevOut.scriptPubKey.isSentToRawPubKey());
-            Sha256Hash hash = Transaction.hashForLegacySignature(t, 0, prevOut.scriptPubKey, SigHash.ALL, false);
+            Sha256Hash hash = Transaction.hashForLegacySignature(t, 0, prevOut.scriptPubKey, SigHash.Flags.ALL, false);
             input.setScriptSig(ScriptBuilder.createInputScript(
-                            new TransactionSignature(coinbaseOutKey.sign(hash), SigHash.ALL, false))
+                            new TransactionSignature(coinbaseOutKey.sign(hash), SigHash.Flags.ALL, false))
             );
         }
     }

@@ -1178,7 +1178,7 @@ public class Interpreter {
         } catch (IOException e) {
             throw new RuntimeException(e); // Cannot happen
         }
-        connectedScript = SigHashCalculator.removeAllInstancesOf(connectedScript, outStream.toByteArray());
+        connectedScript = SigHash.removeAllInstancesOf(connectedScript, outStream.toByteArray());
 
         // TODO: Use int for indexes everywhere, we can't have that many inputs/outputs
         try {
@@ -1187,8 +1187,8 @@ public class Interpreter {
 
             // TODO: Should check hash type is known
             Sha256Hash hash = sig.useForkId() ?
-                    SigHashCalculator.hashForForkIdSignature(txContainingThis, index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
-                    SigHashCalculator.hashForLegacySignature(txContainingThis, index, connectedScript, (byte) sig.sighashFlags);
+                    SigHash.hashForForkIdSignature(txContainingThis, index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                    SigHash.hashForLegacySignature(txContainingThis, index, connectedScript, (byte) sig.sighashFlags);
             sigValid = allowFakeChecksig ? true : ECDSA.verify(hash.getBytes(), sig, pubKey.bytes());
         } catch (Exception e1) {
             // There is (at least) one exception that could be hit here (EOFException, if the sig is too short)
@@ -1268,7 +1268,7 @@ public class Interpreter {
             } catch (IOException e) {
                 throw new RuntimeException(e); // Cannot happen
             }
-            connectedScript = SigHashCalculator.removeAllInstancesOf(connectedScript, outStream.toByteArray());
+            connectedScript = SigHash.removeAllInstancesOf(connectedScript, outStream.toByteArray());
         }
 
         boolean valid = true;
@@ -1280,8 +1280,8 @@ public class Interpreter {
                 TransactionSignature sig = TransactionSignature.decodeFromBitcoin(sigs.getFirst().bytes(), requireCanonical,
                         verifyFlags.contains(ScriptVerifyFlag.LOW_S));
                 Sha256Hash hash = sig.useForkId() ?
-                        SigHashCalculator.hashForForkIdSignature(txContainingThis, index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
-                        SigHashCalculator.hashForLegacySignature(txContainingThis, index, connectedScript, (byte) sig.sighashFlags);
+                        SigHash.hashForForkIdSignature(txContainingThis, index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                        SigHash.hashForLegacySignature(txContainingThis, index, connectedScript, (byte) sig.sighashFlags);
                 if (allowFakeChecksig || ECDSA.verify(hash.getBytes(), sig, pubKey.bytes()))
                     sigs.pollFirst();
             } catch (Exception e) {

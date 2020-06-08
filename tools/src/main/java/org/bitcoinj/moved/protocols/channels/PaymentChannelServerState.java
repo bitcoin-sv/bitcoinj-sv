@@ -17,9 +17,10 @@
 package org.bitcoinj.moved.protocols.channels;
 
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.moved.wallet.Wallet;
 
@@ -268,17 +269,17 @@ public abstract class PaymentChannelServerState {
         // miss most double-spends due to bloom filtering right now anyway. This will eventually fixed by network-wide
         // double-spend notifications, so we just wait instead of attempting to add all dependant outpoints to our bloom
         // filters (and probably missing lots of edge-cases).
-        if (walletContract.getConfidence().getConfidenceType() == TransactionConfidence.ConfidenceType.DEAD) {
+        if (TxHelper.getConfidence(walletContract).getConfidenceType() == TransactionConfidence.ConfidenceType.DEAD) {
             close();
             throw new VerificationException("Multisig contract was double-spent");
         }
 
-        SigHash mode;
+        SigHash.Flags mode;
         // If the client doesn't want anything back, they shouldn't sign any outputs at all.
         if (fullyUsedUp)
-            mode = SigHash.NONE;
+            mode = SigHash.Flags.NONE;
         else
-            mode = SigHash.SINGLE;
+            mode = SigHash.Flags.SINGLE;
 
         if (signature.sigHashMode() != mode || !signature.anyoneCanPay())
             throw new VerificationException("New payment signature was not signed with the right SIGHASH flags.");

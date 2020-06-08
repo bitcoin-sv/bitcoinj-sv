@@ -29,6 +29,7 @@ import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.net.discovery.*;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.moved.testing.*;
@@ -377,13 +378,13 @@ public class PeerGroupTest extends TestWithPeerGroup {
         InventoryMessage inv = new InventoryMessage(TestWithNetworkConnections.NET);
         inv.addTransaction(tx);
 
-        assertEquals(0, tx.getConfidence().numBroadcastPeers());
-        assertNull(tx.getConfidence().getLastBroadcastedAt());
+        assertEquals(0, TxHelper.getConfidence(tx).numBroadcastPeers());
+        assertNull(TxHelper.getConfidence(tx).getLastBroadcastedAt());
 
         // Peer 2 advertises the tx but does not receive it yet.
         inbound(p2, inv);
         assertTrue(outbound(p2) instanceof GetDataMessage);
-        assertEquals(1, tx.getConfidence().numBroadcastPeers());
+        assertEquals(1, TxHelper.getConfidence(tx).numBroadcastPeers());
         assertNull(event[0]);
         // Peer 1 advertises the tx, we don't do anything as it's already been requested.
         inbound(p1, inv);
@@ -399,12 +400,12 @@ public class PeerGroupTest extends TestWithPeerGroup {
         inbound(p1, inv);  // returns getdata
         inbound(p1, tx);   // returns nothing after a queue drain.
         // Two peers saw this tx hash.
-        assertEquals(2, tx.getConfidence().numBroadcastPeers());
-        assertTrue(tx.getConfidence().wasBroadcastBy(peerOf(p1).getAddress()));
-        assertTrue(tx.getConfidence().wasBroadcastBy(peerOf(p2).getAddress()));
-        assertNotNull(tx.getConfidence().getLastBroadcastedAt());
+        assertEquals(2, TxHelper.getConfidence(tx).numBroadcastPeers());
+        assertTrue(TxHelper.getConfidence(tx).wasBroadcastBy(peerOf(p1).getAddress()));
+        assertTrue(TxHelper.getConfidence(tx).wasBroadcastBy(peerOf(p2).getAddress()));
+        assertNotNull(TxHelper.getConfidence(tx).getLastBroadcastedAt());
 
-        tx.getConfidence().addEventListener(new TransactionConfidence.Listener() {
+        TxHelper.getConfidence(tx).addEventListener(new TransactionConfidence.Listener() {
             @Override
             public void onConfidenceChanged(TransactionConfidence confidence, TransactionConfidence.Listener.ChangeReason reason) {
                 confEvent[0] = confidence;
@@ -415,8 +416,8 @@ public class PeerGroupTest extends TestWithPeerGroup {
         pingAndWait(p3);
         Threading.waitForUserCode();
         assertEquals(tx.getHash(), confEvent[0].getTransactionHash());
-        assertEquals(3, tx.getConfidence().numBroadcastPeers());
-        assertTrue(tx.getConfidence().wasBroadcastBy(peerOf(p3).getAddress()));
+        assertEquals(3, TxHelper.getConfidence(tx).numBroadcastPeers());
+        assertTrue(TxHelper.getConfidence(tx).wasBroadcastBy(peerOf(p3).getAddress()));
     }
 
     @Test

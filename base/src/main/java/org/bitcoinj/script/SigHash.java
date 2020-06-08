@@ -4,7 +4,6 @@ import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.VarInt;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.msg.bitcoin.*;
 
@@ -18,13 +17,52 @@ import static org.bitcoinj.core.Utils.uint32ToByteStreamLE;
 import static org.bitcoinj.core.Utils.uint64ToByteStreamLE;
 import static org.bitcoinj.script.ScriptOpCodes.*;
 
-public class SigHashCalculator {
+/**
+ * Utility class for calculating transaction SigHash during CHECKSIG ops. This class only knows about
+ * the {@link org.bitcoinj.msg.bitcoin.BitcoinObject} heirarchy of classes/interfaces.  A helper class 'Translate'
+ * is provided to convert the legacy Message based classes of Transactions into this one.
+ *
+ * @author shadders
+ */
+public class SigHash {
+
+    /**
+     * These constants are a part of a scriptSig signature on the inputs. They define the details of how a
+     * transaction can be redeemed, specifically, they control how the hash of the transaction is calculated.
+     */
+    public enum Flags {
+        ALL(1),
+        NONE(2),
+        SINGLE(3),
+        FORKID(0x40),
+        ANYONECANPAY(0x80), // Caution: Using this type in isolation is non-standard. Treated similar to ANYONECANPAY_ALL.
+        ANYONECANPAY_ALL(0x81),
+        ANYONECANPAY_NONE(0x82),
+        ANYONECANPAY_SINGLE(0x83),
+        UNSET(0); // Caution: Using this type in isolation is non-standard. Treated similar to ALL.
+
+        public final int value;
+
+        /**
+         * @param value
+         */
+        private Flags(final int value) {
+            this.value = value;
+        }
+
+        /**
+         * @return the value as a byte
+         */
+        public byte byteValue() {
+            return (byte) this.value;
+        }
+    }
 
     public static Sha256Hash hashForForkIdSignature(Tx transaction,
                                                     int inputIndex,
                                                     byte[] connectedScript,
                                                     Coin prevValue,
-                                                    SigHash type,
+                                                    Flags type,
                                                     boolean anyoneCanPay) {
         byte sigHashType = (byte) TransactionSignature.calcSigHashValue(type, anyoneCanPay, true);
         ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(transaction.getMessageSize() == BitcoinObjectImpl.UNKNOWN_LENGTH ? 256 : transaction.getMessageSize() + 4);
@@ -32,7 +70,7 @@ public class SigHashCalculator {
             byte[] hashPrevouts = new byte[32];
             byte[] hashSequence = new byte[32];
             byte[] hashOutputs = new byte[32];
-            anyoneCanPay = (sigHashType & SigHash.ANYONECANPAY.value) == SigHash.ANYONECANPAY.value;
+            anyoneCanPay = (sigHashType & Flags.ANYONECANPAY.value) == Flags.ANYONECANPAY.value;
 
             if (!anyoneCanPay) {
                 ByteArrayOutputStream bosHashPrevouts = new UnsafeByteArrayOutputStream(256);
@@ -43,7 +81,7 @@ public class SigHashCalculator {
                 hashPrevouts = Sha256Hash.hashTwice(bosHashPrevouts.toByteArray());
             }
 
-            if (!anyoneCanPay && type != SigHash.SINGLE && type != SigHash.NONE) {
+            if (!anyoneCanPay && type != Flags.SINGLE && type != Flags.NONE) {
                 ByteArrayOutputStream bosSequence = new UnsafeByteArrayOutputStream(256);
                 for (int i = 0; i < transaction.getInputs().size(); ++i) {
                     uint32ToByteStreamLE(transaction.getInputs().get(i).getSequenceNumber(), bosSequence);
@@ -51,7 +89,7 @@ public class SigHashCalculator {
                 hashSequence = Sha256Hash.hashTwice(bosSequence.toByteArray());
             }
 
-            if (type != SigHash.SINGLE && type != SigHash.NONE) {
+            if (type != Flags.SINGLE && type != Flags.NONE) {
                 ByteArrayOutputStream bosHashOutputs = new UnsafeByteArrayOutputStream(256);
                 for (int i = 0; i < transaction.getOutputs().size(); ++i) {
                     uint64ToByteStreamLE(
@@ -62,7 +100,7 @@ public class SigHashCalculator {
                     bosHashOutputs.write(transaction.getOutputs().get(i).getScriptBytes());
                 }
                 hashOutputs = Sha256Hash.hashTwice(bosHashOutputs.toByteArray());
-            } else if (type == SigHash.SINGLE && inputIndex < transaction.getOutputs().size()) {
+            } else if (type == Flags.SINGLE && inputIndex < transaction.getOutputs().size()) {
                 ByteArrayOutputStream bosHashOutputs = new UnsafeByteArrayOutputStream(256);
                 uint64ToByteStreamLE(
                         BigInteger.valueOf(transaction.getOutputs().get(inputIndex).getValue().getValue()),
@@ -131,14 +169,14 @@ public class SigHashCalculator {
             Input input = tx.getInputs().get(inputIndex);
             input.setScriptBytes(connectedScript);
 
-            if ((sigHashType & 0x1f) == SigHash.NONE.value) {
+            if ((sigHashType & 0x1f) == Flags.NONE.value) {
                 // SIGHASH_NONE means no outputs are signed at all - the signature is effectively for a "blank cheque".
                 tx.setOutputs(new ArrayList<Output>(0));
                 // The signature isn't broken by new versions of the transaction issued by other parties.
                 for (int i = 0; i < tx.getInputs().size(); i++)
                     if (i != inputIndex)
                         tx.getInputs().get(i).setSequenceNumber(0);
-            } else if ((sigHashType & 0x1f) == SigHash.SINGLE.value) {
+            } else if ((sigHashType & 0x1f) == Flags.SINGLE.value) {
                 // SIGHASH_SINGLE means only sign the output at the same index as the input (ie, my output).
                 if (inputIndex >= tx.getOutputs().size()) {
                     // The input index is beyond the number of outputs, it's a buggy signature made by a broken
@@ -166,7 +204,7 @@ public class SigHashCalculator {
                         tx.getInputs().get(i).setSequenceNumber(0);
             }
 
-            if ((sigHashType & SigHash.ANYONECANPAY.value) == SigHash.ANYONECANPAY.value) {
+            if ((sigHashType & Flags.ANYONECANPAY.value) == Flags.ANYONECANPAY.value) {
                 // SIGHASH_ANYONECANPAY means the signature in the input is not broken by changes/additions/removals
                 // of other inputs. For example, this is useful for building assurance contracts.
                 tx.setInputs(new ArrayList<>());
@@ -241,4 +279,5 @@ public class SigHashCalculator {
                 return false;
         return true;
     }
+
 }

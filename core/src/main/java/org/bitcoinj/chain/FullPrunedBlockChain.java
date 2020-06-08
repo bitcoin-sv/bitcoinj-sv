@@ -63,52 +63,20 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     private boolean runScripts = true;
 
     /**
-     * Constructs a block chain connected to the given wallet and store. To obtain a {@link ChainEventListener} you can construct
-     * one from scratch, or you can deserialize a saved wallet from disk using
-     */
-    public FullPrunedBlockChain(Context context, ChainEventListener chainEventListener, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(context, new ArrayList<ChainEventListener>(), blockStore);
-        addChainEventListener(chainEventListener);
-    }
-
-    /**
-     * Constructs a block chain connected to the given wallet and store. To obtain a {@link ChainEventListener} you can construct
-     * one from scratch, or you can deserialize a saved wallet from disk using
-     */
-    public FullPrunedBlockChain(NetworkParameters params, ChainEventListener chainEventListener, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), chainEventListener, blockStore);
-    }
-
-    /**
      * Constructs a block chain connected to the given store.
      */
-    public FullPrunedBlockChain(Context context, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(context, new ArrayList<ChainEventListener>(), blockStore);
-    }
-
-    /**
-     * See {@link #FullPrunedBlockChain(Context, ChainEventListener, FullPrunedBlockStore)}
-     */
     public FullPrunedBlockChain(NetworkParameters params, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), blockStore);
+        this(params, new ArrayList<ChainEventListener>(), blockStore);
     }
 
     /**
      * Constructs a block chain connected to the given list of wallets and a store.
      */
-    public FullPrunedBlockChain(Context context, List<ChainEventListener> listeners, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        super(context, listeners, blockStore);
+    public FullPrunedBlockChain(NetworkParameters params, List<ChainEventListener> listeners, FullPrunedBlockStore blockStore) throws BlockStoreException {
+        super(params, listeners, blockStore);
         this.blockStore = blockStore;
         // Ignore upgrading for now
         this.chainHead = blockStore.getVerifiedChainHead();
-    }
-
-    /**
-     * See {@link #FullPrunedBlockChain(Context, List, FullPrunedBlockStore)}
-     */
-    public FullPrunedBlockChain(NetworkParameters params, List<ChainEventListener> listeners,
-                                FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), listeners, blockStore);
     }
 
     @Override

@@ -347,7 +347,7 @@ public class WalletTest extends TestWithWallet {
         Transaction t2 = req.tx;
         assertEquals("Wrong number of UNSPENT", 1, wallet.getPoolSize(WalletTransaction.Pool.UNSPENT));
         assertEquals("Wrong number of ALL", 1, wallet.getTransactions(true).size());
-        assertEquals(TransactionConfidence.Source.SELF, t2.getConfidence().getSource());
+        assertEquals(TransactionConfidence.Source.SELF, TxHelper.getConfidence(t2).getSource());
         assertEquals(Transaction.Purpose.USER_PAYMENT, t2.getPurpose());
 
         // Do some basic sanity checks.
@@ -378,7 +378,7 @@ public class WalletTest extends TestWithWallet {
         // Send some pending coins to the wallet.
         Transaction t1 = sendMoneyToWallet(wallet, null, amount, toAddress);
         Threading.waitForUserCode();
-        final ListenableFuture<TransactionConfidence> depthFuture = t1.getConfidence().getDepthFuture(1);
+        final ListenableFuture<TransactionConfidence> depthFuture = TxHelper.getConfidence(t1).getDepthFuture(1);
         assertFalse(depthFuture.isDone());
         assertEquals(ZERO, wallet.getBalance());
         assertEquals(amount, wallet.getBalance(Wallet.BalanceType.ESTIMATED));
@@ -418,8 +418,8 @@ public class WalletTest extends TestWithWallet {
             }
         });
 
-        t.getConfidence().markBroadcastBy(new PeerAddress(TestWithWallet.PARAMS, InetAddress.getByAddress(new byte[]{1,2,3,4})));
-        t.getConfidence().markBroadcastBy(new PeerAddress(TestWithWallet.PARAMS, InetAddress.getByAddress(new byte[]{10,2,3,4})));
+        TxHelper.getConfidence(t).markBroadcastBy(new PeerAddress(TestWithWallet.PARAMS, InetAddress.getByAddress(new byte[]{1,2,3,4})));
+        TxHelper.getConfidence(t).markBroadcastBy(new PeerAddress(TestWithWallet.PARAMS, InetAddress.getByAddress(new byte[]{10,2,3,4})));
         wallet.commitTx(t);
         Threading.waitForUserCode();
         assertEquals(1, wallet.getPoolSize(WalletTransaction.Pool.PENDING));
@@ -474,7 +474,7 @@ public class WalletTest extends TestWithWallet {
 
         // Do some basic sanity checks.
         assertEquals(1, t2.getInputs().size());
-        assertEquals(TransactionConfidence.ConfidenceType.UNKNOWN, t2.getConfidence().getConfidenceType());
+        assertEquals(TransactionConfidence.ConfidenceType.UNKNOWN, TxHelper.getConfidence(t2).getConfidenceType());
 
         // We have NOT proven that the signature is correct!
         wallet.commitTx(t2);
@@ -588,8 +588,8 @@ public class WalletTest extends TestWithWallet {
         assertEquals(txn[0].getHash(), tx1.getHash());
         assertEquals(ZERO, bigints[0]);
         assertEquals(oneCoin, bigints[1]);
-        assertEquals(TransactionConfidence.ConfidenceType.BUILDING, tx1.getConfidence().getConfidenceType());
-        assertEquals(1, tx1.getConfidence().getAppearedAtChainHeight());
+        assertEquals(TransactionConfidence.ConfidenceType.BUILDING, TxHelper.getConfidence(tx1).getConfidenceType());
+        assertEquals(1, TxHelper.getConfidence(tx1).getAppearedAtChainHeight());
         // Send 0.10 to somebody else.
         Transaction send1 = wallet.createSend(OTHER_ADDRESS, valueOf(0, 10));
         // Pretend it makes it into the block chain, our wallet state is cleared but we still have the keys, and we
@@ -814,8 +814,8 @@ public class WalletTest extends TestWithWallet {
                     dead.add(confidence);
             }
         };
-        send2.getConfidence().addEventListener(Threading.SAME_THREAD, listener);
-        send3.getConfidence().addEventListener(Threading.SAME_THREAD, listener);
+        TxHelper.getConfidence(send2).addEventListener(Threading.SAME_THREAD, listener);
+        TxHelper.getConfidence(send3).addEventListener(Threading.SAME_THREAD, listener);
         // Double spend!
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, send1);
         // Back to having one coin.
@@ -840,10 +840,10 @@ public class WalletTest extends TestWithWallet {
         wallet.addTransactionConfidenceEventListener(new TransactionConfidenceEventListener() {
             @Override
             public void onTransactionConfidenceChanged(Transaction tx) {
-                if (tx.getConfidence().getConfidenceType() ==
+                if (TxHelper.getConfidence(tx).getConfidenceType() ==
                         TransactionConfidence.ConfidenceType.DEAD) {
                     eventDead[0] = tx;
-                    eventReplacement[0] = tx.getConfidence().getOverridingTransaction();
+                    eventReplacement[0] = TxHelper.getConfidence(tx).getOverridingTransaction();
                 }
             }
         });
@@ -874,19 +874,19 @@ public class WalletTest extends TestWithWallet {
         assertEquals(send1, eventDead[0]);
         assertEquals(send2, eventReplacement[0]);
         assertEquals(TransactionConfidence.ConfidenceType.DEAD,
-                send1.getConfidence().getConfidenceType());
+                TxHelper.getConfidence(send1).getConfidenceType());
         assertEquals(send2, received.getOutput(0).getSpentBy().getParentTransaction());
 
         FakeTxBuilder.DoubleSpends doubleSpends = FakeTxBuilder.createFakeDoubleSpendTxns(TestWithWallet.NET, myAddress);
         // t1 spends to our wallet. t2 double spends somewhere else.
         wallet.receivePending(doubleSpends.t1, null);
         Assert.assertEquals(TransactionConfidence.ConfidenceType.PENDING,
-                doubleSpends.t1.getConfidence().getConfidenceType());
+                TxHelper.getConfidence(doubleSpends.t1).getConfidenceType());
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, doubleSpends.t2);
         Threading.waitForUserCode();
         Assert.assertEquals(TransactionConfidence.ConfidenceType.DEAD,
-                doubleSpends.t1.getConfidence().getConfidenceType());
-        Assert.assertEquals(doubleSpends.t2, doubleSpends.t1.getConfidence().getOverridingTransaction());
+                TxHelper.getConfidence(doubleSpends.t1).getConfidenceType());
+        Assert.assertEquals(doubleSpends.t2, TxHelper.getConfidence(doubleSpends.t1).getOverridingTransaction());
         assertEquals(5, eventWalletChanged[0]);
     }
 
@@ -1172,27 +1172,27 @@ public class WalletTest extends TestWithWallet {
     }
 
     private void assertInConflict(Transaction tx) {
-        assertEquals(ConfidenceType.IN_CONFLICT, tx.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.IN_CONFLICT, TxHelper.getConfidence(tx).getConfidenceType());
         assertTrue(wallet.poolContainsTxHash(WalletTransaction.Pool.PENDING, tx.getHash()));
     }
 
     private void assertPending(Transaction tx) {
-        assertEquals(ConfidenceType.PENDING, tx.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.PENDING, TxHelper.getConfidence(tx).getConfidenceType());
         assertTrue(wallet.poolContainsTxHash(WalletTransaction.Pool.PENDING, tx.getHash()));
     }
 
     private void assertSpent(Transaction tx) {
-        assertEquals(ConfidenceType.BUILDING, tx.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.BUILDING, TxHelper.getConfidence(tx).getConfidenceType());
         assertTrue(wallet.poolContainsTxHash(WalletTransaction.Pool.SPENT, tx.getHash()));
     }
 
     private void assertUnspent(Transaction tx) {
-        assertEquals(ConfidenceType.BUILDING, tx.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.BUILDING, TxHelper.getConfidence(tx).getConfidenceType());
         assertTrue(wallet.poolContainsTxHash(WalletTransaction.Pool.UNSPENT, tx.getHash()));
     }
 
     private void assertDead(Transaction tx) {
-        assertEquals(ConfidenceType.DEAD, tx.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.DEAD, TxHelper.getConfidence(tx).getConfidenceType());
         assertTrue(wallet.poolContainsTxHash(WalletTransaction.Pool.DEAD, tx.getHash()));
     }
 
@@ -1327,7 +1327,7 @@ public class WalletTest extends TestWithWallet {
         // Make a fresh copy of the tx to ensure we're testing realistically.
         flags[0] = flags[1] = false;
         final TransactionConfidence.Listener.ChangeReason[] reasons = new TransactionConfidence.Listener.ChangeReason[1];
-        notifiedTx[0].getConfidence().addEventListener(new TransactionConfidence.Listener() {
+        TxHelper.getConfidence(notifiedTx[0]).addEventListener(new TransactionConfidence.Listener() {
             @Override
             public void onConfidenceChanged(TransactionConfidence confidence, TransactionConfidence.Listener.ChangeReason reason) {
                 flags[1] = true;
@@ -1335,7 +1335,7 @@ public class WalletTest extends TestWithWallet {
             }
         });
         assertEquals(TransactionConfidence.ConfidenceType.PENDING,
-                notifiedTx[0].getConfidence().getConfidenceType());
+                TxHelper.getConfidence(notifiedTx[0]).getConfidenceType());
         // Send a block with nothing interesting. Verify we don't get a callback.
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN);
         Threading.waitForUserCode();
@@ -1345,7 +1345,7 @@ public class WalletTest extends TestWithWallet {
         Threading.waitForUserCode();
         assertFalse(flags[0]);
         assertTrue(flags[1]);
-        assertEquals(TransactionConfidence.ConfidenceType.BUILDING, notifiedTx[0].getConfidence().getConfidenceType());
+        assertEquals(TransactionConfidence.ConfidenceType.BUILDING, TxHelper.getConfidence(notifiedTx[0]).getConfidenceType());
         // Check we don't get notified about an irrelevant transaction.
         flags[0] = false;
         flags[1] = false;
@@ -1421,10 +1421,10 @@ public class WalletTest extends TestWithWallet {
         wallet.addTransactionConfidenceEventListener(new TransactionConfidenceEventListener() {
             @Override
             public void onTransactionConfidenceChanged(Transaction tx) {
-                if (tx.getConfidence().getConfidenceType() ==
+                if (TxHelper.getConfidence(tx).getConfidenceType() ==
                         TransactionConfidence.ConfidenceType.DEAD) {
                     called[0] = tx;
-                    called[1] = tx.getConfidence().getOverridingTransaction();
+                    called[1] = TxHelper.getConfidence(tx).getOverridingTransaction();
                 }
             }
         });
@@ -1577,7 +1577,7 @@ public class WalletTest extends TestWithWallet {
         // TODO: This code is messy, improve the Script class and fixinate!
         assertEquals(t2.toString(), 1, t2.getInputs().get(0).getScriptSig().getChunks().size());
         assertTrue(t2.getInputs().get(0).getScriptSig().getChunks().get(0).data.length() > 50);
-        log.info(t2.toString(chain));
+        log.info(t2.toString());
     }
 
     @Test
@@ -2377,13 +2377,13 @@ public class WalletTest extends TestWithWallet {
 
         assertTrue(TxHelper.isMine(txCent.getOutput(0), wallet));
         assertTrue(txCent.getOutput(0).isAvailableForSpending());
-        assertEquals(199, txCent.getConfidence().getDepthInBlocks());
+        assertEquals(199, TxHelper.getConfidence(txCent).getDepthInBlocks());
         assertTrue(TxHelper.isMine(txCoin.getOutput(0), wallet));
         assertTrue(txCoin.getOutput(0).isAvailableForSpending());
-        assertEquals(1, txCoin.getConfidence().getDepthInBlocks());
+        assertEquals(1, TxHelper.getConfidence(txCoin).getDepthInBlocks());
         // txCent has higher coin*depth than txCoin...
-        assertTrue(txCent.getOutput(0).getValue().multiply(txCent.getConfidence().getDepthInBlocks())
-                .isGreaterThan(txCoin.getOutput(0).getValue().multiply(txCoin.getConfidence().getDepthInBlocks())));
+        assertTrue(txCent.getOutput(0).getValue().multiply(TxHelper.getConfidence(txCent).getDepthInBlocks())
+                .isGreaterThan(txCoin.getOutput(0).getValue().multiply(TxHelper.getConfidence(txCoin).getDepthInBlocks())));
         // ...so txCent should be selected
         Transaction spend1 = wallet.createSend(OTHER_ADDRESS, CENT);
         assertEquals(1, spend1.getInputs().size());
@@ -2392,13 +2392,13 @@ public class WalletTest extends TestWithWallet {
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN);
         assertTrue(TxHelper.isMine(txCent.getOutput(0), wallet));
         assertTrue(txCent.getOutput(0).isAvailableForSpending());
-        assertEquals(200, txCent.getConfidence().getDepthInBlocks());
+        assertEquals(200, TxHelper.getConfidence(txCent).getDepthInBlocks());
         assertTrue(TxHelper.isMine(txCoin.getOutput(0), wallet));
         assertTrue(txCoin.getOutput(0).isAvailableForSpending());
-        assertEquals(2, txCoin.getConfidence().getDepthInBlocks());
+        assertEquals(2, TxHelper.getConfidence(txCoin).getDepthInBlocks());
         // Now txCent and txCoin have exactly the same coin*depth...
-        assertEquals(txCent.getOutput(0).getValue().multiply(txCent.getConfidence().getDepthInBlocks()),
-                txCoin.getOutput(0).getValue().multiply(txCoin.getConfidence().getDepthInBlocks()));
+        assertEquals(txCent.getOutput(0).getValue().multiply(TxHelper.getConfidence(txCent).getDepthInBlocks()),
+                txCoin.getOutput(0).getValue().multiply(TxHelper.getConfidence(txCoin).getDepthInBlocks()));
         // ...so the larger txCoin should be selected
         Transaction spend2 = wallet.createSend(OTHER_ADDRESS, COIN);
         assertEquals(1, spend2.getInputs().size());
@@ -2407,13 +2407,13 @@ public class WalletTest extends TestWithWallet {
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN);
         assertTrue(TxHelper.isMine(txCent.getOutput(0), wallet));
         assertTrue(txCent.getOutput(0).isAvailableForSpending());
-        assertEquals(201, txCent.getConfidence().getDepthInBlocks());
+        assertEquals(201, TxHelper.getConfidence(txCent).getDepthInBlocks());
         assertTrue(TxHelper.isMine(txCoin.getOutput(0), wallet));
         assertTrue(txCoin.getOutput(0).isAvailableForSpending());
-        assertEquals(3, txCoin.getConfidence().getDepthInBlocks());
+        assertEquals(3, TxHelper.getConfidence(txCoin).getDepthInBlocks());
         // Now txCent has lower coin*depth than txCoin...
-        assertTrue(txCent.getOutput(0).getValue().multiply(txCent.getConfidence().getDepthInBlocks())
-                .isLessThan(txCoin.getOutput(0).getValue().multiply(txCoin.getConfidence().getDepthInBlocks())));
+        assertTrue(txCent.getOutput(0).getValue().multiply(TxHelper.getConfidence(txCent).getDepthInBlocks())
+                .isLessThan(txCoin.getOutput(0).getValue().multiply(TxHelper.getConfidence(txCoin).getDepthInBlocks())));
         // ...so txCoin should be selected
         Transaction spend3 = wallet.createSend(OTHER_ADDRESS, COIN);
         assertEquals(1, spend3.getInputs().size());

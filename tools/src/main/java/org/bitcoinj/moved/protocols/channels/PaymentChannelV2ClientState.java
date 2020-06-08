@@ -22,14 +22,15 @@ import com.google.common.collect.MultimapBuilder;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.moved.wallet.AllowUnconfirmedCoinSelector;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.slf4j.Logger;
@@ -149,12 +150,12 @@ public class PaymentChannelV2ClientState extends PaymentChannelClientState {
 
         TransactionSignature refundSignature = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
                 refundTx.calculateForkIdSignature(0, myKey.maybeDecrypt(userKey),
-                        getSignedScript(), refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.ALL, false) :
+                        getSignedScript(), refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.Flags.ALL, false) :
                 refundTx.calculateLegacySignature(0, myKey.maybeDecrypt(userKey),
-                        getSignedScript(), SigHash.ALL, false);
+                        getSignedScript(), SigHash.Flags.ALL, false);
         refundTx.getInput(0).setScriptSig(ScriptBuilder.createCLTVPaymentChannelP2SHRefund(refundSignature, redeemScript));
 
-        refundTx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+        TxHelper.getConfidence(refundTx).setSource(TransactionConfidence.Source.SELF);
         log.info("initiated channel with contract {}", contract.getHashAsString());
         stateMachine.transition(State.SAVE_STATE_IN_WALLET);
         // Client should now call getIncompleteRefundTransaction() and send it to the server.

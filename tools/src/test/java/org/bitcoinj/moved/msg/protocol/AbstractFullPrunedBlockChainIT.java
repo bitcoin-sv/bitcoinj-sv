@@ -236,7 +236,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         
         store = createStore(params, 10);
         resetStore(store);
-        chain = new FullPrunedBlockChain(context, store);
+        chain = new FullPrunedBlockChain(params, store);
         for (Block block : loader)
             chain.add(block);
         try {

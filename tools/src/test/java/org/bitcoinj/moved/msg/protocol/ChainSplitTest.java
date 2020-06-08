@@ -26,6 +26,7 @@ import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
@@ -202,16 +203,16 @@ public class ChainSplitTest {
         wallet.commitTx(spend);
         // Waiting for confirmation ... make it eligible for selection.
         assertEquals(Coin.ZERO, wallet.getBalance());
-        spend.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByAddress(new byte[]{1, 2, 3, 4})));
-        spend.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByAddress(new byte[]{5,6,7,8})));
-        assertEquals(ConfidenceType.PENDING, spend.getConfidence().getConfidenceType());
+        TxHelper.getConfidence(spend).markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByAddress(new byte[]{1, 2, 3, 4})));
+        TxHelper.getConfidence(spend).markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByAddress(new byte[]{5,6,7,8})));
+        assertEquals(ConfidenceType.PENDING, TxHelper.getConfidence(spend).getConfidenceType());
         assertEquals(valueOf(40, 0), wallet.getBalance());
         Block b2 = b1.createNextBlock(someOtherGuy);
         b2.addTransaction(spend);
         b2.solve();
         chain.add(roundtrip(b2));
         // We have 40 coins in change.
-        assertEquals(ConfidenceType.BUILDING, spend.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.BUILDING, TxHelper.getConfidence(spend).getConfidenceType());
         // genesis -> b1 (receive coins) -> b2 (spend coins)
         //                               \-> b3 -> b4
         Block b3 = b1.createNextBlock(someOtherGuy);
@@ -220,7 +221,7 @@ public class ChainSplitTest {
         chain.add(b4);
         // b4 causes a re-org that should make our spend go pending again.
         assertEquals(valueOf(40, 0), wallet.getBalance(Wallet.BalanceType.ESTIMATED));
-        assertEquals(ConfidenceType.PENDING, spend.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.PENDING, TxHelper.getConfidence(spend).getConfidenceType());
     }
 
     @Test
@@ -247,12 +248,12 @@ public class ChainSplitTest {
         // The external spend is now pending.
         assertEquals(ZERO, wallet.getBalance());
         Transaction tx = wallet.getTransaction(spend.getHash());
-        assertEquals(ConfidenceType.PENDING, tx.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.PENDING, TxHelper.getConfidence(tx).getConfidenceType());
         Block b4 = b3.createNextBlock(someOtherGuy);
         chain.add(b4);
         // The external spend is now active.
         assertEquals(ZERO, wallet.getBalance());
-        assertEquals(ConfidenceType.BUILDING, tx.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.BUILDING, TxHelper.getConfidence(tx).getConfidenceType());
     }
 
     @Test
@@ -313,7 +314,7 @@ public class ChainSplitTest {
         wallet.addTransactionConfidenceEventListener(new TransactionConfidenceEventListener() {
             @Override
             public void onTransactionConfidenceChanged(Transaction tx) {
-                if (tx.getConfidence().getConfidenceType() == TransactionConfidence.ConfidenceType.DEAD)
+                if (TxHelper.getConfidence(tx).getConfidenceType() == TransactionConfidence.ConfidenceType.DEAD)
                     eventCalled[0] = true;
             }
         });
@@ -353,9 +354,9 @@ public class ChainSplitTest {
         wallet.addTransactionConfidenceEventListener(new TransactionConfidenceEventListener() {
             @Override
             public void onTransactionConfidenceChanged(Transaction tx) {
-                if (tx.getConfidence().getConfidenceType() == TransactionConfidence.ConfidenceType.DEAD) {
+                if (TxHelper.getConfidence(tx).getConfidenceType() == TransactionConfidence.ConfidenceType.DEAD) {
                     eventDead[0] = tx;
-                    eventReplacement[0] = tx.getConfidence().getOverridingTransaction();
+                    eventReplacement[0] = TxHelper.getConfidence(tx).getOverridingTransaction();
                 }
             }
         });
@@ -403,8 +404,8 @@ public class ChainSplitTest {
         // mempool by this point).
         t1 = checkNotNull(wallet.getTransaction(t1.getHash()));
         t2 = checkNotNull(wallet.getTransaction(t2.getHash()));
-        assertEquals(ConfidenceType.DEAD, t1.getConfidence().getConfidenceType());
-        assertEquals(ConfidenceType.PENDING, t2.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.DEAD, TxHelper.getConfidence(t1).getConfidenceType());
+        assertEquals(ConfidenceType.PENDING, TxHelper.getConfidence(t2).getConfidenceType());
     }
 
     @Test
@@ -434,13 +435,13 @@ public class ChainSplitTest {
         // Check the transaction confidence levels are correct.
         assertEquals(3, txns.size());
 
-        assertEquals(1, txns.get(0).getConfidence().getAppearedAtChainHeight());
-        assertEquals(2, txns.get(1).getConfidence().getAppearedAtChainHeight());
-        assertEquals(3, txns.get(2).getConfidence().getAppearedAtChainHeight());
+        assertEquals(1, TxHelper.getConfidence(txns.get(0)).getAppearedAtChainHeight());
+        assertEquals(2, TxHelper.getConfidence(txns.get(1)).getAppearedAtChainHeight());
+        assertEquals(3, TxHelper.getConfidence(txns.get(2)).getAppearedAtChainHeight());
 
-        assertEquals(3, txns.get(0).getConfidence().getDepthInBlocks());
-        assertEquals(2, txns.get(1).getConfidence().getDepthInBlocks());
-        assertEquals(1, txns.get(2).getConfidence().getDepthInBlocks());
+        assertEquals(3, TxHelper.getConfidence(txns.get(0)).getDepthInBlocks());
+        assertEquals(2, TxHelper.getConfidence(txns.get(1)).getDepthInBlocks());
+        assertEquals(1, TxHelper.getConfidence(txns.get(2)).getDepthInBlocks());
 
         // We now have the following chain:
         //     genesis -> b1 -> b2 -> b3
@@ -462,13 +463,13 @@ public class ChainSplitTest {
         Threading.waitForUserCode();
         assertEquals(3, txns.size());
 
-        assertEquals(1, txns.get(0).getConfidence().getAppearedAtChainHeight());
-        assertEquals(2, txns.get(1).getConfidence().getAppearedAtChainHeight());
-        assertEquals(3, txns.get(2).getConfidence().getAppearedAtChainHeight());
+        assertEquals(1, TxHelper.getConfidence(txns.get(0)).getAppearedAtChainHeight());
+        assertEquals(2, TxHelper.getConfidence(txns.get(1)).getAppearedAtChainHeight());
+        assertEquals(3, TxHelper.getConfidence(txns.get(2)).getAppearedAtChainHeight());
 
-        assertEquals(3, txns.get(0).getConfidence().getDepthInBlocks());
-        assertEquals(2, txns.get(1).getConfidence().getDepthInBlocks());
-        assertEquals(1, txns.get(2).getConfidence().getDepthInBlocks());
+        assertEquals(3, TxHelper.getConfidence(txns.get(0)).getDepthInBlocks());
+        assertEquals(2, TxHelper.getConfidence(txns.get(1)).getDepthInBlocks());
+        assertEquals(1, TxHelper.getConfidence(txns.get(2)).getDepthInBlocks());
 
         // Now we add another block to make the alternative chain longer.
         Block b6 = b5.createNextBlock(someOtherGuy);
@@ -480,16 +481,16 @@ public class ChainSplitTest {
         //
 
         assertEquals(3, txns.size());
-        assertEquals(1, txns.get(0).getConfidence().getAppearedAtChainHeight());
-        assertEquals(4, txns.get(0).getConfidence().getDepthInBlocks());
+        assertEquals(1, TxHelper.getConfidence(txns.get(0)).getAppearedAtChainHeight());
+        assertEquals(4, TxHelper.getConfidence(txns.get(0)).getDepthInBlocks());
 
         // Transaction 1 (in block b2) is now on a side chain, so it goes pending (not see in chain).
-        assertEquals(ConfidenceType.PENDING, txns.get(1).getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.PENDING, TxHelper.getConfidence(txns.get(1)).getConfidenceType());
         try {
-            txns.get(1).getConfidence().getAppearedAtChainHeight();
+            TxHelper.getConfidence(txns.get(1)).getAppearedAtChainHeight();
             fail();
         } catch (IllegalStateException e) {}
-        assertEquals(0, txns.get(1).getConfidence().getDepthInBlocks());
+        assertEquals(0, TxHelper.getConfidence(txns.get(1)).getDepthInBlocks());
 
         // ... and back to the first chain.
         Block b7 = b3.createNextBlock(coinsTo);
@@ -508,13 +509,13 @@ public class ChainSplitTest {
         // during the re-org.
         //assertEquals(5, txns.size());
 
-        assertEquals(1, txns.get(0).getConfidence().getAppearedAtChainHeight());
-        assertEquals(2, txns.get(1).getConfidence().getAppearedAtChainHeight());
-        assertEquals(3, txns.get(2).getConfidence().getAppearedAtChainHeight());
+        assertEquals(1, TxHelper.getConfidence(txns.get(0)).getAppearedAtChainHeight());
+        assertEquals(2, TxHelper.getConfidence(txns.get(1)).getAppearedAtChainHeight());
+        assertEquals(3, TxHelper.getConfidence(txns.get(2)).getAppearedAtChainHeight());
 
-        assertEquals(5, txns.get(0).getConfidence().getDepthInBlocks());
-        assertEquals(4, txns.get(1).getConfidence().getDepthInBlocks());
-        assertEquals(3, txns.get(2).getConfidence().getDepthInBlocks());
+        assertEquals(5, TxHelper.getConfidence(txns.get(0)).getDepthInBlocks());
+        assertEquals(4, TxHelper.getConfidence(txns.get(1)).getDepthInBlocks());
+        assertEquals(3, TxHelper.getConfidence(txns.get(2)).getDepthInBlocks());
 
         assertEquals(Coin.valueOf(250, 0), wallet.getBalance());
 
@@ -524,9 +525,9 @@ public class ChainSplitTest {
         chain.add(b9);
         chain.add(b10);
         BigInteger extraWork = b9.getWork().add(b10.getWork());
-        assertEquals(7, txns.get(0).getConfidence().getDepthInBlocks());
-        assertEquals(6, txns.get(1).getConfidence().getDepthInBlocks());
-        assertEquals(5, txns.get(2).getConfidence().getDepthInBlocks());
+        assertEquals(7, TxHelper.getConfidence(txns.get(0)).getDepthInBlocks());
+        assertEquals(6, TxHelper.getConfidence(txns.get(1)).getDepthInBlocks());
+        assertEquals(5, TxHelper.getConfidence(txns.get(2)).getDepthInBlocks());
     }
 
     @Test
@@ -598,7 +599,7 @@ public class ChainSplitTest {
 
         // Check the coinbase transaction is building and in the unspent pool only.
         final Transaction coinbase = txns.get(0);
-        assertEquals(ConfidenceType.BUILDING, coinbase.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.BUILDING, TxHelper.getConfidence(coinbase).getConfidenceType());
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.PENDING, coinbase.getHash()));
         assertTrue(wallet.poolContainsTxHash(WalletTransaction.Pool.UNSPENT, coinbase.getHash()));
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.SPENT, coinbase.getHash()));
@@ -614,7 +615,7 @@ public class ChainSplitTest {
         Transaction fodder = wallet.createSend(new ECKey().toAddress(PARAMS), FIFTY_COINS);
         wallet.commitTx(fodder);
         final AtomicBoolean fodderIsDead = new AtomicBoolean(false);
-        fodder.getConfidence().addEventListener(Threading.SAME_THREAD, new TransactionConfidence.Listener() {
+        TxHelper.getConfidence(fodder).addEventListener(Threading.SAME_THREAD, new TransactionConfidence.Listener() {
             @Override
             public void onConfidenceChanged(TransactionConfidence confidence, ChangeReason reason) {
                 fodderIsDead.set(confidence.getConfidenceType() == ConfidenceType.DEAD);
@@ -646,7 +647,7 @@ public class ChainSplitTest {
 
         // Transaction 1 (in block b2) is now on a side chain and should have confidence type of dead and be in
         // the dead pool only.
-        assertEquals(TransactionConfidence.ConfidenceType.DEAD, coinbase.getConfidence().getConfidenceType());
+        assertEquals(TransactionConfidence.ConfidenceType.DEAD, TxHelper.getConfidence(coinbase).getConfidenceType());
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.PENDING, coinbase.getHash()));
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.UNSPENT, coinbase.getHash()));
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.SPENT, coinbase.getHash()));
@@ -668,7 +669,7 @@ public class ChainSplitTest {
         //
 
         // The coinbase transaction should now have confidence type of building once more and in the unspent pool only.
-        assertEquals(TransactionConfidence.ConfidenceType.BUILDING, coinbase.getConfidence().getConfidenceType());
+        assertEquals(TransactionConfidence.ConfidenceType.BUILDING, TxHelper.getConfidence(coinbase).getConfidenceType());
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.PENDING, coinbase.getHash()));
         assertTrue(wallet.poolContainsTxHash(WalletTransaction.Pool.UNSPENT, coinbase.getHash()));
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.SPENT, coinbase.getHash()));
@@ -691,7 +692,7 @@ public class ChainSplitTest {
         //
 
         // The coinbase transaction should now have the confidence type of dead and be in the dead pool only.
-        assertEquals(TransactionConfidence.ConfidenceType.DEAD, coinbase.getConfidence().getConfidenceType());
+        assertEquals(TransactionConfidence.ConfidenceType.DEAD, TxHelper.getConfidence(coinbase).getConfidenceType());
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.PENDING, coinbase.getHash()));
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.UNSPENT, coinbase.getHash()));
         assertTrue(!wallet.poolContainsTxHash(WalletTransaction.Pool.SPENT, coinbase.getHash()));

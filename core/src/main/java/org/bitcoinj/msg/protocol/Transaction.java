@@ -17,12 +17,11 @@
 
 package org.bitcoinj.msg.protocol;
 
-import org.bitcoinj.chain.AbstractBlockChain;
+//import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
@@ -84,10 +83,10 @@ public class Transaction extends ChildMessage {
     public static final Comparator<Transaction> SORT_TX_BY_HEIGHT = new Comparator<Transaction>() {
         @Override
         public int compare(final Transaction tx1, final Transaction tx2) {
-            final TransactionConfidence confidence1 = tx1.getConfidence();
+            final TransactionConfidence confidence1 = TxHelper.getConfidence(tx1);
             final int height1 = confidence1.getConfidenceType() == ConfidenceType.BUILDING
                     ? confidence1.getAppearedAtChainHeight() : Block.BLOCK_HEIGHT_UNKNOWN;
-            final TransactionConfidence confidence2 = tx2.getConfidence();
+            final TransactionConfidence confidence2 = TxHelper.getConfidence(tx2);
             final int height2 = confidence2.getConfidenceType() == ConfidenceType.BUILDING
                     ? confidence2.getAppearedAtChainHeight() : Block.BLOCK_HEIGHT_UNKNOWN;
             final int heightComparison = -(Ints.compare(height1, height2));
@@ -128,7 +127,8 @@ public class Transaction extends ChildMessage {
     private Sha256Hash hash;
 
     // Data about how confirmed this tx is. Serialized, may be null.
-    @Nullable private TransactionConfidence confidence;
+    @Nullable
+    TransactionConfidence confidence;
 
     // Records a map of which blocks the transaction has appeared in (keys) to an index within that block (values).
     // The "index" is not a real index, instead the values are only meaningful relative to each other. For example,
@@ -286,7 +286,7 @@ public class Transaction extends ChildMessage {
      * @return true if this transaction hasn't been seen in any block yet.
      */
     public boolean isPending() {
-        return getConfidence().getConfidenceType() == TransactionConfidence.ConfidenceType.PENDING;
+        return TxHelper.getConfidence(this).getConfidenceType() == TransactionConfidence.ConfidenceType.PENDING;
     }
 
     /**
@@ -312,7 +312,7 @@ public class Transaction extends ChildMessage {
         addBlockAppearance(block.getHeader().getHash(), relativityOffset);
 
         if (bestChain) {
-            TransactionConfidence transactionConfidence = getConfidence();
+            TransactionConfidence transactionConfidence = TxHelper.getConfidence(this);
             // This sets type to BUILDING and depth to one.
             transactionConfidence.setAppearedAtChainHeight(block.getHeight());
         }
@@ -549,22 +549,21 @@ public class Transaction extends ChildMessage {
         if (!isCoinBase())
             return true;
 
-        if (getConfidence().getConfidenceType() != ConfidenceType.BUILDING)
+        if (TxHelper.getConfidence(this).getConfidenceType() != ConfidenceType.BUILDING)
             return false;
 
-        return getConfidence().getDepthInBlocks() >= net.params().getSpendableCoinbaseDepth();
+        return TxHelper.getConfidence(this).getDepthInBlocks() >= net.params().getSpendableCoinbaseDepth();
     }
 
-    @Override
-    public String toString() {
-        return toString(null);
-    }
+//    @Override
+//    public String toString() {
+//        return toString(null);
+//    }
 
     /**
      * A human readable version of the transaction useful for debugging. The format is not guaranteed to be stable.
-     * @param chain If provided, will be used to estimate lock times (if set). Can be null.
      */
-    public String toString(@Nullable AbstractBlockChain chain) {
+    public String toString() {
         if (!parsed)
             return "Unparsed transaction";
         StringBuilder s = new StringBuilder();
@@ -577,10 +576,10 @@ public class Transaction extends ChildMessage {
             s.append("  time locked until ");
             if (lockTime < BitcoinJ.LOCKTIME_THRESHOLD) {
                 s.append("block ").append(lockTime);
-                if (chain != null) {
-                    s.append(" (estimated to be reached at ")
-                            .append(Utils.dateTimeFormat(chain.estimateBlockTime((int) lockTime))).append(')');
-                }
+//                if (chain != null) {
+//                    s.append(" (estimated to be reached at ")
+//                            .append(Utils.dateTimeFormat(chain.estimateBlockTime((int) lockTime))).append(')');
+//                }
             } else {
                 s.append(Utils.dateTimeFormat(lockTime * 1000));
             }
@@ -765,7 +764,7 @@ public class Transaction extends ChildMessage {
 
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForLegacySignature(Transaction, int, byte[], SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForLegacySignature(Transaction, int, byte[], SigHash.Flags, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}. The key
      * must be usable for signing as-is: if the key is encrypted it must be decrypted first external to this method.
      *
@@ -778,7 +777,7 @@ public class Transaction extends ChildMessage {
      */
     public TransactionSignature calculateLegacySignature(int inputIndex, ECKey key,
                                                          byte[] redeemScript,
-                                                         SigHash hashType, boolean anyoneCanPay) {
+                                                         SigHash.Flags hashType, boolean anyoneCanPay) {
         Sha256Hash hash = hashForLegacySignature(this, inputIndex, redeemScript, hashType, anyoneCanPay);
         return new TransactionSignature(key.sign(hash), hashType, anyoneCanPay);
     }
@@ -787,15 +786,15 @@ public class Transaction extends ChildMessage {
             ECKey key,
             byte[] redeemScript,
             Coin value,
-            SigHash hashType,
+            SigHash.Flags hashType,
             boolean anyoneCanPay)
     {
-        Sha256Hash hash = SigHashCalculator.hashForForkIdSignature(Translate.toTx(this), inputIndex, redeemScript, value, hashType, anyoneCanPay);
+        Sha256Hash hash = SigHash.hashForForkIdSignature(Translate.toTx(this), inputIndex, redeemScript, value, hashType, anyoneCanPay);
         return new TransactionSignature(key.sign(hash), hashType, anyoneCanPay, true);
     }
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForLegacySignature(Transaction, int, byte[], SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForLegacySignature(Transaction, int, byte[], SigHash.Flags, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}.
      *
      * @param inputIndex Which input to calculate the signature for, as an index.
@@ -807,7 +806,7 @@ public class Transaction extends ChildMessage {
      */
     public TransactionSignature calculateLegacySignature(int inputIndex, ECKey key,
                                                          Script redeemScript,
-                                                         SigHash hashType, boolean anyoneCanPay) {
+                                                         SigHash.Flags hashType, boolean anyoneCanPay) {
         Sha256Hash hash = hashForLegacySignature(this, inputIndex, redeemScript.getProgram(), hashType, anyoneCanPay);
         return new TransactionSignature(key.sign(hash), hashType, anyoneCanPay);
     }
@@ -816,10 +815,10 @@ public class Transaction extends ChildMessage {
             ECKey key,
             Script redeemScript,
             Coin value,
-            SigHash hashType,
+            SigHash.Flags hashType,
             boolean anyoneCanPay)
     {
-        Sha256Hash hash = SigHashCalculator.hashForForkIdSignature(Translate.toTx(this), inputIndex, redeemScript.getProgram(), value, hashType, anyoneCanPay);
+        Sha256Hash hash = SigHash.hashForForkIdSignature(Translate.toTx(this), inputIndex, redeemScript.getProgram(), value, hashType, anyoneCanPay);
         return new TransactionSignature(key.sign(hash), hashType, anyoneCanPay, true);
     }
 
@@ -839,9 +838,9 @@ public class Transaction extends ChildMessage {
      * @param anyoneCanPay should be false.
      */
     public static Sha256Hash hashForLegacySignature(Transaction transaction, int inputIndex, byte[] redeemScript,
-                                                    SigHash type, boolean anyoneCanPay) {
+                                                    SigHash.Flags type, boolean anyoneCanPay) {
         byte sigHashType = (byte) TransactionSignature.calcSigHashValue(type, anyoneCanPay);
-        return SigHashCalculator.hashForLegacySignature(Translate.toTx(transaction), inputIndex, redeemScript, sigHashType);
+        return SigHash.hashForLegacySignature(Translate.toTx(transaction), inputIndex, redeemScript, sigHashType);
     }
 
     /**
@@ -860,9 +859,9 @@ public class Transaction extends ChildMessage {
      * @param anyoneCanPay should be false.
      */
     public static Sha256Hash hashForLegacySignature(Transaction transaction, int inputIndex, Script redeemScript,
-                                                    SigHash type, boolean anyoneCanPay) {
+                                                    SigHash.Flags type, boolean anyoneCanPay) {
         int sigHash = TransactionSignature.calcSigHashValue(type, anyoneCanPay);
-        return SigHashCalculator.hashForLegacySignature(Translate.toTx(transaction), inputIndex, redeemScript.getProgram(), (byte) sigHash);
+        return SigHash.hashForLegacySignature(Translate.toTx(transaction), inputIndex, redeemScript.getProgram(), (byte) sigHash);
     }
 
     /**
@@ -884,11 +883,11 @@ public class Transaction extends ChildMessage {
             int inputIndex,
             Script scriptCode,
             Coin prevValue,
-            SigHash type,
+            SigHash.Flags type,
             boolean anyoneCanPay)
     {
         byte[] connectedScript = scriptCode.getProgram();
-        return SigHashCalculator.hashForForkIdSignature(Translate.toTx(this), inputIndex, connectedScript, prevValue, type, anyoneCanPay);
+        return SigHash.hashForForkIdSignature(Translate.toTx(this), inputIndex, connectedScript, prevValue, type, anyoneCanPay);
     }
 
     @Override
@@ -986,36 +985,6 @@ public class Transaction extends ChildMessage {
     public TransactionOutput getOutput(long index) {
         maybeParse();
         return outputs.get((int)index);
-    }
-
-    /**
-     * Returns the confidence object for this transaction from the {@link org.bitcoinj.core.TxConfidenceTable}
-     * referenced by the implicit {@link Context}.
-     */
-    public TransactionConfidence getConfidence() {
-        return getConfidence(Context.get());
-    }
-
-    /**
-     * Returns the confidence object for this transaction from the {@link org.bitcoinj.core.TxConfidenceTable}
-     * referenced by the given {@link Context}.
-     */
-    public TransactionConfidence getConfidence(Context context) {
-        return getConfidence(context.getConfidenceTable());
-    }
-
-    /**
-     * Returns the confidence object for this transaction from the {@link org.bitcoinj.core.TxConfidenceTable}
-     */
-    public TransactionConfidence getConfidence(TxConfidenceTable table) {
-        if (confidence == null)
-            confidence = table.getOrCreate(getHash()) ;
-        return confidence;
-    }
-
-    /** Check if the transaction has a known confidence */
-    public boolean hasConfidence() {
-        return getConfidence().getConfidenceType() != TransactionConfidence.ConfidenceType.UNKNOWN;
     }
 
     @Override
@@ -1162,16 +1131,16 @@ public class Transaction extends ChildMessage {
         return time < (time < BitcoinJ.LOCKTIME_THRESHOLD ? height : blockTimeSeconds) || !isTimeLocked();
     }
 
-    /**
-     * Returns either the lock time as a date, if it was specified in seconds, or an estimate based on the time in
-     * the current head block if it was specified as a block time.
-     */
-    public Date estimateLockTime(AbstractBlockChain chain) {
-        if (lockTime < BitcoinJ.LOCKTIME_THRESHOLD)
-            return chain.estimateBlockTime((int)getLockTime());
-        else
-            return new Date(getLockTime()*1000);
-    }
+//    /**
+//     * Returns either the lock time as a date, if it was specified in seconds, or an estimate based on the time in
+//     * the current head block if it was specified as a block time.
+//     */
+//    public Date estimateLockTime(AbstractBlockChain chain) {
+//        if (lockTime < BitcoinJ.LOCKTIME_THRESHOLD)
+//            return chain.estimateBlockTime((int)getLockTime());
+//        else
+//            return new Date(getLockTime()*1000);
+//    }
 
     /**
      * Returns the purpose for which this transaction was created. See the javadoc for {@link Purpose} for more

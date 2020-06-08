@@ -20,6 +20,13 @@ public class BitcoinJ {
     public static final Coin DEFAULT_TX_FEE = Coin.valueOf(5000); // 0.5 mBTC
 
     /**
+     * The event horizon is the number of blocks after which various bits of the library consider a transaction to be
+     * so confirmed that it's safe to delete data. Re-orgs larger than the event horizon will not be correctly
+     * processed, so the default value is high (100).
+     */
+    public static final int EVENT_HORIZON = 100;
+
+    /**
      * If feePerKb is lower than this, Bitcoin Core will treat it as if there were no fee.
      */
     public static final Coin REFERENCE_DEFAULT_MIN_TX_FEE = Coin.valueOf(1000); // 0.01 mBTC

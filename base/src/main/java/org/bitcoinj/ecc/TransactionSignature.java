@@ -18,6 +18,8 @@ package org.bitcoinj.ecc;
 
 import org.bitcoinj.exception.VerificationException;
 import com.google.common.base.Preconditions;
+import org.bitcoinj.script.SigHash;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -37,7 +39,7 @@ public class TransactionSignature extends ECDSASignature {
 
     /** Constructs a signature with the given components and SIGHASH_ALL. */
     public TransactionSignature(BigInteger r, BigInteger s) {
-        this(r, s, SigHash.ALL.value);
+        this(r, s, SigHash.Flags.ALL.value);
     }
 
     /** Constructs a signature with the given components and raw sighash flag bytes (needed for rule compatibility). */
@@ -47,11 +49,11 @@ public class TransactionSignature extends ECDSASignature {
     }
 
     /** Constructs a transaction signature based on the ECDSA signature. */
-    public TransactionSignature(ECDSASignature signature, SigHash mode, boolean anyoneCanPay) {
+    public TransactionSignature(ECDSASignature signature, SigHash.Flags mode, boolean anyoneCanPay) {
         super(signature.r, signature.s);
         sighashFlags = calcSigHashValue(mode, anyoneCanPay);
     }
-    public TransactionSignature(ECDSASignature signature, SigHash mode, boolean anyoneCanPay, boolean useForkId) {
+    public TransactionSignature(ECDSASignature signature, SigHash.Flags mode, boolean anyoneCanPay, boolean useForkId) {
         super(signature.r, signature.s);
         sighashFlags = calcSigHashValue(mode, anyoneCanPay, useForkId);
     }
@@ -68,21 +70,21 @@ public class TransactionSignature extends ECDSASignature {
     }
 
     /** Calculates the byte used in the protocol to represent the combination of mode and anyoneCanPay. */
-    public static int calcSigHashValue(SigHash mode, boolean anyoneCanPay) {
-        Preconditions.checkArgument(SigHash.ALL == mode || SigHash.NONE == mode || SigHash.SINGLE == mode); // enforce compatibility since this code was made before the SigHash enum was updated
+    public static int calcSigHashValue(SigHash.Flags mode, boolean anyoneCanPay) {
+        Preconditions.checkArgument(SigHash.Flags.ALL == mode || SigHash.Flags.NONE == mode || SigHash.Flags.SINGLE == mode); // enforce compatibility since this code was made before the SigHash enum was updated
         int sighashFlags = mode.value;
         if (anyoneCanPay)
-            sighashFlags |= SigHash.ANYONECANPAY.value;
+            sighashFlags |= SigHash.Flags.ANYONECANPAY.value;
         return sighashFlags;
     }
 
-    public static int calcSigHashValue(SigHash mode, boolean anyoneCanPay, boolean useForkId) {
-        Preconditions.checkArgument(SigHash.ALL == mode || SigHash.NONE == mode || SigHash.SINGLE == mode); // enforce compatibility since this code was made before the SigHash enum was updated
+    public static int calcSigHashValue(SigHash.Flags mode, boolean anyoneCanPay, boolean useForkId) {
+        Preconditions.checkArgument(SigHash.Flags.ALL == mode || SigHash.Flags.NONE == mode || SigHash.Flags.SINGLE == mode); // enforce compatibility since this code was made before the SigHash enum was updated
         int sighashFlags = mode.value;
         if (anyoneCanPay)
-            sighashFlags |= SigHash.ANYONECANPAY.value;
+            sighashFlags |= SigHash.Flags.ANYONECANPAY.value;
         if(useForkId)
-            sighashFlags |= SigHash.FORKID.value;
+            sighashFlags |= SigHash.Flags.FORKID.value;
         return sighashFlags;
     }
 
@@ -103,8 +105,8 @@ public class TransactionSignature extends ECDSASignature {
         if (signature.length < 9 || signature.length > 73)
             return false;
 
-        int hashType = (signature[signature.length-1] & 0xff) & ~(SigHash.ANYONECANPAY.value| SigHash.FORKID.value); // mask the byte to prevent sign-extension hurting us
-        if (hashType < SigHash.ALL.value || hashType > SigHash.SINGLE.value)
+        int hashType = (signature[signature.length-1] & 0xff) & ~(SigHash.Flags.ANYONECANPAY.value| SigHash.Flags.FORKID.value); // mask the byte to prevent sign-extension hurting us
+        if (hashType < SigHash.Flags.ALL.value || hashType > SigHash.Flags.SINGLE.value)
             return false;
 
         //                   "wrong type"                  "wrong length marker"
@@ -135,26 +137,26 @@ public class TransactionSignature extends ECDSASignature {
 
     public static boolean hasForkId (byte[] signature)
     {
-        int forkId = (signature[signature.length-1] & 0xff) & SigHash.FORKID.value; // mask the byte to prevent sign-extension hurting us
+        int forkId = (signature[signature.length-1] & 0xff) & SigHash.Flags.FORKID.value; // mask the byte to prevent sign-extension hurting us
 
-        return forkId == SigHash.FORKID.value;
+        return forkId == SigHash.Flags.FORKID.value;
     }
 
     public boolean anyoneCanPay() {
-        return (sighashFlags & SigHash.ANYONECANPAY.value) != 0;
+        return (sighashFlags & SigHash.Flags.ANYONECANPAY.value) != 0;
     }
     public boolean useForkId() {
-        return (sighashFlags & SigHash.FORKID.value) != 0;
+        return (sighashFlags & SigHash.Flags.FORKID.value) != 0;
     }
 
-    public SigHash sigHashMode() {
+    public SigHash.Flags sigHashMode() {
         final int mode = sighashFlags & 0x1f;
-        if (mode == SigHash.NONE.value)
-            return SigHash.NONE;
-        else if (mode == SigHash.SINGLE.value)
-            return SigHash.SINGLE;
+        if (mode == SigHash.Flags.NONE.value)
+            return SigHash.Flags.NONE;
+        else if (mode == SigHash.Flags.SINGLE.value)
+            return SigHash.Flags.SINGLE;
         else
-            return SigHash.ALL;
+            return SigHash.Flags.ALL;
     }
 
     /**

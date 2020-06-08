@@ -217,7 +217,7 @@ public class PeerGroup implements TransactionBroadcaster {
             // and shouldn't, we should just recalculate and cache the new filter for next time.
             for (TransactionOutput output : tx.getOutputs()) {
                 if (output.getScriptPubKey().isSentToRawPubKey() && TxHelper.isMine(output, wallet)) {
-                    if (tx.getConfidence().getConfidenceType() == TransactionConfidence.ConfidenceType.BUILDING)
+                    if (TxHelper.getConfidence(tx).getConfidenceType() == TransactionConfidence.ConfidenceType.BUILDING)
                         recalculateFastCatchupAndFilter(FilterRecalculateMode.SEND_IF_CHANGED);
                     else
                         recalculateFastCatchupAndFilter(FilterRecalculateMode.DONT_SEND);
@@ -2109,9 +2109,9 @@ public class PeerGroup implements TransactionBroadcaster {
     public TransactionBroadcast broadcastTransaction(final Transaction tx, final int minConnections) {
         // If we don't have a record of where this tx came from already, set it to be ourselves so Peer doesn't end up
         // redownloading it from the network redundantly.
-        if (tx.getConfidence().getSource().equals(TransactionConfidence.Source.UNKNOWN)) {
+        if (TxHelper.getConfidence(tx).getSource().equals(TransactionConfidence.Source.UNKNOWN)) {
             log.info("Transaction source unknown, setting to SELF: {}", tx.getHashAsString());
-            tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+            TxHelper.getConfidence(tx).setSource(TransactionConfidence.Source.SELF);
         }
         final TransactionBroadcast broadcast = new TransactionBroadcast(this, tx);
         broadcast.setMinConnections(minConnections);

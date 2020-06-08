@@ -1694,7 +1694,7 @@ public class Wallet extends BaseTaggableObject
                         " and sends us %s", tx.getHashAsString(), valueSentFromMe.toFriendlyString(),
                         valueSentToMe.toFriendlyString()));
             }
-            if (tx.getConfidence().getSource().equals(TransactionConfidence.Source.UNKNOWN)) {
+            if (TxHelper.getConfidence(tx).getSource().equals(TransactionConfidence.Source.UNKNOWN)) {
                 log.warn("Wallet received transaction with an unknown source. Consider tagging it!");
             }
             // If this tx spends any of our unspent outputs, mark them as spent now, then add to the pending pool. This
@@ -1977,9 +1977,9 @@ public class Wallet extends BaseTaggableObject
                 currentTxDependencies.remove(tx);
                 List<Transaction> currentTxDependenciesSorted = sortTxnsByDependency(currentTxDependencies);
                 for (Transaction txDependency : currentTxDependenciesSorted) {
-                    if (txDependency.getConfidence().getConfidenceType().equals(ConfidenceType.IN_CONFLICT)) {
+                    if (TxHelper.getConfidence(txDependency).getConfidenceType().equals(ConfidenceType.IN_CONFLICT)) {
                         if (isNotSpendingTxnsInConfidenceType(txDependency, ConfidenceType.IN_CONFLICT)) {
-                            txDependency.getConfidence().setConfidenceType(ConfidenceType.PENDING);
+                            TxHelper.getConfidence(txDependency).setConfidenceType(ConfidenceType.PENDING);
                             confidenceChanged.put(txDependency, TransactionConfidence.Listener.ChangeReason.TYPE);
                         }
                     }
@@ -2031,7 +2031,7 @@ public class Wallet extends BaseTaggableObject
     private boolean isNotSpendingTxnsInConfidenceType(Transaction tx, ConfidenceType confidenceType) {
         for (TransactionInput txInput : tx.getInputs()) {
             Transaction connectedTx = this.getTransaction(txInput.getOutpoint().getHash());
-            if (connectedTx != null && connectedTx.getConfidence().getConfidenceType().equals(confidenceType)) {
+            if (connectedTx != null && TxHelper.getConfidence(connectedTx).getConfidenceType().equals(confidenceType)) {
                 return false;
             }
         }
@@ -2080,7 +2080,7 @@ public class Wallet extends BaseTaggableObject
             return;
         for (Map.Entry<Transaction, TransactionConfidence.Listener.ChangeReason> entry : confidenceChanged.entrySet()) {
             final Transaction tx = entry.getKey();
-            tx.getConfidence().queueListeners(entry.getValue());
+            TxHelper.getConfidence(tx).queueListeners(entry.getValue());
             queueOnTransactionConfidenceChanged(tx);
         }
         confidenceChanged.clear();
@@ -2116,7 +2116,7 @@ public class Wallet extends BaseTaggableObject
                     // increment the tx confidence depth twice, it'd result in miscounting.
                     ignoreNextNewBlock.remove(tx.getHash());
                 } else {
-                    TransactionConfidence confidence = tx.getConfidence();
+                    TransactionConfidence confidence = TxHelper.getConfidence(tx);
                     if (confidence.getConfidenceType() == ConfidenceType.BUILDING) {
                         // Erase the set of seen peers once the tx is so deep that it seems unlikely to ever go
                         // pending again. We could clear this data the moment a tx is seen in the block chain, but
@@ -2168,7 +2168,7 @@ public class Wallet extends BaseTaggableObject
             // to confirm them again. But this is a deeply unusual edge case that due to the maturity rule should never
             // happen in practice, thus for simplicities sake we ignore it here.
             log.info("  coinbase tx <-dead: confidence {}", tx.getHashAsString(),
-                    tx.getConfidence().getConfidenceType().name());
+                    TxHelper.getConfidence(tx).getConfidenceType().name());
             dead.remove(tx.getHash());
         }
 
@@ -2323,14 +2323,14 @@ public class Wallet extends BaseTaggableObject
             for (TransactionInput deadInput : tx.getInputs()) {
                 Transaction connected = deadInput.getConnectedTransaction();
                 if (connected == null) continue;
-                if (connected.getConfidence().getConfidenceType() != ConfidenceType.DEAD && deadInput.getConnectedOutput().getSpentBy() != null && deadInput.getConnectedOutput().getSpentBy().equals(deadInput)) {
+                if (TxHelper.getConfidence(connected).getConfidenceType() != ConfidenceType.DEAD && deadInput.getConnectedOutput().getSpentBy() != null && deadInput.getConnectedOutput().getSpentBy().equals(deadInput)) {
                     checkState(myUnspents.add(deadInput.getConnectedOutput()));
                     log.info("Added to UNSPENTS: {} in {}", deadInput.getConnectedOutput(), deadInput.getConnectedOutput().getParentTransaction().getHash());
                 }
                 deadInput.disconnect();
                 maybeMovePool(connected, "kill");
             }
-            tx.getConfidence().setOverridingTransaction(overridingTx);
+            TxHelper.getConfidence(tx).setOverridingTransaction(overridingTx);
             confidenceChanged.put(tx, TransactionConfidence.Listener.ChangeReason.TYPE);
             // Now kill any transactions we have that depended on this one.
             for (TransactionOutput deadOutput : tx.getOutputs()) {
@@ -2422,7 +2422,7 @@ public class Wallet extends BaseTaggableObject
                 // tx is a double spend against a tx already in the best chain or spends outputs of a DEAD tx.
                 // Add tx to the dead pool and schedule confidence listener notifications.
                 log.info("->dead: {}", tx.getHashAsString());
-                tx.getConfidence().setConfidenceType(ConfidenceType.DEAD);
+                TxHelper.getConfidence(tx).setConfidenceType(ConfidenceType.DEAD);
                 confidenceChanged.put(tx, TransactionConfidence.Listener.ChangeReason.TYPE);
                 addWalletTransaction(Pool.DEAD, tx);
             } else if (!doubleSpendPendingTxns.isEmpty() ||
@@ -2435,14 +2435,14 @@ public class Wallet extends BaseTaggableObject
                 doubleSpendPendingTxns.add(tx);
                 addTransactionsDependingOn(doubleSpendPendingTxns, getTransactions(true));
                 for (Transaction doubleSpendTx : doubleSpendPendingTxns) {
-                    doubleSpendTx.getConfidence().setConfidenceType(ConfidenceType.IN_CONFLICT);
+                    TxHelper.getConfidence(doubleSpendTx).setConfidenceType(ConfidenceType.IN_CONFLICT);
                     confidenceChanged.put(doubleSpendTx, TransactionConfidence.Listener.ChangeReason.TYPE);
                 }
             } else {
                 // No conflict detected.
                 // Add to the pending pool and schedule confidence listener notifications.
                 log.info("->pending: {}", tx.getHashAsString());
-                tx.getConfidence().setConfidenceType(ConfidenceType.PENDING);
+                TxHelper.getConfidence(tx).setConfidenceType(ConfidenceType.PENDING);
                 confidenceChanged.put(tx, TransactionConfidence.Listener.ChangeReason.TYPE);
                 addWalletTransaction(Pool.PENDING, tx);
             }
@@ -2886,7 +2886,7 @@ public class Wallet extends BaseTaggableObject
         }
         // This is safe even if the listener has been added before, as TransactionConfidence ignores duplicate
         // registration requests. That makes the code in the wallet simpler.
-        tx.getConfidence().addEventListener(Threading.SAME_THREAD, txConfidenceListener);
+        TxHelper.getConfidence(tx).addEventListener(Threading.SAME_THREAD, txConfidenceListener);
     }
 
     /**
@@ -3267,9 +3267,9 @@ public class Wallet extends BaseTaggableObject
             } catch (ScriptExecutionException e) {
                 // Ignore and don't print this line.
             }
-            if (tx.hasConfidence())
-                builder.append("  confidence: ").append(tx.getConfidence()).append('\n');
-            builder.append(tx.toString(chain));
+            if (TxHelper.hasConfidence(tx))
+                builder.append("  confidence: ").append(TxHelper.getConfidence(tx)).append('\n');
+            builder.append(tx.toString());
         }
     }
 
@@ -3996,7 +3996,7 @@ public class Wallet extends BaseTaggableObject
             // Label the transaction as being self created. We can use this later to spend its change output even before
             // the transaction is confirmed. We deliberately won't bother notifying listeners here as there's not much
             // point - the user isn't interested in a confidence transition they made themselves.
-            req.tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+            TxHelper.getConfidence(req.tx).setSource(TransactionConfidence.Source.SELF);
             // Label the transaction as being a user requested payment. This can be used to render GUI wallet
             // transaction lists more appropriately, especially when the wallet starts to generate transactions itself
             // for internal purposes.
@@ -4452,7 +4452,7 @@ public class Wallet extends BaseTaggableObject
                 if (tx.isCoinBase()) continue;
                 log.info("  ->pending {}", tx.getHash());
 
-                tx.getConfidence().setConfidenceType(ConfidenceType.PENDING);  // Wipe height/depth/work data.
+                TxHelper.getConfidence(tx).setConfidenceType(ConfidenceType.PENDING);  // Wipe height/depth/work data.
                 confidenceChanged.put(tx, TransactionConfidence.Listener.ChangeReason.TYPE);
                 addWalletTransaction(Pool.PENDING, tx);
                 updateForSpends(tx, false);
@@ -4513,8 +4513,8 @@ public class Wallet extends BaseTaggableObject
      */
     private void subtractDepth(int depthToSubtract, Collection<Transaction> transactions) {
         for (Transaction tx : transactions) {
-            if (tx.getConfidence().getConfidenceType() == ConfidenceType.BUILDING) {
-                tx.getConfidence().setDepthInBlocks(tx.getConfidence().getDepthInBlocks() - depthToSubtract);
+            if (TxHelper.getConfidence(tx).getConfidenceType() == ConfidenceType.BUILDING) {
+                TxHelper.getConfidence(tx).setDepthInBlocks(TxHelper.getConfidence(tx).getDepthInBlocks() - depthToSubtract);
                 confidenceChanged.put(tx, TransactionConfidence.Listener.ChangeReason.DEPTH);
             }
         }
@@ -5038,7 +5038,7 @@ public class Wallet extends BaseTaggableObject
         // Don't hold the wallet lock whilst doing this, so if the broadcaster accesses the wallet at some point there
         // is no inversion.
         for (Transaction tx : toBroadcast) {
-            ConfidenceType confidenceType = tx.getConfidence().getConfidenceType();
+            ConfidenceType confidenceType = TxHelper.getConfidence(tx).getConfidenceType();
             checkState(confidenceType == ConfidenceType.PENDING || confidenceType == ConfidenceType.IN_CONFLICT,
                     "Expected PENDING or IN_CONFLICT, was %s.", confidenceType);
             // Re-broadcast even if it's marked as already seen for two reasons
@@ -5230,7 +5230,7 @@ public class Wallet extends BaseTaggableObject
                 log.error("Failed to adjust rekey tx for fees.");
                 return null;
             }
-            rekeyTx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+            TxHelper.getConfidence(rekeyTx).setSource(TransactionConfidence.Source.SELF);
             rekeyTx.setPurpose(Transaction.Purpose.KEY_ROTATION);
             SendRequest req = SendRequest.forTx(rekeyTx);
             req.aesKey = aesKey;

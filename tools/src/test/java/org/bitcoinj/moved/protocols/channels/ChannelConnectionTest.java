@@ -22,6 +22,7 @@ import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.moved.testing.TestWithWallet;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.WalletExtension;
@@ -541,7 +542,7 @@ public class ChannelConnectionTest extends TestWithWallet {
             assertTrue(broadcasts.take().getOutput(0).getScriptPubKey().isPayToScriptHash());
         }
         broadcastTxPause.release();
-        assertEquals(TransactionConfidence.Source.SELF, broadcasts.take().getConfidence().getSource());
+        assertEquals(TransactionConfidence.Source.SELF, TxHelper.getConfidence(broadcasts.take()).getSource());
         assertTrue(broadcasts.isEmpty());
         assertTrue(newClientStates.mapChannels.isEmpty());
         // Server also knows it's too late.

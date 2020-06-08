@@ -36,19 +36,19 @@ import java.nio.*;
 public class LevelDBBlockStore implements BlockStore {
     private static final byte[] CHAIN_HEAD_KEY = "chainhead".getBytes();
 
-    private final Context context;
+    private final NetworkParameters params;
     private DB db;
     private final ByteBuffer buffer = ByteBuffer.allocate(StoredBlock.COMPACT_SERIALIZED_SIZE);
     private final File path;
 
     /** Creates a LevelDB SPV block store using the JNI/C++ version of LevelDB. */
-    public LevelDBBlockStore(Context context, File directory) throws BlockStoreException {
-        this(context, directory, JniDBFactory.factory);
+    public LevelDBBlockStore(NetworkParameters params, File directory) throws BlockStoreException {
+        this(params, directory, JniDBFactory.factory);
     }
 
     /** Creates a LevelDB SPV block store using the given factory, which is useful if you want a pure Java version. */
-    public LevelDBBlockStore(Context context, File directory, DBFactory dbFactory) throws BlockStoreException {
-        this.context = context;
+    public LevelDBBlockStore(NetworkParameters params, File directory, DBFactory dbFactory) throws BlockStoreException {
+        this.params = params;
         this.path = directory;
         Options options = new Options();
         options.createIfMissing();
@@ -73,7 +73,7 @@ public class LevelDBBlockStore implements BlockStore {
     private synchronized void initStoreIfNeeded() throws BlockStoreException {
         if (db.get(CHAIN_HEAD_KEY) != null)
             return;   // Already initialised.
-        Block genesis = Genesis.getFor(context.getParams()).cloneAsHeader();
+        Block genesis = Genesis.getFor(params).cloneAsHeader();
         StoredBlock storedGenesis = new StoredBlock(genesis, genesis.getWork(), 0);
         put(storedGenesis);
         setChainHead(storedGenesis);
@@ -91,7 +91,7 @@ public class LevelDBBlockStore implements BlockStore {
         byte[] bits = db.get(hash.getBytes());
         if (bits == null)
             return null;
-        return StoredBlock.deserializeCompact(context.getParams(), ByteBuffer.wrap(bits));
+        return StoredBlock.deserializeCompact(params, ByteBuffer.wrap(bits));
     }
 
     @Override
@@ -142,6 +142,6 @@ public class LevelDBBlockStore implements BlockStore {
 
     @Override
     public NetworkParameters getParams() {
-        return context.getParams();
+        return params;
     }
 }

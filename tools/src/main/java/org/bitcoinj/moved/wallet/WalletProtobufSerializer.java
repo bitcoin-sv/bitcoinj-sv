@@ -22,10 +22,7 @@ import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.KeyCrypter;
 import org.bitcoinj.crypto.KeyCrypterScrypt;
 import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutPoint;
-import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.protos.Protos;
 import org.bitcoinj.script.Script;
@@ -290,8 +287,8 @@ public class WalletProtobufSerializer {
             }
         }
 
-        if (tx.hasConfidence()) {
-            TransactionConfidence confidence = tx.getConfidence();
+        if (TxHelper.hasConfidence(tx)) {
+            TransactionConfidence confidence = TxHelper.getConfidence(tx);
             Protos.TransactionConfidence.Builder confidenceBuilder = Protos.TransactionConfidence.newBuilder();
             writeConfidence(txBuilder, confidence, confidenceBuilder);
         }
@@ -720,7 +717,7 @@ public class WalletProtobufSerializer {
 
         if (txProto.hasConfidence()) {
             Protos.TransactionConfidence confidenceProto = txProto.getConfidence();
-            TransactionConfidence confidence = tx.getConfidence();
+            TransactionConfidence confidence = TxHelper.getConfidence(tx);
             readConfidence(params, tx, confidenceProto, confidence);
         }
 

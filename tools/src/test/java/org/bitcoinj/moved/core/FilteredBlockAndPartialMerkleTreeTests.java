@@ -29,6 +29,7 @@ import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.store.*;
 import org.bitcoinj.moved.testing.*;
 import org.junit.*;
@@ -202,8 +203,8 @@ public class FilteredBlockAndPartialMerkleTreeTests extends TestWithPeerGroup {
         Set<Transaction> transactions = wallet.getTransactions(false);
         assertTrue(transactions.size() == 4);
         for (Transaction tx : transactions) {
-            assertTrue(tx.getConfidence().getConfidenceType() == ConfidenceType.BUILDING);
-            assertTrue(tx.getConfidence().getDepthInBlocks() == 1);
+            assertTrue(TxHelper.getConfidence(tx).getConfidenceType() == ConfidenceType.BUILDING);
+            assertTrue(TxHelper.getConfidence(tx).getDepthInBlocks() == 1);
             assertTrue(tx.getAppearsInHashes().keySet().contains(block.getHash()));
             assertTrue(tx.getAppearsInHashes().size() == 1);
         }

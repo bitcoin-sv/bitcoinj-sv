@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.*;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.p2p.RejectMessage;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.utils.*;
 import org.slf4j.*;
 
@@ -134,7 +135,7 @@ public class TransactionBroadcast {
             // Prepare to send the transaction by adding a listener that'll be called when confidence changes.
             // Only bother with this if we might actually hear back:
             if (minConnections > 1)
-                tx.getConfidence().addEventListener(new ConfidenceChange());
+                TxHelper.getConfidence(tx).addEventListener(new ConfidenceChange());
             // Bitcoin Core sends an inv in this case and then lets the peer request the tx data. We just
             // blast out the TX here for a couple of reasons. Firstly it's simpler: in the case where we have
             // just a single connection we don't have to wait for getdata to be received and handled before

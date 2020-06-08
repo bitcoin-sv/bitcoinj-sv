@@ -27,7 +27,6 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.Translate;
 import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
@@ -156,11 +155,11 @@ public class ScriptTest {
         Script outputScript = ScriptBuilder.createOutputScript(address);
         spendTx.addOutput(output.getValue(), outputScript);
         spendTx.addInput(output);
-        Sha256Hash sighash = Transaction.hashForLegacySignature(spendTx, 0, multisigScript, SigHash.ALL, false);
+        Sha256Hash sighash = Transaction.hashForLegacySignature(spendTx, 0, multisigScript, SigHash.Flags.ALL, false);
         ECDSASignature party1Signature = key1.sign(sighash);
         ECDSASignature party2Signature = key2.sign(sighash);
-        TransactionSignature party1TransactionSignature = new TransactionSignature(party1Signature, SigHash.ALL, false);
-        TransactionSignature party2TransactionSignature = new TransactionSignature(party2Signature, SigHash.ALL, false);
+        TransactionSignature party1TransactionSignature = new TransactionSignature(party1Signature, SigHash.Flags.ALL, false);
+        TransactionSignature party2TransactionSignature = new TransactionSignature(party2Signature, SigHash.Flags.ALL, false);
 
         // Create p2sh multisig input script
         Script inputScript = ScriptBuilder.createP2SHMultiSigInputScript(ImmutableList.of(party1TransactionSignature, party2TransactionSignature), multisigScript);

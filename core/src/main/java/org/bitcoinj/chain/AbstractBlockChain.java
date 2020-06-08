@@ -147,21 +147,15 @@ public abstract class AbstractBlockChain {
 
     private final VersionTally versionTally;
 
-    /** See {@link #AbstractBlockChain(Context, List, BlockStore)} */
-    public AbstractBlockChain(NetworkParameters params, List<? extends ChainEventListener> transactionReceivedListeners,
-                              BlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), transactionReceivedListeners, blockStore);
-    }
-
     /**
      * Constructs a BlockChain connected to the given list of listeners (eg, wallets) and a store.
      */
-    public AbstractBlockChain(Context context, List<? extends ChainEventListener> wallets,
+    public AbstractBlockChain(NetworkParameters params, List<? extends ChainEventListener> wallets,
                               BlockStore blockStore) throws BlockStoreException {
         this.blockStore = blockStore;
         chainHead = blockStore.getChainHead();
         log.info("chain head is at height {}:\n{}", chainHead.getHeight(), chainHead.getHeader());
-        this.params = context.getParams();
+        this.params = params;
         this.ruleCheckerFactory = RuleCheckerFactory.create(this.params);
 
         this.newBestBlockListeners = new CopyOnWriteArrayList<ListenerRegistration<NewBestBlockListener>>();
@@ -173,7 +167,7 @@ public abstract class AbstractBlockChain {
             addTransactionReceivedListener(Threading.SAME_THREAD, l);
         }
 
-        this.versionTally = new VersionTally(context.getParams());
+        this.versionTally = new VersionTally(params);
         this.versionTally.initialize(blockStore, chainHead);
     }
 

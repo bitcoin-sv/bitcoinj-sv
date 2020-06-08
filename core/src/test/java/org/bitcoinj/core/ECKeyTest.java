@@ -23,11 +23,11 @@ import org.bitcoinj.crypto.KeyCrypterScrypt;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.ecc.ECDSA;
 import org.bitcoinj.ecc.ECDSASignature;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.params.UnitTestParams;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.utils.BriefLogFormatter;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
@@ -445,7 +445,7 @@ public class ECKeyTest {
         new Random().nextBytes(hash);
         byte[] sigBytes = key.sign(Sha256Hash.wrap(hash)).encodeToDER();
         byte[] encodedSig = Arrays.copyOf(sigBytes, sigBytes.length + 1);
-        encodedSig[sigBytes.length] = SigHash.ALL.byteValue();
+        encodedSig[sigBytes.length] = SigHash.Flags.ALL.byteValue();
         if (!TransactionSignature.isEncodingCanonical(encodedSig)) {
             log.error(Utils.HEX.encode(sigBytes));
             fail();

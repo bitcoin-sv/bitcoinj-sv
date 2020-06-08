@@ -29,6 +29,7 @@ import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.TransactionInput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
@@ -123,18 +124,18 @@ public class WalletProtobufSerializerTest {
         // Check basic tx serialization.
         Coin v1 = COIN;
         Transaction t1 = FakeTxBuilder.createFakeTx(NET, v1, myAddress);
-        t1.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("1.2.3.4")));
-        t1.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("5.6.7.8")));
-        t1.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
+        TxHelper.getConfidence(t1).markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("1.2.3.4")));
+        TxHelper.getConfidence(t1).markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("5.6.7.8")));
+        TxHelper.getConfidence(t1).setSource(TransactionConfidence.Source.NETWORK);
         myWallet.receivePending(t1, null);
         Wallet wallet1 = roundTrip(myWallet);
         assertEquals(1, wallet1.getTransactions(true).size());
         assertEquals(v1, wallet1.getBalance(Wallet.BalanceType.ESTIMATED));
         Transaction t1copy = wallet1.getTransaction(t1.getHash());
         assertArrayEquals(t1.unsafeBitcoinSerialize(), t1copy.unsafeBitcoinSerialize());
-        assertEquals(2, t1copy.getConfidence().numBroadcastPeers());
-        assertNotNull(t1copy.getConfidence().getLastBroadcastedAt());
-        assertEquals(TransactionConfidence.Source.NETWORK, t1copy.getConfidence().getSource());
+        assertEquals(2, TxHelper.getConfidence(t1copy).numBroadcastPeers());
+        assertNotNull(TxHelper.getConfidence(t1copy).getLastBroadcastedAt());
+        assertEquals(TransactionConfidence.Source.NETWORK, TxHelper.getConfidence(t1copy).getSource());
         
         Protos.Wallet walletProto = new WalletProtobufSerializer().walletToProto(myWallet);
         assertEquals(Protos.Key.Type.ORIGINAL, walletProto.getKey(0).getType());
@@ -177,7 +178,7 @@ public class WalletProtobufSerializerTest {
         Wallet wallet1 = roundTrip(myWallet);
         assertEquals(1, wallet1.getTransactions(true).size());
         Transaction t1 = wallet1.getTransaction(doubleSpends.t1.getHash());
-        assertEquals(ConfidenceType.DEAD, t1.getConfidence().getConfidenceType());
+        assertEquals(ConfidenceType.DEAD, TxHelper.getConfidence(t1).getConfidenceType());
         assertEquals(Coin.ZERO, wallet1.getBalance());
 
         // TODO: Wallet should store overriding transactions even if they are not wallet-relevant.
@@ -274,8 +275,8 @@ public class WalletProtobufSerializerTest {
         Threading.waitForUserCode();
         assertEquals(2, txns.size());
 
-        TransactionConfidence confidence0 = txns.get(0).getConfidence();
-        TransactionConfidence confidence1 = txns.get(1).getConfidence();
+        TransactionConfidence confidence0 = TxHelper.getConfidence(txns.get(0));
+        TransactionConfidence confidence1 = TxHelper.getConfidence(txns.get(1));
 
         assertEquals(1, confidence0.getAppearedAtChainHeight());
         assertEquals(2, confidence1.getAppearedAtChainHeight());
@@ -295,7 +296,7 @@ public class WalletProtobufSerializerTest {
         Transaction txB = it.next();
 
         Transaction rebornTx0, rebornTx1;
-         if (txA.getConfidence().getAppearedAtChainHeight() == 1) {
+         if (TxHelper.getConfidence(txA).getAppearedAtChainHeight() == 1) {
             rebornTx0 = txA;
             rebornTx1 = txB;
         } else {
@@ -303,8 +304,8 @@ public class WalletProtobufSerializerTest {
             rebornTx1 = txA;
         }
 
-        TransactionConfidence rebornConfidence0 = rebornTx0.getConfidence();
-        TransactionConfidence rebornConfidence1 = rebornTx1.getConfidence();
+        TransactionConfidence rebornConfidence0 = TxHelper.getConfidence(rebornTx0);
+        TransactionConfidence rebornConfidence1 = TxHelper.getConfidence(rebornTx1);
 
         assertEquals(1, rebornConfidence0.getAppearedAtChainHeight());
         assertEquals(2, rebornConfidence1.getAppearedAtChainHeight());

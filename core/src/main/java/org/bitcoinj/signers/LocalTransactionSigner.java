@@ -21,11 +21,11 @@ import java.util.EnumSet;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.script.ScriptVerifyFlag;
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * {@link TransactionSigner.ProposedTransaction} object that will be also passed then to the next signer in chain. This allows other
  * signers to use correct signing key for P2SH inputs, because all the keys involved in a single P2SH address have
  * the same derivation path.</p>
- * <p>This signer always uses {@link SigHash#ALL} signing mode.</p>
+ * <p>This signer always uses {@link SigHash.Flags#ALL} signing mode.</p>
  */
 public class LocalTransactionSigner extends StatelessTransactionSigner {
     private static final Logger log = LoggerFactory.getLogger(LocalTransactionSigner.class);
@@ -109,8 +109,8 @@ public class LocalTransactionSigner extends StatelessTransactionSigner {
             byte[] script = redeemData.redeemScript.getProgram();
             try {
                 TransactionSignature signature = propTx.useForkId ?
-                        tx.calculateForkIdSignature(i, key, script, tx.getInput(i).getConnectedOutput().getValue(), SigHash.ALL, false) :
-                        tx.calculateLegacySignature(i, key, script, SigHash.ALL, false);
+                        tx.calculateForkIdSignature(i, key, script, tx.getInput(i).getConnectedOutput().getValue(), SigHash.Flags.ALL, false) :
+                        tx.calculateLegacySignature(i, key, script, SigHash.Flags.ALL, false);
 
                 // at this point we have incomplete inputScript with OP_0 in place of one or more signatures. We already
                 // have calculated the signature using the local key and now need to insert it in the correct place

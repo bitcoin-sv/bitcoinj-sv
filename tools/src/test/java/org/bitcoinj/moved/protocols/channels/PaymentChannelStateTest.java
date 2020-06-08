@@ -20,7 +20,6 @@ import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.*;
@@ -28,6 +27,7 @@ import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.moved.testing.TestWithWallet;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.moved.wallet.Wallet;
 
@@ -521,7 +521,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
             assertEquals(PaymentChannelServerState.State.WAITING_FOR_MULTISIG_CONTRACT, serverState.getState());
 
             byte[] refundSigCopy = Arrays.copyOf(refundSig, refundSig.length);
-            refundSigCopy[refundSigCopy.length - 1] = SigHash.NONE.byteValue();
+            refundSigCopy[refundSigCopy.length - 1] = SigHash.Flags.NONE.byteValue();
             try {
                 clientV1State().provideRefundSignature(refundSigCopy, null);
                 fail();
@@ -635,7 +635,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         totalPayment = totalPayment.add(size);
 
         byte[] signatureCopy = Arrays.copyOf(signature, signature.length);
-        signatureCopy[signatureCopy.length - 1] = SigHash.ANYONECANPAY_NONE.byteValue();
+        signatureCopy[signatureCopy.length - 1] = SigHash.Flags.ANYONECANPAY_NONE.byteValue();
         try {
             serverState.incrementPayment(HALF_COIN.subtract(totalPayment), signatureCopy);
             fail();
@@ -667,7 +667,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         assertEquals(totalPayment, HALF_COIN);
 
         signatureCopy = Arrays.copyOf(signature, signature.length);
-        signatureCopy[signatureCopy.length - 1] = SigHash.ANYONECANPAY_SINGLE.byteValue();
+        signatureCopy[signatureCopy.length - 1] = SigHash.Flags.ANYONECANPAY_SINGLE.byteValue();
         try {
             serverState.incrementPayment(HALF_COIN.subtract(totalPayment), signatureCopy);
             fail();

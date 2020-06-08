@@ -22,6 +22,7 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.*;
 import org.bitcoinj.moved.testing.*;
 import org.bitcoinj.temp.CoinSelection;
@@ -55,20 +56,20 @@ public class DefaultCoinSelectorTest extends TestWithWallet {
     public void selectable() throws Exception {
         Transaction t;
         t = new Transaction(NET);
-        t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.PENDING);
+        TxHelper.getConfidence(t).setConfidenceType(TransactionConfidence.ConfidenceType.PENDING);
         assertFalse(DefaultCoinSelector.isSelectable(t));
-        t.getConfidence().setSource(TransactionConfidence.Source.SELF);
+        TxHelper.getConfidence(t).setSource(TransactionConfidence.Source.SELF);
         assertFalse(DefaultCoinSelector.isSelectable(t));
-        t.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("1.2.3.4")));
+        TxHelper.getConfidence(t).markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("1.2.3.4")));
         assertFalse(DefaultCoinSelector.isSelectable(t));
-        t.getConfidence().markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("5.6.7.8")));
+        TxHelper.getConfidence(t).markBroadcastBy(new PeerAddress(PARAMS, InetAddress.getByName("5.6.7.8")));
         assertTrue(DefaultCoinSelector.isSelectable(t));
         t = new Transaction(NET);
-        t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.BUILDING);
+        TxHelper.getConfidence(t).setConfidenceType(TransactionConfidence.ConfidenceType.BUILDING);
         assertTrue(DefaultCoinSelector.isSelectable(t));
         t = new Transaction(Net.REGTEST);
-        t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.PENDING);
-        t.getConfidence().setSource(TransactionConfidence.Source.SELF);
+        TxHelper.getConfidence(t).setConfidenceType(TransactionConfidence.ConfidenceType.PENDING);
+        TxHelper.getConfidence(t).setSource(TransactionConfidence.Source.SELF);
         assertTrue(DefaultCoinSelector.isSelectable(t));
     }
 
@@ -125,7 +126,7 @@ public class DefaultCoinSelectorTest extends TestWithWallet {
             new TransactionOutput(NET, t, Coin.valueOf(30302787), myAddress),
             new TransactionOutput(NET, t, Coin.valueOf(30302787), myAddress)
         );
-        t.getConfidence().setConfidenceType(TransactionConfidence.ConfidenceType.BUILDING);
+        TxHelper.getConfidence(t).setConfidenceType(TransactionConfidence.ConfidenceType.BUILDING);
 
         DefaultCoinSelector selector = new DefaultCoinSelector();
         CoinSelection selection = selector.select(COIN.multiply(2), outputs);

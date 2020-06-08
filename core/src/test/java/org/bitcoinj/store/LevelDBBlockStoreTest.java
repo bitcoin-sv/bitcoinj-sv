@@ -31,8 +31,7 @@ public class LevelDBBlockStoreTest {
         f.delete();
 
         NetworkParameters params = UnitTestParams.get();
-        Context context = new Context(params);
-        LevelDBBlockStore store = new LevelDBBlockStore(context, f);
+        LevelDBBlockStore store = new LevelDBBlockStore(params, f);
         store.reset();
 
         // Check the first block in a new store is the genesis block.
@@ -48,7 +47,7 @@ public class LevelDBBlockStoreTest {
         store.close();
 
         // Check we can get it back out again if we rebuild the store object.
-        store = new LevelDBBlockStore(context, f);
+        store = new LevelDBBlockStore(params, f);
         try {
             StoredBlock b2 = store.get(b1.getHeader().getHash());
             assertEquals(b1, b2);

@@ -25,10 +25,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.temp.SendRequest;
@@ -180,7 +180,7 @@ public abstract class PaymentChannelClientState {
         // When we see the close transaction get enough confirmations, we can just delete the record
         // of this channel along with the refund tx from the wallet, because we're not going to need
         // any of that any more.
-        final TransactionConfidence confidence = storedChannel.close.getConfidence();
+        final TransactionConfidence confidence = TxHelper.getConfidence(storedChannel.close);
         int numConfirms = Context.get().getEventHorizon();
         ListenableFuture<TransactionConfidence> future = confidence.getDepthFuture(numConfirms, Threading.SAME_THREAD);
         Futures.addCallback(future, new FutureCallback<TransactionConfidence>() {
@@ -313,13 +313,13 @@ public abstract class PaymentChannelClientState {
             throw new ValueOutOfRangeException("Channel has too little money to pay " + size + " satoshis");
         Transaction tx = makeUnsignedChannelContract(newValueToMe);
         log.info("Signing new payment tx {}", tx);
-        SigHash mode;
+        SigHash.Flags mode;
         // If we spent all the money we put into this channel, we (by definition) don't care what the outputs are, so
         // we sign with SIGHASH_NONE to let the server do what it wants.
         if (newValueToMe.equals(Coin.ZERO))
-            mode = SigHash.NONE;
+            mode = SigHash.Flags.NONE;
         else
-            mode = SigHash.SINGLE;
+            mode = SigHash.Flags.SINGLE;
         TransactionSignature sig = tx.getVersion() >= Transaction.FORKID_VERSION ?
                 tx.calculateForkIdSignature(0, myKey.maybeDecrypt(userKey), getSignedScript(), tx.getInput(0).getConnectedOutput().getValue(), mode, true) :
                 tx.calculateLegacySignature(0, myKey.maybeDecrypt(userKey), getSignedScript(), mode, true);

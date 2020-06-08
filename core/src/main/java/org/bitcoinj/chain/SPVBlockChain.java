@@ -28,6 +28,7 @@ import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 // TODO: Rename this class to SPVBlockChain at some point.
@@ -48,25 +49,11 @@ public class SPVBlockChain extends AbstractBlockChain {
      * {@link org.bitcoinj.store.MemoryBlockStore} if you want to hold all headers in RAM and don't care about
      * disk serialization (this is rare).</p>
      */
-    public SPVBlockChain(Context context, ChainEventListener chainEventListener, BlockStore blockStore) throws BlockStoreException {
-        this(context, new ArrayList<ChainEventListener>(), blockStore);
-        addChainEventListener(chainEventListener);
-    }
-
-    /** See {@link #SPVBlockChain(Context, ChainEventListener, BlockStore)}} */
     public SPVBlockChain(NetworkParameters params, ChainEventListener chainEventListener, BlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), chainEventListener, blockStore);
+        this(params, Collections.singletonList(chainEventListener), blockStore);
     }
 
-    /**
-     * Constructs a BlockChain that has no wallet at all. This is helpful when you don't actually care about sending
-     * and receiving coins but rather, just want to explore the network data structures.
-     */
-    public SPVBlockChain(Context context, BlockStore blockStore) throws BlockStoreException {
-        this(context, new ArrayList<ChainEventListener>(), blockStore);
-    }
-
-    /** See {@link #SPVBlockChain(Context, BlockStore)} */
+    /** See {@link #SPVBlockChain(NetworkParameters, BlockStore)} */
     public SPVBlockChain(NetworkParameters params, BlockStore blockStore) throws BlockStoreException {
         this(params, new ArrayList<ChainEventListener>(), blockStore);
     }
@@ -74,14 +61,9 @@ public class SPVBlockChain extends AbstractBlockChain {
     /**
      * Constructs a BlockChain connected to the given list of listeners and a store.
      */
-    public SPVBlockChain(Context params, List<? extends ChainEventListener> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
         super(params, chainEventListeners, blockStore);
         this.blockStore = blockStore;
-    }
-
-    /** See {@link #SPVBlockChain(Context, List, BlockStore)} */
-    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
-        this(Context.getOrCreate(params), chainEventListeners, blockStore);
     }
 
     @Override

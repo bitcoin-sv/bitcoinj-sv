@@ -19,6 +19,7 @@ package org.bitcoinj.moved.wallet;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
 import com.google.common.collect.Lists;
 import org.bitcoinj.script.interpreter.ScriptExecutionException;
@@ -89,6 +90,6 @@ public class KeyTimeCoinSelector implements CoinSelector {
     }
 
     private boolean isConfirmed(TransactionOutput output) {
-        return output.getParentTransaction().getConfidence().getConfidenceType().equals(TransactionConfidence.ConfidenceType.BUILDING);
+        return TxHelper.getConfidence(output.getParentTransaction()).getConfidenceType().equals(TransactionConfidence.ConfidenceType.BUILDING);
     }
 }

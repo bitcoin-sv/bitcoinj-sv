@@ -20,12 +20,12 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.ChildNumber;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.ecc.ECDSASignature;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
 import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.temp.KeyBag;
@@ -90,10 +90,10 @@ public abstract class CustomTransactionSigner extends StatelessTransactionSigner
             }
 
             Sha256Hash sighash = propTx.useForkId ?
-                    tx.hashForForkIdSignature(i, redeemData.redeemScript, tx.getInput(i).getConnectedOutput().getValue(), SigHash.ALL, false) :
-                    Transaction.hashForLegacySignature(tx, i, redeemData.redeemScript, SigHash.ALL, false);
+                    tx.hashForForkIdSignature(i, redeemData.redeemScript, tx.getInput(i).getConnectedOutput().getValue(), SigHash.Flags.ALL, false) :
+                    Transaction.hashForLegacySignature(tx, i, redeemData.redeemScript, SigHash.Flags.ALL, false);
             SignatureAndKey sigKey = getSignature(sighash, propTx.keyPaths.get(scriptPubKey));
-            TransactionSignature txSig = new TransactionSignature(sigKey.sig, SigHash.ALL, false, propTx.useForkId);
+            TransactionSignature txSig = new TransactionSignature(sigKey.sig, SigHash.Flags.ALL, false, propTx.useForkId);
             int sigIndex = ScriptUtils.getSigInsertionIndex(inputScript, sighash, sigKey.pubKey.getPubKey());
             inputScript = scriptPubKey.getScriptSigWithSignature(inputScript, txSig.encodeToBitcoin(), sigIndex);
             txIn.setScriptSig(inputScript);

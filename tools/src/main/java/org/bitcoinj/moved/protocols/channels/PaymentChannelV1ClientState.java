@@ -21,7 +21,6 @@ import com.google.common.collect.MultimapBuilder;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.ecc.SigHash;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -29,6 +28,7 @@ import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.script.SigHash;
 import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.temp.SendRequest;
 import org.bitcoinj.moved.wallet.AllowUnconfirmedCoinSelector;
@@ -175,7 +175,7 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
             refundTx.addOutput(totalValue, myKey.toAddress(net.params()));
             refundFees = multisigFee;
         }
-        refundTx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+        TxHelper.getConfidence(refundTx).setSource(TransactionConfidence.Source.SELF);
         log.info("initiated channel with multi-sig contract {}, refund {}", multisigContract.getHashAsString(),
                 refundTx.getHashAsString());
         stateMachine.transition(State.INITIATED);
@@ -237,7 +237,7 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
         checkNotNull(theirSignature);
         stateMachine.checkState(State.WAITING_FOR_SIGNED_REFUND);
         TransactionSignature theirSig = TransactionSignature.decodeFromBitcoin(theirSignature, true, false);
-        if (theirSig.sigHashMode() != SigHash.NONE || !theirSig.anyoneCanPay())
+        if (theirSig.sigHashMode() != SigHash.Flags.NONE || !theirSig.anyoneCanPay())
             throw new VerificationException("Refund signature was not SIGHASH_NONE|SIGHASH_ANYONECANPAY");
         // Sign the refund transaction ourselves.
         final TransactionOutput multisigContractOutput = multisigContract.getOutput(0);
@@ -248,9 +248,9 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
         }
         TransactionSignature ourSignature = refundTx.getVersion() >= Transaction.FORKID_VERSION ?
                 refundTx.calculateForkIdSignature(0, myKey.maybeDecrypt(userKey),
-                        multisigScript, refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.ALL, false) :
+                        multisigScript, refundTx.getInput(0).getConnectedOutput().getValue(), SigHash.Flags.ALL, false) :
                 refundTx.calculateLegacySignature(0, myKey.maybeDecrypt(userKey),
-                        multisigScript, SigHash.ALL, false);
+                        multisigScript, SigHash.Flags.ALL, false);
         // Insert the signatures.
         Script scriptSig = ScriptBuilder.createMultiSigInputScript(ourSignature, theirSig);
         log.info("Refund scriptSig: {}", scriptSig);

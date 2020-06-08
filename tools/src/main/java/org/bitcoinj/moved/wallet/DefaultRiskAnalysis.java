@@ -19,6 +19,7 @@ package org.bitcoinj.moved.wallet;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.ecc.ECDSASignature;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.core.TransactionConfidence;
@@ -79,7 +80,7 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
     @Nullable
     private Result analyzeIsFinal() {
         // Transactions we create ourselves are, by definition, not at risk of double spending against us.
-        if (tx.getConfidence().getSource() == TransactionConfidence.Source.SELF)
+        if (TxHelper.getConfidence(tx).getSource() == TransactionConfidence.Source.SELF)
             return Result.OK;
 
         // We consider transactions that opt into replace-by-fee at risk of double spending.

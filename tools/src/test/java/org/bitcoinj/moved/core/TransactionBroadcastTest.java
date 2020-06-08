@@ -75,7 +75,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
     public void fourPeers() throws Exception {
         InboundMessageQueuer[] channels = { connectPeer(1), connectPeer(2), connectPeer(3), connectPeer(4) };
         Transaction tx = new Transaction(TestWithNetworkConnections.NET);
-        tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+        TxHelper.getConfidence(tx).setSource(TransactionConfidence.Source.SELF);
         TransactionBroadcast broadcast = new TransactionBroadcast(peerGroup, tx);
         final AtomicDouble lastProgress = new AtomicDouble();
         broadcast.setProgressCallback(new TransactionBroadcast.ProgressCallback() {
@@ -118,7 +118,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         // a convenience method like peerGroup.broadcastTransaction.
         InboundMessageQueuer[] channels = { connectPeer(1), connectPeer(2), connectPeer(3), connectPeer(4) };
         Transaction tx = FakeTxBuilder.createFakeTx(TestWithNetworkConnections.NET, CENT, address);
-        tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+        TxHelper.getConfidence(tx).setSource(TransactionConfidence.Source.SELF);
         TransactionBroadcast broadcast = peerGroup.broadcastTransaction(tx);
         inbound(channels[1], InventoryMessage.with(tx));
         pingAndWait(channels[1]);
@@ -222,7 +222,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         Threading.waitForUserCode();
         assertFalse(sendResult.broadcastComplete.isDone());
         assertEquals(transactions[0], sendResult.tx);
-        assertEquals(0, transactions[0].getConfidence().numBroadcastPeers());
+        assertEquals(0, TxHelper.getConfidence(transactions[0]).numBroadcastPeers());
         transactions[0] = null;
         Transaction t1;
         {
@@ -244,7 +244,7 @@ public class TransactionBroadcastTest extends TestWithPeerGroup {
         Threading.waitForUserCode();
         assertTrue(sendResult.broadcastComplete.isDone());
         assertEquals(transactions[0], sendResult.tx);
-        assertEquals(1, transactions[0].getConfidence().numBroadcastPeers());
+        assertEquals(1, TxHelper.getConfidence(transactions[0]).numBroadcastPeers());
         // Confirm it.
         Block b2 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS, t1).block;
         inbound(p1, b2);

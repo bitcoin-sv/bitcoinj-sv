@@ -21,6 +21,7 @@ import com.google.common.collect.Multimap;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Transaction;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
@@ -303,7 +304,7 @@ public class StoredPaymentChannelClientStates implements WalletExtension {
                 checkState(channel.refundFees.signum() >= 0 &&
                         (!hasMaxMoney || channel.refundFees.compareTo(networkMaxMoney) <= 0));
                 checkNotNull(channel.myKey.getPubKey());
-                checkState(channel.refund.getConfidence().getSource() == TransactionConfidence.Source.SELF);
+                checkState(TxHelper.getConfidence(channel.refund).getSource() == TransactionConfidence.Source.SELF);
                 checkNotNull(channel.myKey.getPubKey());
                 final ClientState.StoredClientPaymentChannel.Builder value = ClientState.StoredClientPaymentChannel.newBuilder()
                         .setMajorVersion(channel.majorVersion)
@@ -336,7 +337,7 @@ public class StoredPaymentChannelClientStates implements WalletExtension {
             ClientState.StoredClientPaymentChannels states = ClientState.StoredClientPaymentChannels.parseFrom(data);
             for (ClientState.StoredClientPaymentChannel storedState : states.getChannelsList()) {
                 Transaction refundTransaction = Serializer.defaultFor(params).makeTransaction(storedState.getRefundTransaction().toByteArray());
-                refundTransaction.getConfidence().setSource(TransactionConfidence.Source.SELF);
+                TxHelper.getConfidence(refundTransaction).setSource(TransactionConfidence.Source.SELF);
                 ECKey myKey = (storedState.getMyKey().isEmpty()) ?
                         containingWallet.findKeyFromPubKey(storedState.getMyPublicKey().toByteArray()) :
                         ECKey.fromPrivate(storedState.getMyKey().toByteArray());

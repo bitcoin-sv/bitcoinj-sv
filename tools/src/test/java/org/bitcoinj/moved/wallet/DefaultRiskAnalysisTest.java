@@ -26,6 +26,7 @@ import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionInput;
 import org.bitcoinj.msg.protocol.TransactionOutput;
+import org.bitcoinj.msg.protocol.TxHelper;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.*;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
@@ -107,7 +108,7 @@ public class DefaultRiskAnalysisTest {
             DefaultRiskAnalysis analysis = DefaultRiskAnalysis.FACTORY.create(wallet, tx, NO_DEPS);
             assertEquals(RiskAnalysis.Result.NON_FINAL, analysis.analyze());
         }
-        tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
+        TxHelper.getConfidence(tx).setSource(TransactionConfidence.Source.SELF);
         {
             // Is no longer risky.
             DefaultRiskAnalysis analysis = DefaultRiskAnalysis.FACTORY.create(wallet, tx, NO_DEPS);
