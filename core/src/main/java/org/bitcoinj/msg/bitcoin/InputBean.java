@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class InputBean extends BitcoinObjectImpl implements Input {
+public class InputBean extends BitcoinObjectImpl<Input> implements Input {
 
     // Allows for altering transactions after they were broadcast. Values below NO_SEQUENCE-1 mean it can be altered.
     private long sequenceNumber;
@@ -42,6 +42,7 @@ public class InputBean extends BitcoinObjectImpl implements Input {
 
     @Override
     public void setSequenceNumber(long sequenceNumber) {
+        checkMutable();
         this.sequenceNumber = sequenceNumber;
     }
 
@@ -52,6 +53,7 @@ public class InputBean extends BitcoinObjectImpl implements Input {
 
     @Override
     public void setOutpoint(OutPoint outpoint) {
+        checkMutable();
         this.outpoint = outpoint;
     }
 
@@ -67,6 +69,7 @@ public class InputBean extends BitcoinObjectImpl implements Input {
 
     @Override
     public void setScriptBytes(byte[] scriptBytes) {
+        checkMutable();
         this.scriptBytes = scriptBytes;
         scriptSig = null;
     }
@@ -80,6 +83,7 @@ public class InputBean extends BitcoinObjectImpl implements Input {
 
     @Override
     public void setScriptSig(Script scriptSig) {
+        checkMutable();
         this.scriptSig = scriptSig;
         scriptBytes = scriptSig.getProgram();
     }
@@ -92,6 +96,7 @@ public class InputBean extends BitcoinObjectImpl implements Input {
 
     @Override
     public void setValue(@Nullable Coin value) {
+        checkMutable();
         this.value = value;
     }
 
@@ -110,5 +115,16 @@ public class InputBean extends BitcoinObjectImpl implements Input {
         stream.write(new VarInt(getScriptBytes().length).encode());
         stream.write(getScriptBytes());
         Utils.uint32ToByteStreamLE(sequenceNumber, stream);
+    }
+
+    @Override
+    public Input makeNew(byte[] serialized) {
+        return new InputBean(serialized);
+    }
+
+    @Override
+    public void makeSelfMutable() {
+        super.makeSelfMutable();
+        outpoint.makeSelfMutable();
     }
 }

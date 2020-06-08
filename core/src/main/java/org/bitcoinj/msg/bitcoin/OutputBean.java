@@ -10,7 +10,7 @@ import java.io.OutputStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class OutputBean extends BitcoinObjectImpl implements Output {
+public class OutputBean extends BitcoinObjectImpl<Output> implements Output {
 
     // The output's value is kept as a native type in order to save class instances.
     private Coin value;
@@ -41,6 +41,7 @@ public class OutputBean extends BitcoinObjectImpl implements Output {
 
     @Override
     public void setValue(Coin value) {
+        checkMutable();
         this.value = value;
     }
 
@@ -56,6 +57,7 @@ public class OutputBean extends BitcoinObjectImpl implements Output {
 
     @Override
     public void setScriptBytes(byte[] scriptBytes) {
+        checkMutable();
         this.scriptBytes = scriptBytes;
         scriptPubKey = null;
     }
@@ -69,6 +71,7 @@ public class OutputBean extends BitcoinObjectImpl implements Output {
 
     @Override
     public void setScriptPubKey(Script scriptPubKey) {
+        checkMutable();
         this.scriptPubKey = scriptPubKey;
         scriptBytes = scriptPubKey.getProgram();
     }
@@ -87,5 +90,10 @@ public class OutputBean extends BitcoinObjectImpl implements Output {
         // TODO: Move script serialization into the Script class, where it belongs.
         stream.write(new VarInt(getScriptBytes().length).encode());
         stream.write(getScriptBytes());
+    }
+
+    @Override
+    public Output makeNew(byte[] serialized) {
+        return new OutputBean(serialized);
     }
 }

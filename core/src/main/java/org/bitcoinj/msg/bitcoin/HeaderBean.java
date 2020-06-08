@@ -1,15 +1,18 @@
 package org.bitcoinj.msg.bitcoin;
 
 import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class HeaderBean extends BitcoinObjectImpl implements Header {
+public class HeaderBean extends BitcoinObjectImpl<Header> implements Header {
 
     // block hash which is hash of serialized header
     private Sha256Hash hash;
+    private MerkleRootProvider merkleRootProvider;
 
     // Fields defined as part of the protocol format.
     private long version;
@@ -26,10 +29,11 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     public HeaderBean(FullBlockBean parent, byte[] payload, int offset) {
         super(parent, payload, offset);
+        merkleRootProvider = parent;
     }
 
     public HeaderBean(FullBlockBean parent, byte[] payload) {
-        super(parent, payload, 0);
+        this(parent, payload, 0);
     }
 
     public HeaderBean(byte[] payload) {
@@ -38,11 +42,15 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public Sha256Hash getHash() {
+        if (hash == null) {
+            hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(serialize()));
+        }
         return hash;
     }
 
     @Override
     public void setHash(Sha256Hash hash) {
+        checkMutable();
         this.hash = hash;
     }
 
@@ -53,6 +61,7 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public void setVersion(long version) {
+        checkMutable();
         this.version = version;
     }
 
@@ -63,16 +72,22 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public void setPrevBlockHash(Sha256Hash prevBlockHash) {
+        checkMutable();
         this.prevBlockHash = prevBlockHash;
     }
 
     @Override
     public Sha256Hash getMerkleRoot() {
+        if (merkleRoot == null && merkleRootProvider != null) {
+            checkMutable();
+            merkleRoot = merkleRootProvider.calculateMerkleRoot();
+        }
         return merkleRoot;
     }
 
     @Override
     public void setMerkleRoot(Sha256Hash merkleRoot) {
+        checkMutable();
         this.merkleRoot = merkleRoot;
     }
 
@@ -83,6 +98,7 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public void setTime(long time) {
+        checkMutable();
         this.time = time;
     }
 
@@ -93,6 +109,7 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public void setDifficultyTarget(long difficultyTarget) {
+        checkMutable();
         this.difficultyTarget = difficultyTarget;
     }
 
@@ -103,6 +120,7 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public void setNonce(long nonce) {
+        checkMutable();
         this.nonce = nonce;
     }
 
@@ -113,16 +131,19 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public void setTxCount(long txCount) {
+        checkMutable();
         this.txCount = txCount;
     }
 
     @Override
     public Tx getCoinbase() {
+        checkMutable();
         return coinbase;
     }
 
     @Override
     public void setCoinbase(Tx coinbase) {
+        checkMutable();
         this.coinbase = coinbase;
     }
 
@@ -133,6 +154,7 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
 
     @Override
     public void setSerializedLength(long serializedLength) {
+        checkMutable();
         this.serializedLength = serializedLength;
     }
 
@@ -157,5 +179,17 @@ public class HeaderBean extends BitcoinObjectImpl implements Header {
         Utils.uint32ToByteStreamLE(time, stream);
         Utils.uint32ToByteStreamLE(difficultyTarget, stream);
         Utils.uint32ToByteStreamLE(nonce, stream);
+    }
+
+    @Override
+    public Header makeNew(byte[] serialized) {
+        return new HeaderBean(serialized);
+    }
+
+    @Override
+    public void makeSelfMutable() {
+        super.makeSelfMutable();
+        this.hash = null;
+        //we aren't zeroing the merkle root as that's taken care of by full block.
     }
 }

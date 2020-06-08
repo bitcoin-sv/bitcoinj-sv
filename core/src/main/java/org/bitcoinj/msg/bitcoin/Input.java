@@ -5,7 +5,7 @@ import org.bitcoinj.script.Script;
 
 import javax.annotation.Nullable;
 
-public interface Input extends BitcoinObject {
+public interface Input extends BitcoinObject<Input> {
 
     public static final long NO_SEQUENCE = 0xFFFFFFFFL;
 
@@ -33,4 +33,6 @@ public interface Input extends BitcoinObject {
 
     @Nullable
     Coin getValue();
+
+
 }

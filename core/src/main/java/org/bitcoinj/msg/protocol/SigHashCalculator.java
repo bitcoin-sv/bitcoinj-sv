@@ -106,8 +106,8 @@ public class SigHashCalculator {
             // It would not be thread-safe to change the attributes of the transaction object itself.
 //            Transaction tx = Serializer.defaultFor(transaction.getNet()).makeTransaction(transaction.bitcoinSerialize());
 //            tx.ensureParsed();
-            byte[] originalTxBytes = transaction.serialize();
-            Tx tx = new TxBean(originalTxBytes);
+            //byte[] originalTxBytes = transaction.serialize();
+            Tx tx = transaction.mutableCopy();
 
             // Clear input scripts in preparation for signing. If we're signing a fresh
             // transaction that step isn't very helpful, but it doesn't add much cost relative to the actual
@@ -155,7 +155,7 @@ public class SigHashCalculator {
                 // that position are "nulled out". Unintuitively, the value in a "null" transaction is set to -1.
                 tx.setOutputs(new ArrayList<Output>(tx.getOutputs().subList(0, inputIndex + 1)));
                 for (int i = 0; i < inputIndex; i++) {
-                    Output output = new OutputBean(tx);
+                    Output output = new OutputBean(tx).makeMutable();
                     output.setValue(Coin.NEGATIVE_SATOSHI);
                     output.setScriptBytes(new byte[]{});
                     tx.getOutputs().set(i, output);
@@ -173,7 +173,7 @@ public class SigHashCalculator {
                 tx.getInputs().add(input);
             }
 
-            ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(originalTxBytes.length + 64);
+            ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(transaction.getMessageSize() + 64);
             tx.serializeTo(bos);
             // We also have to write a hash type (sigHashType is actually an unsigned char)
             uint32ToByteStreamLE(0x000000ff & sigHashType, bos);

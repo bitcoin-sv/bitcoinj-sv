@@ -6,7 +6,7 @@ import org.bitcoinj.core.Utils;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class OutPointBean extends BitcoinObjectImpl<OutPointBean> implements OutPoint {
+public class OutPointBean extends BitcoinObjectImpl<OutPoint> implements OutPoint {
 
     /** Hash of the transaction to which we refer. */
     private Sha256Hash hash;
@@ -29,6 +29,7 @@ public class OutPointBean extends BitcoinObjectImpl<OutPointBean> implements Out
 
     @Override
     public void setHash(Sha256Hash hash) {
+        checkMutable();
         this.hash = hash;
     }
 
@@ -39,6 +40,7 @@ public class OutPointBean extends BitcoinObjectImpl<OutPointBean> implements Out
 
     @Override
     public void setIndex(long index) {
+        checkMutable();
         this.index = index;
     }
 
@@ -52,5 +54,10 @@ public class OutPointBean extends BitcoinObjectImpl<OutPointBean> implements Out
     public void serializeTo(OutputStream stream) throws IOException {
         stream.write(hash.getReversedBytes());
         Utils.uint32ToByteStreamLE(index, stream);
+    }
+
+    @Override
+    public OutPoint makeNew(byte[] serialized) {
+        return new OutPointBean(serialized);
     }
 }

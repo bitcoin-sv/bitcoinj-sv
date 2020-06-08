@@ -9,12 +9,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 
-public abstract class BitcoinObjectImpl<C extends BitcoinObjectImpl> implements BitcoinObject {
+public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements BitcoinObject<C> {
 
     public static final int MAX_SIZE = Integer.MAX_VALUE / 2; // 1GB - we can get problems converting to hex as we double the size of the backing array.
 
     private BitcoinObject parent;
-    private boolean mutable;
+    private boolean mutable = false;
 
     public static final int UNKNOWN_LENGTH = Integer.MIN_VALUE;
 
@@ -43,11 +43,12 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObjectImpl> implements 
     }
 
     /**
-     * Constructor for manually building an object
+     * Constructor for manually building an object, returned object is mutable
      * @param parent
      */
     public BitcoinObjectImpl(BitcoinObject parent) {
         this.parent = parent;
+        makeMutable();
     }
 
     /**
@@ -77,6 +78,11 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObjectImpl> implements 
 
     @Override
     public  byte[] serialize() {
+        if (!isMutable() && payload != null
+                && cursor == 0
+                && payload.length == length) {
+            return payload;
+        }
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         try {
             serializeTo(stream);
@@ -88,7 +94,26 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObjectImpl> implements 
 
     @Override
     public boolean isMutable() {
-        return rootObject() == this ? mutable : rootObject().isMutable();
+        return mutable;
+    }
+
+    public C makeMutable() {
+        makeSelfMutable();
+        if (parent != null)
+            parent.makeMutable();
+        return (C) this;
+    }
+
+    @Override
+    public void makeSelfMutable() {
+        payload = null;
+        length = UNKNOWN_LENGTH;
+        mutable = true;
+    }
+
+    protected void checkMutable() {
+        if (!isMutable())
+            throw new IllegalStateException("modifying fields on immutable object, call makeMutable() first");
     }
 
     public BitcoinObject rootObject() {

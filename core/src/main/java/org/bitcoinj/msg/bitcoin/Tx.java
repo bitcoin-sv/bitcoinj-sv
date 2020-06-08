@@ -4,7 +4,7 @@ import org.bitcoinj.core.Sha256Hash;
 
 import java.util.List;
 
-public interface Tx extends BitcoinObject {
+public interface Tx extends BitcoinObject<Tx> {
     Sha256Hash calculateHash();
 
     Sha256Hash getHash();
@@ -26,4 +26,5 @@ public interface Tx extends BitcoinObject {
     long getLockTime();
 
     void setLockTime(long lockTime);
+
 }

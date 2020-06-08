@@ -8,13 +8,14 @@ import org.bitcoinj.utils.Threading;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
 import static org.bitcoinj.core.Sha256Hash.hashTwice;
 
-public class FullBlockBean extends BitcoinObjectImpl implements FullBlock {
+public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullBlock, MerkleRootProvider {
 
     private HeaderBean header;
 
@@ -35,16 +36,23 @@ public class FullBlockBean extends BitcoinObjectImpl implements FullBlock {
 
     @Override
     public void setHeader(HeaderBean header) {
+        checkMutable();
         this.header = header;
     }
 
     @Override
+    public Sha256Hash getHash() {
+        return header.getHash();
+    }
+
+    @Override
     public List<Tx> getTransactions() {
-        return transactions;
+        return isMutable() ? transactions : Collections.unmodifiableList(transactions);
     }
 
     @Override
     public void setTransactions(List<Tx> transactions) {
+        checkMutable();
         this.transactions = transactions;
     }
 
@@ -98,6 +106,24 @@ public class FullBlockBean extends BitcoinObjectImpl implements FullBlock {
         }
     }
 
+    @Override
+    public FullBlock makeNew(byte[] serialized) {
+        return new FullBlockBean(serialized);
+    }
+
+    @Override
+    public void makeSelfMutable() {
+        super.makeSelfMutable();
+        header.makeSelfMutable(); //also nulls block hash
+        header.setMerkleRoot(null); //needs to be nulled in case txs change.
+        for (Tx tx: getTransactions())
+            tx.makeSelfMutable();
+    }
+
+    /**
+     * This is here for early testing, we'll replace it with something more efficient.
+     * @return
+     */
 
     @Override
     public Sha256Hash calculateMerkleRoot() {

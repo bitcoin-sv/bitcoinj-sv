@@ -3,7 +3,7 @@ package org.bitcoinj.msg.bitcoin;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.script.Script;
 
-public interface Output extends BitcoinObject {
+public interface Output extends BitcoinObject<Output> {
     Coin getValue();
 
     void setValue(Coin value);

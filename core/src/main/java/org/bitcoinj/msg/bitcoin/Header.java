@@ -2,7 +2,13 @@ package org.bitcoinj.msg.bitcoin;
 
 import org.bitcoinj.core.Sha256Hash;
 
-public interface Header extends BitcoinObject {
+public interface Header extends BitcoinObject<Header> {
+
+    /**
+     * gets the header hash, calculating it if necessary.  If the header is part of a mutable FullBlock
+     * this make also trigger calculation of the merkle tree.
+     * @return
+     */
     Sha256Hash getHash();
 
     void setHash(Sha256Hash hash);

@@ -6,11 +6,12 @@ import org.bitcoinj.core.VarInt;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.bitcoinj.core.Utils.uint32ToByteStreamLE;
 
-public class TxBean extends BitcoinObjectImpl implements Tx {
+public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
 
     private Sha256Hash hash;
 
@@ -52,6 +53,7 @@ public class TxBean extends BitcoinObjectImpl implements Tx {
 
     @Override
     public void setHash(Sha256Hash hash) {
+        checkMutable();
         this.hash = hash;
     }
 
@@ -62,26 +64,29 @@ public class TxBean extends BitcoinObjectImpl implements Tx {
 
     @Override
     public void setVersion(long version) {
+        checkMutable();
         this.version = version;
     }
 
     @Override
     public List<Input> getInputs() {
-        return inputs;
+        return isMutable() ? inputs : Collections.unmodifiableList(inputs);
     }
 
     @Override
     public void setInputs(List<Input> inputs) {
+        checkMutable();
         this.inputs = inputs;
     }
 
     @Override
     public List<Output> getOutputs() {
-        return outputs;
+        return isMutable() ? outputs : Collections.unmodifiableList(outputs);
     }
 
     @Override
     public void setOutputs(List<Output> outputs) {
+        checkMutable();
         this.outputs = outputs;
     }
 
@@ -92,6 +97,7 @@ public class TxBean extends BitcoinObjectImpl implements Tx {
 
     @Override
     public void setLockTime(long lockTime) {
+        checkMutable();
         this.lockTime = lockTime;
     }
 
@@ -132,5 +138,19 @@ public class TxBean extends BitcoinObjectImpl implements Tx {
         for (Output out : outputs)
             out.serializeTo(stream);
         uint32ToByteStreamLE(lockTime, stream);
+    }
+
+    public Tx makeNew(byte[] serialized) {
+        return new TxBean(null, serialize());
+    }
+
+    @Override
+    public void makeSelfMutable() {
+        super.makeSelfMutable();
+        for (Input in: getInputs()) {
+            in.makeSelfMutable();
+        }
+        for (Output out: getOutputs())
+            out.makeSelfMutable();
     }
 }
