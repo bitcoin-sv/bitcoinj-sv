@@ -1,5 +1,6 @@
 package org.bitcoinj.msg;
 
+import org.bitcoinj.core.BitcoinJ;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.protocol.*;
@@ -54,7 +55,7 @@ public class Genesis {
     }
 
     private static Block createGenesis(Net n) {
-        Block genesisBlock = DefaultMsgAccessors.newBlock(n, Block.BLOCK_VERSION_GENESIS);
+        Block genesisBlock = DefaultMsgAccessors.newBlock(n, BitcoinJ.BLOCK_VERSION_GENESIS);
         Transaction t = new Transaction(n);
         try {
             // A script containing the difficulty bits and the following message:

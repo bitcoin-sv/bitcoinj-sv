@@ -203,7 +203,7 @@ public class SPVBlockChainTest {
         assertTrue(testNetChain.add(getBlock1()));
         Block b2 = getBlock2();
         assertTrue(testNetChain.add(b2));
-        Block bad = DefaultMsgAccessors.newBlock(net, Block.BLOCK_VERSION_GENESIS);
+        Block bad = DefaultMsgAccessors.newBlock(net, BitcoinJ.BLOCK_VERSION_GENESIS);
         // Merkle root can be anything here, doesn't matter.
         bad.setMerkleRoot(Sha256Hash.wrap("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
         // Nonce was just some number that made the hash < difficulty limit set below, it can be anything.
@@ -213,7 +213,7 @@ public class SPVBlockChainTest {
         // We're going to make this block so easy 50% of solutions will pass, and check it gets rejected for having a
         // bad difficulty target. Unfortunately the encoding mechanism means we cannot make one that accepts all
         // solutions.
-        bad.setDifficultyTarget(Block.EASIEST_DIFFICULTY_TARGET);
+        bad.setDifficultyTarget(BitcoinJ.EASIEST_DIFFICULTY_TARGET);
         try {
             testNetChain.add(bad);
             // The difficulty target above should be rejected on the grounds of being easier than the networks
@@ -245,7 +245,7 @@ public class SPVBlockChainTest {
      */
     @Test
     public void badBip66Version() throws Exception {
-        testDeprecatedBlockVersion(Block.BLOCK_VERSION_BIP34, Block.BLOCK_VERSION_BIP66);
+        testDeprecatedBlockVersion(BitcoinJ.BLOCK_VERSION_BIP34, BitcoinJ.BLOCK_VERSION_BIP66);
     }
 
     /**
@@ -254,7 +254,7 @@ public class SPVBlockChainTest {
      */
     @Test
     public void badBip65Version() throws Exception {
-        testDeprecatedBlockVersion(Block.BLOCK_VERSION_BIP66, Block.BLOCK_VERSION_BIP65);
+        testDeprecatedBlockVersion(BitcoinJ.BLOCK_VERSION_BIP66, BitcoinJ.BLOCK_VERSION_BIP65);
     }
 
     private void testDeprecatedBlockVersion(final long deprecatedVersion, final long newVersion)
@@ -342,7 +342,7 @@ public class SPVBlockChainTest {
         Address addressToSendTo = receiveKey.toAddress(PARAMS);
 
         // Create a block, sending the coinbase to the coinbaseTo address (which is in the wallet).
-        Block b1 = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, wallet.currentReceiveKey().getPubKey(), height++);
+        Block b1 = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, wallet.currentReceiveKey().getPubKey(), height++);
         chain.add(b1);
 
         // Check a transaction has been received.
@@ -416,7 +416,7 @@ public class SPVBlockChainTest {
 
     // Some blocks from the test net.
     private static Block getBlock2() throws Exception {
-        Block b2 = new Block(net, Block.BLOCK_VERSION_GENESIS);
+        Block b2 = new Block(net, BitcoinJ.BLOCK_VERSION_GENESIS);
         b2.setMerkleRoot(Sha256Hash.wrap("addc858a17e21e68350f968ccd384d6439b64aafa6c193c8b9dd66320470838b"));
         b2.setNonce(2642058077L);
         b2.setTime(1296734343L);
@@ -427,7 +427,7 @@ public class SPVBlockChainTest {
     }
 
     private static Block getBlock1() throws Exception {
-        Block b1 = new Block(net, Block.BLOCK_VERSION_GENESIS);
+        Block b1 = new Block(net, BitcoinJ.BLOCK_VERSION_GENESIS);
         b1.setMerkleRoot(Sha256Hash.wrap("0e8e58ecdacaa7b3c6304a35ae4ffff964816d2b80b62b58558866ce4e648c10"));
         b1.setNonce(236038445);
         b1.setTime(1296734340);

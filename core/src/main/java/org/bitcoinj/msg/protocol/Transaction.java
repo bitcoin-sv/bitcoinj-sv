@@ -85,10 +85,10 @@ public class Transaction extends ChildMessage {
         public int compare(final Transaction tx1, final Transaction tx2) {
             final TransactionConfidence confidence1 = TxHelper.getConfidence(tx1);
             final int height1 = confidence1.getConfidenceType() == ConfidenceType.BUILDING
-                    ? confidence1.getAppearedAtChainHeight() : Block.BLOCK_HEIGHT_UNKNOWN;
+                    ? confidence1.getAppearedAtChainHeight() : BitcoinJ.BLOCK_HEIGHT_UNKNOWN;
             final TransactionConfidence confidence2 = TxHelper.getConfidence(tx2);
             final int height2 = confidence2.getConfidenceType() == ConfidenceType.BUILDING
-                    ? confidence2.getAppearedAtChainHeight() : Block.BLOCK_HEIGHT_UNKNOWN;
+                    ? confidence2.getAppearedAtChainHeight() : BitcoinJ.BLOCK_HEIGHT_UNKNOWN;
             final int heightComparison = -(Ints.compare(height1, height2));
             //If height1==height2, compare by tx hash to make comparator consistent with equals
             return heightComparison != 0 ? heightComparison : tx1.getHash().compareTo(tx2.getHash());
@@ -1018,7 +1018,7 @@ public class Transaction extends ChildMessage {
      */
     public void checkCoinBaseHeight(final int height)
             throws VerificationException {
-        checkArgument(height >= Block.BLOCK_HEIGHT_GENESIS);
+        checkArgument(height >= BitcoinJ.BLOCK_HEIGHT_GENESIS);
         checkState(isCoinBase());
 
         // Check block height is in coinbase input script

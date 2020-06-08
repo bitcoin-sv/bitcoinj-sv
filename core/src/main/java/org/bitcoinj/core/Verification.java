@@ -45,7 +45,7 @@ public class Verification {
         final EnumSet<Block.VerifyFlag> flags = EnumSet.noneOf(Block.VerifyFlag.class);
 
         if (block.isBIP34()) {
-            final Integer count = tally.getCountAtOrAbove(Block.BLOCK_VERSION_BIP34);
+            final Integer count = tally.getCountAtOrAbove(BitcoinJ.BLOCK_VERSION_BIP34);
             if (null != count && count >= params.getMajorityEnforceBlockUpgrade()) {
                 flags.add(Block.VerifyFlag.HEIGHT_IN_COINBASE);
             }
@@ -71,8 +71,8 @@ public class Verification {
 
         // Start enforcing CHECKLOCKTIMEVERIFY, (BIP65) for block.nVersion=4
         // blocks, when 75% of the network has upgraded:
-        if (block.getVersion() >= Block.BLOCK_VERSION_BIP65 &&
-            tally.getCountAtOrAbove(Block.BLOCK_VERSION_BIP65) > params.getMajorityEnforceBlockUpgrade()) {
+        if (block.getVersion() >= BitcoinJ.BLOCK_VERSION_BIP65 &&
+            tally.getCountAtOrAbove(BitcoinJ.BLOCK_VERSION_BIP65) > params.getMajorityEnforceBlockUpgrade()) {
             verifyFlags.add(ScriptVerifyFlag.CHECKLOCKTIMEVERIFY);
         }
 

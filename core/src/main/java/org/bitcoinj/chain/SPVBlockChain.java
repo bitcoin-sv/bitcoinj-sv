@@ -20,6 +20,7 @@ package org.bitcoinj.chain;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.exception.PrunedException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.FilteredBlock;
@@ -30,8 +31,6 @@ import org.bitcoinj.exception.BlockStoreException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-// TODO: Rename this class to SPVBlockChain at some point.
 
 /**
  * A BlockChain implements the <i>simplified payment verification</i> mode of the Bitcoin protocol. It is the right

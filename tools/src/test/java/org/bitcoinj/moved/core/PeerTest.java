@@ -143,7 +143,7 @@ public class PeerTest extends TestWithNetworkConnections {
     @Test
     public void chainDownloadEnd2End() throws Exception {
         // A full end-to-end test of the chain download process, with a new block being solved in the middle.
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
         Block b3 = FakeTxBuilder.makeSolvedTestBlock(b2);
@@ -219,7 +219,7 @@ public class PeerTest extends TestWithNetworkConnections {
     public void invTickle() throws Exception {
         connect();
 
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         // Make a missing block.
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
@@ -249,7 +249,7 @@ public class PeerTest extends TestWithNetworkConnections {
         connect();
 
         // Make a missing block that we receive.
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
 
@@ -325,7 +325,7 @@ public class PeerTest extends TestWithNetworkConnections {
     // Check that inventory message containing blocks we want is processed correctly.
     @Test
     public void newBlock() throws Exception {
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         final Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
         // Receive notification of a new block.
@@ -386,7 +386,7 @@ public class PeerTest extends TestWithNetworkConnections {
     // Check that it starts downloading the block chain correctly on request.
     @Test
     public void startBlockChainDownload() throws Exception {
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
         SPVBlockChain.add(b2);
@@ -416,7 +416,7 @@ public class PeerTest extends TestWithNetworkConnections {
     public void getBlock() throws Exception {
         connect();
 
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
         Block b3 = FakeTxBuilder.makeSolvedTestBlock(b2);
@@ -438,7 +438,7 @@ public class PeerTest extends TestWithNetworkConnections {
     public void getLargeBlock() throws Exception {
         connect();
 
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);
         Transaction t = new Transaction(TestWithNetworkConnections.NET);
@@ -465,7 +465,7 @@ public class PeerTest extends TestWithNetworkConnections {
         Utils.setMockClock();
         // Check that blocks before the fast catchup point are retrieved using getheaders, and after using getblocks.
         // This test is INCOMPLETE because it does not check we handle >2000 blocks correctly.
-        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).block;
+        Block b1 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).block;
         SPVBlockChain.add(b1);
         Utils.rollMockClock(60 * 10);  // 10 minutes later.
         Block b2 = FakeTxBuilder.makeSolvedTestBlock(b1);

@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.PrunedException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
@@ -450,7 +451,7 @@ public abstract class AbstractBlockChain {
                 if (storedPrev != null) {
                     height = storedPrev.getHeight() + 1;
                 } else {
-                    height = Block.BLOCK_HEIGHT_UNKNOWN;
+                    height = BitcoinJ.BLOCK_HEIGHT_UNKNOWN;
                 }
                 flags = Verification.getBlockVerificationFlags(params, block, versionTally, height);
                 if (shouldVerifyTransactions())
@@ -536,8 +537,8 @@ public abstract class AbstractBlockChain {
             // NOTE: This requires 1,000 blocks since the last checkpoint (on main
             // net, less on test) in order to be applied. It is also limited to
             // stopping addition of new v2/3 blocks to the tip of the chain.
-            if (block.getVersion() == Block.BLOCK_VERSION_BIP34
-                || block.getVersion() == Block.BLOCK_VERSION_BIP66) {
+            if (block.getVersion() == BitcoinJ.BLOCK_VERSION_BIP34
+                || block.getVersion() == BitcoinJ.BLOCK_VERSION_BIP66) {
                 final Integer count = versionTally.getCountAtOrAbove(block.getVersion() + 1);
                 if (count != null
                     && count >= params.getMajorityRejectBlockOutdated()) {

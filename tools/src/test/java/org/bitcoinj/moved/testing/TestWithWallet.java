@@ -20,7 +20,6 @@ import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
@@ -74,7 +73,7 @@ public class TestWithWallet {
                 if (wallet.isPendingTransactionRelevant(tx))
                     wallet.receivePending(tx, null);
         } else {
-            FakeTxBuilder.BlockPair bp = createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS, transactions);
+            FakeTxBuilder.BlockPair bp = createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS, transactions);
             for (Transaction tx : transactions)
                 wallet.receiveFromBlock(tx, bp.storedBlock, type, 0);
             if (type == AbstractBlockChain.NewBlockType.BEST_CHAIN)

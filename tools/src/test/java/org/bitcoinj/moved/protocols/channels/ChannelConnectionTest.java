@@ -19,7 +19,6 @@ package org.bitcoinj.moved.protocols.channels;
 import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.ECDSA;
-import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.moved.testing.TestWithWallet;
 import org.bitcoinj.msg.protocol.TxHelper;
@@ -271,9 +270,9 @@ public class ChannelConnectionTest extends TestWithWallet {
 
         // Now confirm the settle TX and see if the channel deletes itself from the wallet.
         assertEquals(1, StoredPaymentChannelClientStates.getFromWallet(wallet).mapChannels.size());
-        wallet.notifyNewBestBlock(createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).storedBlock);
+        wallet.notifyNewBestBlock(createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).storedBlock);
         assertEquals(1, StoredPaymentChannelClientStates.getFromWallet(wallet).mapChannels.size());
-        wallet.notifyNewBestBlock(createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS + 1).storedBlock);
+        wallet.notifyNewBestBlock(createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS + 1).storedBlock);
         assertEquals(0, StoredPaymentChannelClientStates.getFromWallet(wallet).mapChannels.size());
     }
 

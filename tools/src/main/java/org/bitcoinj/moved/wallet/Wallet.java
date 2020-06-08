@@ -31,6 +31,7 @@ import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.ecc.ECKeyBytes;
+import org.bitcoinj.exception.UTXOProviderException;
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.msg.Message;

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.bitcoinj.exception;
 
 // TODO: Rename PrunedException to something like RequiredDataWasPrunedException
+
+import org.bitcoinj.core.Sha256Hash;
 
 /**
  * PrunedException is thrown in cases where a fully verifying node has deleted (pruned) old block data that turned

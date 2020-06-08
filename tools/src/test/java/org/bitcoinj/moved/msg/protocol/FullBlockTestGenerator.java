@@ -202,13 +202,13 @@ public class FullBlockTestGenerator {
         Queue<TransactionOutPointWithValue> spendableOutputs = new LinkedList<TransactionOutPointWithValue>();
 
         int chainHeadHeight = 1;
-        Block chainHead = Genesis.getFor(net).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, chainHeadHeight);
+        Block chainHead = Genesis.getFor(net).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, chainHeadHeight);
         blocks.add(new BlockAndValidity(chainHead, true, false, chainHead.getHash(), 1, "Initial Block"));
         spendableOutputs.offer(new TransactionOutPointWithValue(
                 new TransactionOutPoint(net, 0, chainHead.getTransactions().get(0).getHash()),
                 FIFTY_COINS, chainHead.getTransactions().get(0).getOutputs().get(0).getScriptPubKey()));
         for (int i = 1; i < net.params().getSpendableCoinbaseDepth(); i++) {
-            chainHead = chainHead.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, chainHeadHeight);
+            chainHead = chainHead.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, chainHeadHeight);
             chainHeadHeight++;
             blocks.add(new BlockAndValidity(chainHead, true, false, chainHead.getHash(), i+1, "Initial Block chain output generation"));
             spendableOutputs.offer(new TransactionOutPointWithValue(
@@ -915,7 +915,7 @@ public class FullBlockTestGenerator {
         TransactionOutPointWithValue out14 = spendableOutputs.poll();
 
         // A valid block created exactly like b44 to make sure the creation itself works
-        Block b44 = new Block(net, Block.BLOCK_VERSION_GENESIS);
+        Block b44 = new Block(net, BitcoinJ.BLOCK_VERSION_GENESIS);
         byte[] outScriptBytes = ScriptBuilder.createOutputScript(ECKey.fromPublicOnly(coinbaseOutKeyPubKey)).getProgram();
         {
             b44.setDifficultyTarget(b43.block.getDifficultyTarget());
@@ -939,7 +939,7 @@ public class FullBlockTestGenerator {
         TransactionOutPointWithValue out15 = spendableOutputs.poll();
 
         // A block with a non-coinbase as the first tx
-        Block b45 = new Block(net, Block.BLOCK_VERSION_GENESIS);
+        Block b45 = new Block(net, BitcoinJ.BLOCK_VERSION_GENESIS);
         {
             b45.setDifficultyTarget(b44.getDifficultyTarget());
             //b45.addCoinbaseTransaction(pubKey, coinbaseValue);
@@ -965,7 +965,7 @@ public class FullBlockTestGenerator {
         blocks.add(new BlockAndValidity(b45, false, true, b44.getHash(), chainHeadHeight + 15, "b45"));
 
         // A block with no txn
-        Block b46 = new Block(net, Block.BLOCK_VERSION_GENESIS);
+        Block b46 = new Block(net, BitcoinJ.BLOCK_VERSION_GENESIS);
         {
             b46.setTransactions(new ArrayList<Transaction>());
             b46.setDifficultyTarget(b44.getDifficultyTarget());
@@ -1793,7 +1793,7 @@ public class FullBlockTestGenerator {
         Coin coinbaseValue = FIFTY_COINS.shiftRight(nextBlockHeight / net.params().getSubsidyDecreaseBlockCount())
                 .add((prevOut != null ? prevOut.value.subtract(SATOSHI) : ZERO))
                 .add(additionalCoinbaseValue == null ? ZERO : additionalCoinbaseValue);
-        Block block = baseBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, coinbaseValue, nextBlockHeight);
+        Block block = baseBlock.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, coinbaseValue, nextBlockHeight);
         Transaction t = new Transaction(net);
         if (prevOut != null) {
             // Entirely invalid scriptPubKey to ensure we aren't pre-verifying too much

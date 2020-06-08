@@ -580,7 +580,7 @@ public class ChainSplitTest {
 
         Block b1 = Genesis.getFor(NET).createNextBlock(someOtherGuy);
         final ECKey coinsTo2 = wallet.freshReceiveKey();
-        Block b2 = b1.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, coinsTo2.getPubKey(), 2);
+        Block b2 = b1.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, coinsTo2.getPubKey(), 2);
         Block b3 = b2.createNextBlock(someOtherGuy);
 
         log.debug("Adding block b1");

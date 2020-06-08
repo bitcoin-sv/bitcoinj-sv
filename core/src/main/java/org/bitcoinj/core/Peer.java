@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.core.listeners.*;
+import org.bitcoinj.exception.PrunedException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.*;
 import org.bitcoinj.msg.p2p.*;
@@ -1391,7 +1392,7 @@ public class Peer extends PeerSocketHandler {
 
     /**
      * Links the given wallet to this peer. If you have multiple peers, you should use a {@link PeerGroup} to manage
-     * them and use the {@link PeerGroup#addWallet(Wallet)} method instead of registering the wallet with each peer
+     * them and use the {@link PeerGroup#addTxEventListener(TxEventListener)} method instead of registering the wallet with each peer
      * independently, otherwise the wallet will receive duplicate notifications.
      */
     public void addTxEventListener(TxEventListener txEventListener) {

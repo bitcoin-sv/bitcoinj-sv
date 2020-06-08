@@ -35,4 +35,22 @@ public class BitcoinJ {
     public static final int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
     /** Same but as a BigInteger for CHECKLOCKTIMEVERIFY */
     public static final BigInteger LOCKTIME_THRESHOLD_BIG = BigInteger.valueOf(LOCKTIME_THRESHOLD);
+    /** A value for difficultyTarget (nBits) that allows half of all possible hash solutions. Used in unit testing. */
+    public static final long EASIEST_DIFFICULTY_TARGET = 0x207fFFFFL;
+    /** Value to use if the block height is unknown */
+    public static final int BLOCK_HEIGHT_UNKNOWN = -1;
+    /** Height of the first block */
+    public static final int BLOCK_HEIGHT_GENESIS = 0;
+    public static final long BLOCK_VERSION_GENESIS = 1;
+    /** Block version introduced in BIP 34: Height in coinbase */
+    public static final long BLOCK_VERSION_BIP34 = 2;
+    /** Block version introduced in BIP 66: Strict DER signatures */
+    public static final long BLOCK_VERSION_BIP66 = 3;
+    /** Block version introduced in BIP 65: OP_CHECKLOCKTIMEVERIFY */
+    public static final long BLOCK_VERSION_BIP65 = 4;
+    /**
+     * The number that is one greater than the largest representable SHA-256
+     * hash.
+     */
+    public static BigInteger LARGEST_HASH = BigInteger.ONE.shiftLeft(256);
 }

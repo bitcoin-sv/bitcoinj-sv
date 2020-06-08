@@ -18,7 +18,6 @@ package org.bitcoinj.moved.wallet;
 
 import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.core.*;
-import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutput;
@@ -100,7 +99,7 @@ public class DefaultCoinSelectorTest extends TestWithWallet {
         // and t3=0.01.
         Transaction t1 = checkNotNull(sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, COIN));
         // Padding block.
-        wallet.notifyNewBestBlock(FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS).storedBlock);
+        wallet.notifyNewBestBlock(FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS).storedBlock);
         final Coin TWO_COINS = COIN.multiply(2);
         Transaction t2 = checkNotNull(sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, TWO_COINS));
         Transaction t3 = checkNotNull(sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, CENT));

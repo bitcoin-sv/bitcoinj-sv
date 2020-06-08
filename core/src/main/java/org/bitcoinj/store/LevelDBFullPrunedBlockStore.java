@@ -33,6 +33,7 @@ import org.bitcoinj.chain.StoredUndoableBlock;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.UTXOProviderException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis;
 import org.bitcoinj.msg.protocol.Transaction;

@@ -142,11 +142,11 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         TransactionOutput spendableOutput = rollingBlock.getTransactions().get(0).getOutput(0);
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
-            rollingBlock = rollingBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+            rollingBlock = rollingBlock.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
             chain.add(rollingBlock);
         }
 
@@ -182,12 +182,12 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, rollingBlock.getTransactions().get(0).getHash());
         byte[] spendableOutputScriptPubKey = rollingBlock.getTransactions().get(0).getOutputs().get(0).getScriptBytes();
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
-            rollingBlock = rollingBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+            rollingBlock = rollingBlock.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
             chain.add(rollingBlock);
         }
         
@@ -256,13 +256,13 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
         byte[] spendableOutputScriptPubKey = transaction.getOutputs().get(0).getScriptBytes();
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
-            rollingBlock = rollingBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+            rollingBlock = rollingBlock.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
             chain.add(rollingBlock);
         }
         rollingBlock = rollingBlock.createNextBlock(null);
@@ -307,13 +307,13 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output.
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
         byte[] spendableOutputScriptPubKey = transaction.getOutputs().get(0).getScriptBytes();
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
-            rollingBlock = rollingBlock.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+            rollingBlock = rollingBlock.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
             chain.add(rollingBlock);
         }
         rollingBlock = rollingBlock.createNextBlock(null);
@@ -377,20 +377,20 @@ public abstract class AbstractFullPrunedBlockChainIT {
 
             // Put in just enough v1 blocks to stop the v2 blocks from forming a majority
             for (height = 1; height <= (PARAMS.getMajorityWindow() - PARAMS.getMajorityEnforceBlockUpgrade()); height++) {
-                chainHead = chainHead.createNextBlockWithCoinbase(Block.BLOCK_VERSION_GENESIS,
+                chainHead = chainHead.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS,
                     outKey.getPubKey(), height);
                 chain.add(chainHead);
             }
 
             // Fill the rest of the window in with v2 blocks
             for (; height < PARAMS.getMajorityWindow(); height++) {
-                chainHead = chainHead.createNextBlockWithCoinbase(Block.BLOCK_VERSION_BIP34,
+                chainHead = chainHead.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_BIP34,
                     outKey.getPubKey(), height);
                 chain.add(chainHead);
             }
             // Throw a broken v2 block in before we have a supermajority to enable
             // enforcement, which should validate as-is
-            chainHead = chainHead.createNextBlockWithCoinbase(Block.BLOCK_VERSION_BIP34,
+            chainHead = chainHead.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_BIP34,
                 outKey.getPubKey(), height * 2);
             chain.add(chainHead);
             height++;
@@ -398,7 +398,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
             // Trying to add a broken v2 block should now result in rejection as
             // we have a v2 supermajority
             thrown.expect(VerificationException.CoinbaseHeightMismatch.class);
-            chainHead = chainHead.createNextBlockWithCoinbase(Block.BLOCK_VERSION_BIP34,
+            chainHead = chainHead.createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_BIP34,
                 outKey.getPubKey(), height * 2);
             chain.add(chainHead);
         }  catch(final VerificationException ex) {

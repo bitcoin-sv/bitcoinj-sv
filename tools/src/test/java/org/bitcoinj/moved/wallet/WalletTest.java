@@ -612,7 +612,7 @@ public class WalletTest extends TestWithWallet {
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, send2);
         Assert.assertEquals(Coin.valueOf(0, 80), wallet.getBalance());
         Threading.waitForUserCode();
-        FakeTxBuilder.BlockPair b4 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS);
+        FakeTxBuilder.BlockPair b4 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS);
         confTxns.clear();
         wallet.notifyNewBestBlock(b4.storedBlock);
         Threading.waitForUserCode();
@@ -3277,14 +3277,14 @@ public class WalletTest extends TestWithWallet {
     @Test
     public void transactionInBlockNotification() {
         final Transaction tx = FakeTxBuilder.createFakeTx(TestWithWallet.NET, COIN, myAddress);
-        StoredBlock block = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS, tx).storedBlock;
+        StoredBlock block = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS, tx).storedBlock;
         wallet.receivePending(tx, null);
         boolean notification = wallet.notifyTransactionIsInBlock(tx.getHash(), block, AbstractBlockChain.NewBlockType.BEST_CHAIN, 1);
         assertTrue(notification);
 
         final Transaction tx2 = FakeTxBuilder.createFakeTx(TestWithWallet.NET, COIN, OTHER_ADDRESS);
         wallet.receivePending(tx2, null);
-        StoredBlock block2 = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS + 1, tx2).storedBlock;
+        StoredBlock block2 = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS + 1, tx2).storedBlock;
         boolean notification2 = wallet.notifyTransactionIsInBlock(tx2.getHash(), block2, AbstractBlockChain.NewBlockType.BEST_CHAIN, 1);
         assertFalse(notification2);
     }
@@ -3292,7 +3292,7 @@ public class WalletTest extends TestWithWallet {
     @Test
     public void duplicatedBlock() {
         final Transaction tx = FakeTxBuilder.createFakeTx(TestWithWallet.NET, COIN, myAddress);
-        StoredBlock block = FakeTxBuilder.createFakeBlock(blockStore, Block.BLOCK_HEIGHT_GENESIS, tx).storedBlock;
+        StoredBlock block = FakeTxBuilder.createFakeBlock(blockStore, BitcoinJ.BLOCK_HEIGHT_GENESIS, tx).storedBlock;
         wallet.notifyNewBestBlock(block);
         wallet.notifyNewBestBlock(block);
     }

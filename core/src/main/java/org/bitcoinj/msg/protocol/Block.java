@@ -83,22 +83,6 @@ public class Block extends Message {
      */
     public static final int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE / 50;
 
-    /** A value for difficultyTarget (nBits) that allows half of all possible hash solutions. Used in unit testing. */
-    public static final long EASIEST_DIFFICULTY_TARGET = 0x207fFFFFL;
-
-    /** Value to use if the block height is unknown */
-    public static final int BLOCK_HEIGHT_UNKNOWN = -1;
-    /** Height of the first block */
-    public static final int BLOCK_HEIGHT_GENESIS = 0;
-
-    public static final long BLOCK_VERSION_GENESIS = 1;
-    /** Block version introduced in BIP 34: Height in coinbase */
-    public static final long BLOCK_VERSION_BIP34 = 2;
-    /** Block version introduced in BIP 66: Strict DER signatures */
-    public static final long BLOCK_VERSION_BIP66 = 3;
-    /** Block version introduced in BIP 65: OP_CHECKLOCKTIMEVERIFY */
-    public static final long BLOCK_VERSION_BIP65 = 4;
-
     // Fields defined as part of the protocol format.
     private long version;
     private Sha256Hash prevBlockHash;
@@ -636,12 +620,6 @@ public class Block extends Message {
     }
 
     /**
-     * The number that is one greater than the largest representable SHA-256
-     * hash.
-     */
-    private static BigInteger LARGEST_HASH = BigInteger.ONE.shiftLeft(256);
-
-    /**
      * Returns the work represented by this block.<p>
      *
      * Work is defined as the number of tries needed to solve a block in the
@@ -651,7 +629,7 @@ public class Block extends Message {
      */
     public BigInteger getWork() throws VerificationException {
         BigInteger target = getDifficultyTargetAsInteger();
-        return LARGEST_HASH.divide(target.add(BigInteger.ONE));
+        return BitcoinJ.LARGEST_HASH.divide(target.add(BigInteger.ONE));
     }
 
     public int getTxCount() {
@@ -673,7 +651,7 @@ public class Block extends Message {
     /** Returns a copy of the block, but without any transactions. */
     public Block cloneAsHeader() {
         maybeParseHeader();
-        Block block = new Block(net, BLOCK_VERSION_GENESIS);
+        Block block = new Block(net, BitcoinJ.BLOCK_VERSION_GENESIS);
         copyBitcoinHeaderTo(block);
         if (transactions != null && !transactions.isEmpty()) {
             Transaction ourCoinbase = transactions.get(0);
@@ -911,7 +889,7 @@ public class Block extends Message {
         // The first transaction in a block must always be a coinbase transaction.
         if (!transactions.get(0).isCoinBase())
             throw new VerificationException("First tx is not coinbase");
-        if (flags.contains(Block.VerifyFlag.HEIGHT_IN_COINBASE) && height >= BLOCK_HEIGHT_GENESIS) {
+        if (flags.contains(Block.VerifyFlag.HEIGHT_IN_COINBASE) && height >= BitcoinJ.BLOCK_HEIGHT_GENESIS) {
             transactions.get(0).checkCoinBaseHeight(height);
         }
         // The rest must not be.
@@ -1170,7 +1148,7 @@ public class Block extends Message {
         Transaction coinbase = new Transaction(net);
         final ScriptBuilder inputBuilder = new ScriptBuilder();
 
-        if (height >= Block.BLOCK_HEIGHT_GENESIS) {
+        if (height >= BitcoinJ.BLOCK_HEIGHT_GENESIS) {
             inputBuilder.number(height);
         }
         inputBuilder.data(new byte[]{(byte) txCounter, (byte) (txCounter++ >> 8)});
@@ -1258,12 +1236,12 @@ public class Block extends Message {
 
     @VisibleForTesting
     public Block createNextBlock(@Nullable Address to, TransactionOutPoint prevOut) {
-        return createNextBlock(to, BLOCK_VERSION_GENESIS, prevOut, getTimeSeconds() + 5, pubkeyForTesting, FIFTY_COINS, BLOCK_HEIGHT_UNKNOWN);
+        return createNextBlock(to, BitcoinJ.BLOCK_VERSION_GENESIS, prevOut, getTimeSeconds() + 5, pubkeyForTesting, FIFTY_COINS, BitcoinJ.BLOCK_HEIGHT_UNKNOWN);
     }
 
     @VisibleForTesting
     public Block createNextBlock(@Nullable Address to, Coin value) {
-        return createNextBlock(to, BLOCK_VERSION_GENESIS, null, getTimeSeconds() + 5, pubkeyForTesting, value, BLOCK_HEIGHT_UNKNOWN);
+        return createNextBlock(to, BitcoinJ.BLOCK_VERSION_GENESIS, null, getTimeSeconds() + 5, pubkeyForTesting, value, BitcoinJ.BLOCK_HEIGHT_UNKNOWN);
     }
 
     @VisibleForTesting
@@ -1332,7 +1310,7 @@ public class Block extends Message {
      * <a href="https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki">BIP34: Height in Coinbase</a>.
      */
     public boolean isBIP34() {
-        return version >= BLOCK_VERSION_BIP34;
+        return version >= BitcoinJ.BLOCK_VERSION_BIP34;
     }
 
     /**
@@ -1340,7 +1318,7 @@ public class Block extends Message {
      * <a href="https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki">BIP66: Strict DER signatures</a>.
      */
     public boolean isBIP66() {
-        return version >= BLOCK_VERSION_BIP66;
+        return version >= BitcoinJ.BLOCK_VERSION_BIP66;
     }
 
     /**
@@ -1348,6 +1326,6 @@ public class Block extends Message {
      * <a href="https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki">BIP65: OP_CHECKLOCKTIMEVERIFY</a>.
      */
     public boolean isBIP65() {
-        return version >= BLOCK_VERSION_BIP65;
+        return version >= BitcoinJ.BLOCK_VERSION_BIP65;
     }
 }
