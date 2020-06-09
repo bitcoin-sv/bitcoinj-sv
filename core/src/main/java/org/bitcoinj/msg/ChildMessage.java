@@ -17,6 +17,7 @@
 package org.bitcoinj.msg;
 
 import org.bitcoinj.core.ProtocolException;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.SerializeMode;
 
@@ -96,6 +97,11 @@ public abstract class ChildMessage extends Message {
         super.adjustLength(newArraySize, adjustment);
         if (parent != null)
             parent.adjustLength(newArraySize, adjustment);
+    }
+
+    @Override
+    public BitcoinObject rootObject() {
+        return parent == null ? parent.rootObject() : this;
     }
 
 }

@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.bitcoin.OutPoint;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 

@@ -17,7 +17,7 @@
 
 package org.bitcoinj.msg;
 
-import org.bitcoinj.msg.bitcoin.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Utils;
@@ -42,7 +42,7 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public abstract class Message {
+public abstract class Message implements BitcoinObject {
     private static final Logger log = LoggerFactory.getLogger(Message.class);
 
     // todo: is this right? add support for protoconf message?
@@ -514,5 +514,44 @@ public abstract class Message {
             super(message);
         }
 
+    }
+
+    @Override
+    public byte[] serialize() {
+        return bitcoinSerialize();
+    }
+
+    @Override
+    public void serializeTo(OutputStream stream) throws IOException {
+        bitcoinSerializeToStream(stream);
+    }
+
+    @Override
+    public boolean isMutable() {
+        return true;
+    }
+
+    @Override
+    public void makeSelfMutable() {
+    }
+
+    @Override
+    public BitcoinObject rootObject() {
+        return this;
+    }
+
+    @Override
+    public BitcoinObject makeMutable() {
+        return this;
+    }
+
+    @Override
+    public BitcoinObject makeNew(byte[] serialized) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void makeImmutable() {
+        throw new UnsupportedOperationException();
     }
 }

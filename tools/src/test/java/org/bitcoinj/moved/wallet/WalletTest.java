@@ -1544,7 +1544,7 @@ public class WalletTest extends TestWithWallet {
         // Receive a block on the best chain - this should set the last block seen hash.
         chain.add(b10);
         Assert.assertEquals(b10.getHash(), wallet.getLastBlockSeenHash());
-        Assert.assertEquals(b10.getTimeSeconds(), wallet.getLastBlockSeenTimeSecs());
+        Assert.assertEquals(b10.getTime(), wallet.getLastBlockSeenTimeSecs());
         Assert.assertEquals(1, wallet.getLastBlockSeenHeight());
         // Receive a block on the side chain - this should not change the last block seen hash.
         chain.add(b11);

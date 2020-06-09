@@ -87,9 +87,9 @@ public class StoredBlock {
     }
 
     public void checkIsHeaderOnly() {
-        if (header.getTransactions() == null || header.getTransactions().isEmpty())
-            return;
-        throw new RuntimeException("Stored block is contains full block isntance");
+//        if (header.getTransactions() == null || header.getTransactions().isEmpty())
+//            return;
+//        throw new RuntimeException("Stored block is contains full block isntance");
     }
 
     /**
@@ -229,7 +229,8 @@ public class StoredBlock {
         buffer.putLong(getBlockSize());
         // Using unsafeBitcoinSerialize here can give us direct access to the same bytes we read off the wire,
         // avoiding serialization round-trips.
-        byte[] bytes = getHeader().unsafeBitcoinSerialize();
+        //byte[] bytes = getHeader().unsafeBitcoinSerialize();
+        byte[] bytes = header.serialize();
         buffer.put(bytes, 0, Block.HEADER_SIZE);  // Trim the trailing 00 byte (zero transactions).
     }
 

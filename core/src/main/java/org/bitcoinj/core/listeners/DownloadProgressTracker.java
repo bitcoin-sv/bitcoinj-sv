@@ -75,7 +75,7 @@ public class DownloadProgressTracker extends AbstractPeerDataEventListener {
 
         double pct = 100.0 - (100.0 * (blocksLeft / (double) originalBlocksLeft));
         if ((int) pct != lastPercent) {
-            progress(pct, blocksLeft, new Date(block.getTimeSeconds() * 1000));
+            progress(pct, blocksLeft, new Date(block.getTime() * 1000));
             lastPercent = (int) pct;
         }
     }

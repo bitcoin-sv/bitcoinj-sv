@@ -3,7 +3,7 @@ package org.bitcoinj.script.interpreter;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.ecc.ECDSA;
-import org.bitcoinj.msg.bitcoin.Tx;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
 import org.bitcoinj.script.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -144,7 +144,7 @@ public class CheckpointManager {
                     throw new IOException("Incomplete read whilst loading checkpoints.");
                 StoredBlock block = StoredBlock.deserializeCompact(params, buffer);
                 buffer.position(0);
-                checkpoints.put(block.getHeader().getTimeSeconds(), block);
+                checkpoints.put(block.getHeader().getTime(), block);
             }
             Sha256Hash dataHash = Sha256Hash.wrap(digest.digest());
             log.info("Read {} checkpoints, hash is {}", checkpoints.size(), dataHash);
@@ -181,7 +181,7 @@ public class CheckpointManager {
                 buffer.put(bytes);
                 buffer.position(0);
                 StoredBlock block = StoredBlock.deserializeCompact(params, buffer);
-                checkpoints.put(block.getHeader().getTimeSeconds(), block);
+                checkpoints.put(block.getHeader().getTime(), block);
             }
             HashCode hash = hasher.hash();
             log.info("Read {} checkpoints, hash is {}", checkpoints.size(), hash);
@@ -197,7 +197,7 @@ public class CheckpointManager {
      */
     public StoredBlock getCheckpointBefore(long time) {
         try {
-            checkArgument(time > Genesis.getFor(params).getTimeSeconds());
+            checkArgument(time > Genesis.getFor(params).getTime());
             // This is thread safe because the map never changes after creation.
             Map.Entry<Long, StoredBlock> entry = checkpoints.floorEntry(time);
             if (entry != null) return entry.getValue();

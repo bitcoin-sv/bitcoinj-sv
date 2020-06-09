@@ -80,21 +80,21 @@ public class NewDifficultyAdjustmentAlgorithmRulesChecker extends AbstractPowRul
             throw new BlockStoreException("Not enough blocks in blockStore to calculate difficulty");
 
         // Sorting network.
-        if (blocks[0].getHeader().getTimeSeconds() > blocks[2].getHeader().getTimeSeconds()) {
+        if (blocks[0].getHeader().getTime() > blocks[2].getHeader().getTime()) {
             //std::swap(blocks[0], blocks[2]);
             StoredBlock temp = blocks[0];
             blocks[0] = blocks[2];
             blocks[2] = temp;
         }
 
-        if (blocks[0].getHeader().getTimeSeconds() > blocks[1].getHeader().getTimeSeconds()) {
+        if (blocks[0].getHeader().getTime() > blocks[1].getHeader().getTime()) {
             //std::swap(blocks[0], blocks[1]);
             StoredBlock temp = blocks[0];
             blocks[0] = blocks[1];
             blocks[1] = temp;
         }
 
-        if (blocks[1].getHeader().getTimeSeconds() > blocks[2].getHeader().getTimeSeconds()) {
+        if (blocks[1].getHeader().getTime() > blocks[2].getHeader().getTime()) {
             //std::swap(blocks[1], blocks[2]);
             StoredBlock temp = blocks[1];
             blocks[1] = blocks[2];

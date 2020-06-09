@@ -5,7 +5,12 @@ import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.msg.bitcoin.*;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.api.base.Input;
+import org.bitcoinj.msg.bitcoin.api.base.Output;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
+import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
+import org.bitcoinj.msg.bitcoin.bean.base.OutputBean;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,7 +24,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*;
 
 /**
  * Utility class for calculating transaction SigHash during CHECKSIG ops. This class only knows about
- * the {@link org.bitcoinj.msg.bitcoin.BitcoinObject} heirarchy of classes/interfaces.  A helper class 'Translate'
+ * the {@link BitcoinObject} heirarchy of classes/interfaces.  A helper class 'Translate'
  * is provided to convert the legacy Message based classes of Transactions into this one.
  *
  * @author shadders
@@ -65,7 +70,7 @@ public class SigHash {
                                                     Flags type,
                                                     boolean anyoneCanPay) {
         byte sigHashType = (byte) TransactionSignature.calcSigHashValue(type, anyoneCanPay, true);
-        ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(transaction.getMessageSize() == BitcoinObjectImpl.UNKNOWN_LENGTH ? 256 : transaction.getMessageSize() + 4);
+        ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(transaction.getMessageSize() == BitcoinObjectImpl.UNKNOWN_MESSAGE_LENGTH ? 512 : transaction.getMessageSize() + 4);
         try {
             byte[] hashPrevouts = new byte[32];
             byte[] hashSequence = new byte[32];

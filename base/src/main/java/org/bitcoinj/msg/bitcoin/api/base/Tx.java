@@ -1,13 +1,10 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.api.base;
 
 import org.bitcoinj.core.Sha256Hash;
 
 import java.util.List;
 
-public interface Tx extends BitcoinObject<Tx> {
-    Sha256Hash calculateHash();
-
-    Sha256Hash getHash();
+public interface Tx extends Hashable<Tx> {
 
     void setHash(Sha256Hash hash);
 

@@ -1,22 +1,19 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.bean;
 
-import org.bitcoinj.core.ProtocolException;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.core.VarInt;
+import org.bitcoinj.core.*;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 
 public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements BitcoinObject<C> {
 
     public static final int MAX_SIZE = Integer.MAX_VALUE / 2; // 1GB - we can get problems converting to hex as we double the size of the backing array.
 
-    private BitcoinObject parent;
+    private final BitcoinObject parent;
     private boolean mutable = false;
-
-    public static final int UNKNOWN_LENGTH = Integer.MIN_VALUE;
 
     // The offset is how many bytes into the provided byte array this message payload starts at.
     protected int offset;
@@ -24,13 +21,13 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
     // Note that it's relative to the start of the array NOT the start of the message payload.
     protected int cursor;
 
-    private int length = UNKNOWN_LENGTH;
+    private int length = BitcoinObject.UNKNOWN_MESSAGE_LENGTH;
 
     // The raw message payload bytes themselves.
     protected byte[] payload;
 
     /**
-     * Constructor for parsing an object from payload.
+     * Constructor for parsing an object from byte array payload.
      * @param parent
      * @param payload
      * @param offset
@@ -40,6 +37,20 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
         this.payload = payload;
         this.offset = offset;
         _parse();
+    }
+
+    /**
+     * Constructor for parsing an object from InputStream payload.
+     * @param parent
+     * @param in input stream
+     */
+    public BitcoinObjectImpl(BitcoinObject parent, InputStream in) {
+        this.parent = parent;
+        try {
+            _parse(in);
+        } catch (IOException e) {
+            throw new ProtocolException("failed to parse bitocin object: " + getClass().getSimpleName(), e);
+        }
     }
 
     /**
@@ -56,20 +67,40 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
      */
     protected abstract void parse();
 
-    @Override
-    public int getMessageSize() {
-        return length;
-    }
-
     private void _parse() {
         cursor = offset;
         parse();
         length = cursor - offset;
-        byte[] trimmed = new byte[length];
-        System.arraycopy(payload, offset, trimmed, 0, length);
-        payload = trimmed;
-        offset = 0;
+        if (length != payload.length) {
+            byte[] trimmed = new byte[length];
+            System.arraycopy(payload, offset, trimmed, 0, length);
+            payload = trimmed;
+            offset = 0;
+        }
         cursor = 0;
+    }
+
+    private void _parse(InputStream in) throws IOException {
+        if (isFixedSize()) {
+            payload = Utils.readBytesStrict(in, fixedSize());
+            length = payload.length;
+            offset = 0;
+            cursor = 0;
+            parse();
+            cursor = 0;
+        } else {
+            length = parse(in);
+        }
+    }
+
+    /**
+     * Requires implementation for variable length message types.
+     * @param in
+     * @return the length of bytes read assuming most compact form of varints.
+     * @throws IOException
+     */
+    protected int parse(InputStream in) throws IOException {
+        throw new UnsupportedOperationException("class is not fixed size and has not implemented parse(InputStream");
     }
 
     protected final void setLength(int length) {
@@ -77,19 +108,37 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
     }
 
     @Override
+    public int getMessageSize() {
+        return isFixedSize() ? fixedSize() : length;
+    }
+
+    @Override
     public  byte[] serialize() {
         if (!isMutable() && payload != null
-                && cursor == 0
+                && offset == 0
                 && payload.length == length) {
             return payload;
         }
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        int len = isFixedSize() ? fixedSize() : length == UNKNOWN_MESSAGE_LENGTH ? estimateMessageLength() : length;
+        ByteArrayOutputStream stream = new UnsafeByteArrayOutputStream(len);
         try {
             serializeTo(stream);
         } catch (IOException e) {
             // Cannot happen, we are serializing to a memory stream.
         }
-        return stream.toByteArray();
+        byte[] bytes = stream.toByteArray();
+        length = bytes.length;
+        return bytes;
+    }
+
+    /**
+     * estimate of message length for this type of object where length isn't known.  No need to implement for fixed length messages.
+     * by the time this is called we have already checked if length is usable.
+     * @return
+     */
+    protected int estimateMessageLength() {
+        //good compromise between inputs/outputs and transactions.
+        return 512;
     }
 
     @Override
@@ -105,9 +154,14 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
     }
 
     @Override
+    public void makeImmutable() {
+        mutable = false;
+    }
+
+    @Override
     public void makeSelfMutable() {
         payload = null;
-        length = UNKNOWN_LENGTH;
+        length = fixedSize(); //if fixed size we can still know length.
         mutable = true;
     }
 

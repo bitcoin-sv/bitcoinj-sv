@@ -32,7 +32,7 @@ public class LastNonMinimalDifficultyRuleChecker extends AbstractPowRulesChecker
     }
 
     private boolean isUnderPeriod(Block prevBlock, Block nextBlock) {
-        final long timeDelta = nextBlock.getTimeSeconds() - prevBlock.getTimeSeconds();
+        final long timeDelta = nextBlock.getTime() - prevBlock.getTime();
         return timeDelta >= 0 && timeDelta <= NetworkParameters.TARGET_SPACING * 2;
     }
 

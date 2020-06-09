@@ -1,18 +1,20 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.bean.base;
 
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
+import org.bitcoinj.msg.bitcoin.api.base.Header;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
-public class HeaderBean extends BitcoinObjectImpl<Header> implements Header {
+public class HeaderBean extends HashableImpl<Header> implements Header<Header> {
 
     // block hash which is hash of serialized header
-    private Sha256Hash hash;
-    private MerkleRootProvider merkleRootProvider;
+    private FullBlock block;
 
     // Fields defined as part of the protocol format.
     private long version;
@@ -22,17 +24,24 @@ public class HeaderBean extends BitcoinObjectImpl<Header> implements Header {
     private long difficultyTarget; // "nBits"
     private long nonce;
 
-    //not part of protocol
+    //full block meta data, not part of protocol
+    private boolean hasBlockMetaData = false;
+
     private long txCount;
     private Tx coinbase;
     private long serializedLength;
 
-    public HeaderBean(FullBlockBean parent, byte[] payload, int offset) {
-        super(parent, payload, offset);
-        merkleRootProvider = parent;
+    public HeaderBean(FullBlock parent) {
+        super(parent);
     }
 
-    public HeaderBean(FullBlockBean parent, byte[] payload) {
+    public HeaderBean(FullBlock parent, byte[] payload, int offset) {
+        super(parent, payload, offset);
+        block = parent;
+        //block may be in the process of parsing so we won't add the block meta data yet.
+    }
+
+    public HeaderBean(FullBlock parent, byte[] payload) {
         this(parent, payload, 0);
     }
 
@@ -40,12 +49,26 @@ public class HeaderBean extends BitcoinObjectImpl<Header> implements Header {
         super(null, payload, 0);
     }
 
+    public HeaderBean(FullBlock parent, InputStream in) {
+        super(parent, in);
+        block = parent;
+    }
+
+    public void afterBlockParse() {
+        txCount = block.getTransactions().size();
+        coinbase = block.getTransactions().get(0);
+        serializedLength = block.getMessageSize();
+        hasBlockMetaData = true;
+    }
+
     @Override
-    public Sha256Hash getHash() {
-        if (hash == null) {
-            hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(serialize()));
-        }
-        return hash;
+    public boolean hasBlockMetaData() {
+        return hasBlockMetaData;
+    }
+
+    @Override
+    public FullBlock getBlock() {
+        return block;
     }
 
     @Override
@@ -78,9 +101,9 @@ public class HeaderBean extends BitcoinObjectImpl<Header> implements Header {
 
     @Override
     public Sha256Hash getMerkleRoot() {
-        if (merkleRoot == null && merkleRootProvider != null) {
+        if (merkleRoot == null && block != null) {
             checkMutable();
-            merkleRoot = merkleRootProvider.calculateMerkleRoot();
+            merkleRoot = block.calculateMerkleRoot();
         }
         return merkleRoot;
     }
@@ -192,4 +215,5 @@ public class HeaderBean extends BitcoinObjectImpl<Header> implements Header {
         this.hash = null;
         //we aren't zeroing the merkle root as that's taken care of by full block.
     }
+
 }

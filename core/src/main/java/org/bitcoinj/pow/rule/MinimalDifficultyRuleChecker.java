@@ -37,7 +37,7 @@ public class MinimalDifficultyRuleChecker extends AbstractPowRulesChecker {
      * when time goes backwards.
      */
     private boolean isPeriodExceed(Block prevBlock, Block nextBlock) {
-        final long timeDelta = nextBlock.getTimeSeconds() - prevBlock.getTimeSeconds();
+        final long timeDelta = nextBlock.getTime() - prevBlock.getTime();
         return timeDelta >= 0 && timeDelta > NetworkParameters.TARGET_SPACING * 2;
     }
 

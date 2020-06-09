@@ -1,11 +1,16 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.bean.base;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.api.base.Output;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
+import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
 import org.bitcoinj.script.Script;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -22,7 +27,7 @@ public class OutputBean extends BitcoinObjectImpl<Output> implements Output {
     // The script bytes are parsed and turned into a Script on demand.
     private Script scriptPubKey;
 
-    public OutputBean(TxBean parent, byte[] payload, int offset) {
+    public OutputBean(Tx parent, byte[] payload, int offset) {
         super(parent, payload, offset);
     }
 
@@ -30,8 +35,12 @@ public class OutputBean extends BitcoinObjectImpl<Output> implements Output {
         super(null, payload, 0);
     }
 
-    public OutputBean(BitcoinObject parent) {
+    public OutputBean(Tx parent) {
         super(parent);
+    }
+
+    public OutputBean(TxBean parent, InputStream in) {
+        super(parent, in);
     }
 
     @Override
@@ -84,12 +93,30 @@ public class OutputBean extends BitcoinObjectImpl<Output> implements Output {
     }
 
     @Override
+    protected int parse(InputStream in) throws IOException {
+        int read;
+        value = Coin.valueOf(Utils.readInt64(in));
+        read = 8;
+        int scriptLen = (int) new VarInt(in).value;
+        read += VarInt.sizeOf(scriptLen);
+        scriptBytes = Utils.readBytesStrict(in, scriptLen);
+        read += scriptLen;
+        return read;
+    }
+
+    @Override
     public void serializeTo(OutputStream stream) throws IOException {
         checkNotNull(scriptBytes);
         Utils.int64ToByteStreamLE(value.value, stream);
         // TODO: Move script serialization into the Script class, where it belongs.
         stream.write(new VarInt(getScriptBytes().length).encode());
         stream.write(getScriptBytes());
+    }
+
+    @Override
+    protected int estimateMessageLength() {
+        int scriptLen = getScriptBytes().length;
+        return 8 + VarInt.sizeOf(scriptLen) + scriptLen;
     }
 
     @Override

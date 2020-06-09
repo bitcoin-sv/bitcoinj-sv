@@ -2107,7 +2107,7 @@ public class Wallet extends BaseTaggableObject
             // Store the new block hash.
             setLastBlockSeenHash(newBlockHash);
             setLastBlockSeenHeight(block.getHeight());
-            setLastBlockSeenTimeSecs(block.getHeader().getTimeSeconds());
+            setLastBlockSeenTimeSecs(block.getHeader().getTime());
             // Notify all the BUILDING transactions of the new block.
             // This is so that they can update their depth.
             Set<Transaction> transactions = getTransactions(true);

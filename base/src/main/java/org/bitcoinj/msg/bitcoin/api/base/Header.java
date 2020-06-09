@@ -1,8 +1,9 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.api.base;
 
 import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
 
-public interface Header extends BitcoinObject<Header>, ReadableHeader {
+public interface Header<C extends Header> extends BitcoinObject<C>, HeaderReadOnly<C> {
 
     void setHash(Sha256Hash hash);
 
@@ -29,4 +30,5 @@ public interface Header extends BitcoinObject<Header>, ReadableHeader {
     long getSerializedLength();
 
     void setSerializedLength(long serializedLength);
+
 }

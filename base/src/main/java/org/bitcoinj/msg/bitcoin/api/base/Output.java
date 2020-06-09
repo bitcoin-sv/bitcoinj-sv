@@ -1,6 +1,7 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.api.base;
 
 import org.bitcoinj.core.Coin;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
 import org.bitcoinj.script.Script;
 
 public interface Output extends BitcoinObject<Output> {

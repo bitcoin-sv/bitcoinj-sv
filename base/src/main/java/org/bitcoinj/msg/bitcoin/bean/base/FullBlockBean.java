@@ -1,11 +1,19 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.bean.base;
 
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.bean.extended.BlockMetaDataBean;
+import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
+import org.bitcoinj.msg.bitcoin.api.base.Header;
+import org.bitcoinj.msg.bitcoin.api.base.MerkleRootProvider;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
+import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
 import org.bitcoinj.utils.Threading;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,10 +22,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
 import static org.bitcoinj.core.Sha256Hash.hashTwice;
+import static org.bitcoinj.core.Sha256Hash.of;
 
 public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullBlock, MerkleRootProvider {
 
     private HeaderBean header;
+
+    private BlockMetaDataBean metaData;
 
     private List<Tx> transactions;
 
@@ -27,6 +38,10 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
 
     public FullBlockBean(byte[] payload) {
         super(null, payload, 0);
+    }
+
+    public FullBlockBean(InputStream in) {
+        super(null, in);
     }
 
     @Override
@@ -41,11 +56,6 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
     }
 
     @Override
-    public Sha256Hash getHash() {
-        return header.getHash();
-    }
-
-    @Override
     public List<Tx> getTransactions() {
         return isMutable() ? transactions : Collections.unmodifiableList(transactions);
     }
@@ -54,6 +64,29 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
     public void setTransactions(List<Tx> transactions) {
         checkMutable();
         this.transactions = transactions;
+    }
+
+    public void calculateTxHashes() {
+        CountDownLatch hashLatch = new CountDownLatch(getTransactions().size());
+        for (Tx tx: getTransactions()) {
+            //we are doing batches of hashes so we can take advantage of multi threading
+            Threading.THREAD_POOL.execute(new Runnable() {
+                @Override
+                public void run() {
+                    //calculates hash and caches it, this is 99% of the runtime
+                    tx.getHash();
+                    hashLatch.countDown();
+                }
+            });
+
+            try {
+                ExecutorService exec = Threading.THREAD_POOL;
+                long awaiting = hashLatch.getCount();
+                hashLatch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
@@ -68,33 +101,47 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
 
         for (int i = 0; i < numTransactions; i++) {
             TxBean tx = new TxBean(this, payload, cursor);
-
             transactions.add(tx);
             cursor += tx.getMessageSize();
-
-            //we are doing batches of hashes so we can take advantage of multi threading
-            Threading.THREAD_POOL.execute(new Runnable() {
-                @Override
-                public void run() {
-                    //calculates hash and caches it, this is 99% of the runtime
-
-                    //tx.getHash();
-
-
-                    // Label the transaction as coming from the P2P network, so code that cares where we first saw it knows
-                    // This holds references to txHash which may not be cleared automagically.
-                    //tx.getConfidence().setSource(TransactionConfidence.Source.NETWORK);
-                    hashLatch.countDown();
-                }
-            });
         }
-        try {
-            ExecutorService exec = Threading.THREAD_POOL;
-            long awaiting = hashLatch.getCount();
-            hashLatch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+
+        header.afterBlockParse();
+
+        //fill in the meta data
+        buildMetaData();
+    }
+
+    @Override
+    protected int parse(InputStream in) throws IOException {
+        int read = 0;
+        header = new HeaderBean(this, in);
+        read += header.getMessageSize();
+
+        int numTransactions = (int) new VarInt(in).value;
+        read += VarInt.sizeOf(numTransactions);
+        transactions = new ArrayList<>(numTransactions);
+
+        for (int i = 0; i < numTransactions; i++) {
+            TxBean tx = new TxBean(this, in);
+            transactions.add(tx);
+            read += tx.getMessageSize();
         }
+
+        header.afterBlockParse();
+
+        //fill in the meta data
+        buildMetaData();
+
+        return read;
+    }
+
+    private void buildMetaData() {
+        //have to pass null so calling the setters doesn't clear parent payload.
+        //it isn't part of the same serialized payload though so it doesn't need a parent
+        metaData = new BlockMetaDataBean();
+        metaData.setTxCount(transactions.size());
+        metaData.setBlockSize(cursor - offset);
+        metaData.makeImmutable();
     }
 
     @Override
@@ -104,6 +151,14 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
         for (Tx tx : transactions) {
             tx.serializeTo(stream);
         }
+    }
+
+    @Override
+    protected int estimateMessageLength() {
+        int len = Header.FIXED_MESSAGE_SIZE;
+        for (Tx tx: getTransactions())
+            len += tx instanceof TxBean ? ((TxBean) tx).estimateMessageLength() : 500;
+        return len;
     }
 
     @Override

@@ -243,7 +243,7 @@ public class Peer extends PeerSocketHandler {
         this.vDownloadData = chain != null;
         this.getDataFutures = new CopyOnWriteArrayList<GetDataRequest>();
         this.getAddrFutures = new LinkedList<SettableFuture<AddressMessage>>();
-        this.fastCatchupTimeSecs = Genesis.getFor(params).getTimeSeconds();
+        this.fastCatchupTimeSecs = Genesis.getFor(params).getTime();
         this.pendingPings = new CopyOnWriteArrayList<PendingPing>();
         this.vMinProtocolVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG);
         this.txEventListeners = new CopyOnWriteArrayList<TxEventListener>();
@@ -704,7 +704,7 @@ public class Peer extends PeerSocketHandler {
                 // Process headers until we pass the fast catchup time, or are about to catch up with the head
                 // of the chain - always process the last block as a full/filtered block to kick us out of the
                 // fast catchup mode (in which we ignore new blocks).
-                boolean passedTime = header.getTimeSeconds() >= fastCatchupTimeSecs;
+                boolean passedTime = header.getTime() >= fastCatchupTimeSecs;
                 boolean reachedTop = blockChain.getBestChainHeight() >= vPeerVersionMessage.bestHeight;
                 if (!passedTime && !reachedTop) {
                     if (!vDownloadData) {
@@ -1375,13 +1375,13 @@ public class Peer extends PeerSocketHandler {
         lock.lock();
         try {
             if (secondsSinceEpoch == 0) {
-                fastCatchupTimeSecs = Genesis.getFor(params).getTimeSeconds();
+                fastCatchupTimeSecs = Genesis.getFor(params).getTime();
                 downloadBlockBodies = true;
             } else {
                 fastCatchupTimeSecs = secondsSinceEpoch;
                 // If the given time is before the current chains head block time, then this has no effect (we already
                 // downloaded everything we need).
-                if (blockChain != null && fastCatchupTimeSecs > blockChain.getChainHead().getHeader().getTimeSeconds())
+                if (blockChain != null && fastCatchupTimeSecs > blockChain.getChainHead().getHeader().getTime())
                     downloadBlockBodies = false;
             }
             this.useFilteredBlocks = useFilteredBlocks;

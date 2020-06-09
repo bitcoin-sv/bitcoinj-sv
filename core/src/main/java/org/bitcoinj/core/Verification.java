@@ -3,8 +3,8 @@ package org.bitcoinj.core;
 import com.google.common.base.Preconditions;
 import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.bitcoin.api.base.HeaderReadOnly;
 import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.utils.VersionTally;
@@ -40,11 +40,12 @@ public class Verification {
      * @param height height of the block, if known, null otherwise. Returned
      * tests should be a safe subset if block height is unknown.
      */
-    public static EnumSet<Block.VerifyFlag> getBlockVerificationFlags(NetworkParameters params, final Block block,
-                                                                      final VersionTally tally, final Integer height) {
+    public static EnumSet<Block.VerifyFlag> getBlockVerificationFlags(
+            NetworkParameters params, final Block block,
+            final VersionTally tally, final Integer height) {
         final EnumSet<Block.VerifyFlag> flags = EnumSet.noneOf(Block.VerifyFlag.class);
 
-        if (block.isBIP34()) {
+        if (block.getVersion() >= BitcoinJ.BLOCK_VERSION_BIP34) {
             final Integer count = tally.getCountAtOrAbove(BitcoinJ.BLOCK_VERSION_BIP34);
             if (null != count && count >= params.getMajorityEnforceBlockUpgrade()) {
                 flags.add(Block.VerifyFlag.HEIGHT_IN_COINBASE);
@@ -57,16 +58,14 @@ public class Verification {
      * The flags indicating which script validation tests should be applied to
      * the given transaction. Enables support for alternative blockchains which enable
      * tests based on different criteria.
-     *
-     * @param block block the transaction belongs to.
-     * @param transaction to determine flags for.
+     *  @param block block the transaction belongs to.
      * @param height height of the block, if known, null otherwise. Returned
-     * tests should be a safe subset if block height is unknown.
      */
-    public static EnumSet<ScriptVerifyFlag> getTransactionVerificationFlags(NetworkParameters params, final Block block,
-                                                                            final Transaction transaction, final VersionTally tally, final Integer height) {
+    public static EnumSet<ScriptVerifyFlag> getTransactionVerificationFlags(
+            NetworkParameters params, final HeaderReadOnly block,
+            final VersionTally tally, final Integer height) {
         final EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
-        if (block.getTimeSeconds() >= NetworkParameters.BIP16_ENFORCE_TIME)
+        if (block.getTime() >= NetworkParameters.BIP16_ENFORCE_TIME)
             verifyFlags.add(ScriptVerifyFlag.P2SH);
 
         // Start enforcing CHECKLOCKTIMEVERIFY, (BIP65) for block.nVersion=4
@@ -79,7 +78,7 @@ public class Verification {
         return verifyFlags;
     }
 
-    public static void verifyDifficulty(NetworkParameters params, BigInteger newTarget, Block nextBlock)
+    public static void verifyDifficulty(NetworkParameters params, BigInteger newTarget, HeaderReadOnly nextBlock)
     {
         if (newTarget.compareTo(params.getMaxTarget()) > 0) {
             newTarget = params.getMaxTarget();
@@ -154,8 +153,8 @@ public class Verification {
 
         // In order to avoid difficulty cliffs, we bound the amplitude of the
         // adjustment we are going to do.
-        Preconditions.checkState(lastBlock.getHeader().getTimeSeconds() >  firstBlock.getHeader().getTimeSeconds());
-        long nActualTimespan = lastBlock.getHeader().getTimeSeconds() - firstBlock.getHeader().getTimeSeconds();
+        Preconditions.checkState(lastBlock.getHeader().getTime() >  firstBlock.getHeader().getTime());
+        long nActualTimespan = lastBlock.getHeader().getTime() - firstBlock.getHeader().getTime();
         if (nActualTimespan > 288 * NetworkParameters.TARGET_SPACING) {
             nActualTimespan = 288 * NetworkParameters.TARGET_SPACING;
         } else if (nActualTimespan < 72 * NetworkParameters.TARGET_SPACING) {
@@ -173,8 +172,8 @@ public class Verification {
          return LARGEST_HASH.divide(work).subtract(BigInteger.ONE);
     }
 
-    public static boolean isValidTestnetDateBlock(Block block){
-        return block.getTime().after(testnetDiffDate);
+    public static boolean isValidTestnetDateBlock(HeaderReadOnly block){
+         return new Date(block.getTime()*1000).after(testnetDiffDate);
     }
 
     /**

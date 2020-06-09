@@ -16,6 +16,9 @@
 
 package org.bitcoinj.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * A variable-length encoded unsigned integer using Satoshi's encoding (a.k.a. "CompactSize").
  */
@@ -52,6 +55,27 @@ public class VarInt {
             originallyEncodedSize = 5; // 1 marker + 4 data bytes (32 bits)
         } else {
             value = Utils.readInt64(buf, offset + 1);
+            originallyEncodedSize = 9; // 1 marker + 8 data bytes (64 bits)
+        }
+    }
+
+    public VarInt(InputStream in) throws IOException {
+        int first = in.read();
+        if (first == -1)
+            throw new IOException("reached end of stream");
+        first = 0xFF & first;
+        if (first < 253) {
+            value = first;
+            originallyEncodedSize = 1; // 1 data byte (8 bits)
+        } else if (first == 253) {
+            byte[] buf = Utils.readBytesStrict(in, 2);
+            value = (0xFF & buf[0]) | ((0xFF & buf[1]) << 8);
+            originallyEncodedSize = 3; // 1 marker + 2 data bytes (16 bits)
+        } else if (first == 254) {
+            value = Utils.readUint32(in);
+            originallyEncodedSize = 5; // 1 marker + 4 data bytes (32 bits)
+        } else {
+            value = Utils.readInt64(in);
             originallyEncodedSize = 9; // 1 marker + 8 data bytes (64 bits)
         }
     }

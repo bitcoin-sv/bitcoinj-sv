@@ -519,7 +519,7 @@ public abstract class AbstractBlockChain {
         if (shouldVerifyTransactions()) {
             checkNotNull(block.getParsedTransactions());
             for (Transaction tx : block.getParsedTransactions())
-                if (!tx.isFinal(storedPrev.getHeight() + 1, block.getTimeSeconds()))
+                if (!tx.isFinal(storedPrev.getHeight() + 1, block.getTime()))
                    throw new VerificationException("Block contains non-final transaction");
         }
         
@@ -530,7 +530,7 @@ public abstract class AbstractBlockChain {
                         block.getHashAsString(), filteredTxHashList.size(), filteredTxn.size());
                 for (Sha256Hash hash : filteredTxHashList) log.debug("  matched tx {}", hash);
             }
-            if (expensiveChecks && block.getTimeSeconds() <= getMedianTimestampOfRecentBlocks(head, blockStore))
+            if (expensiveChecks && block.getTime() <= getMedianTimestampOfRecentBlocks(head, blockStore))
                 throw new VerificationException("Block's timestamp is too early");
 
             // BIP 66 & 65: Enforce block version 3/4 once they are a supermajority of blocks
@@ -709,9 +709,9 @@ public abstract class AbstractBlockChain {
                                                          BlockStore store) throws BlockStoreException {
         long[] timestamps = new long[11];
         int unused = 9;
-        timestamps[10] = storedBlock.getHeader().getTimeSeconds();
+        timestamps[10] = storedBlock.getHeader().getTime();
         while (unused >= 0 && (storedBlock = storedBlock.getPrev(store)) != null)
-            timestamps[unused--] = storedBlock.getHeader().getTimeSeconds();
+            timestamps[unused--] = storedBlock.getHeader().getTime();
         
         Arrays.sort(timestamps, unused+1, 11);
         return timestamps[unused + (11-unused)/2];
@@ -766,7 +766,7 @@ public abstract class AbstractBlockChain {
             for (Iterator<StoredBlock> it = newBlocks.descendingIterator(); it.hasNext();) {
                 cursor = it.next();
                 Block cursorBlock = cursor.getHeader();
-                if (expensiveChecks && cursorBlock.getTimeSeconds() <= getMedianTimestampOfRecentBlocks(cursor.getPrev(blockStore), blockStore))
+                if (expensiveChecks && cursorBlock.getTime() <= getMedianTimestampOfRecentBlocks(cursor.getPrev(blockStore), blockStore))
                     throw new VerificationException("Block's timestamp is too early during reorg");
                 TransactionOutputChanges txOutChanges;
                 if (cursor != newChainHead || block == null)
@@ -979,7 +979,7 @@ public abstract class AbstractBlockChain {
     public Date estimateBlockTime(int height) {
         synchronized (chainHeadLock) {
             long offset = height - chainHead.getHeight();
-            long headTime = chainHead.getHeader().getTimeSeconds();
+            long headTime = chainHead.getHeader().getTime();
             long estimated = (headTime * 1000) + (1000L * 60L * 10L * offset);
             return new Date(estimated);
         }

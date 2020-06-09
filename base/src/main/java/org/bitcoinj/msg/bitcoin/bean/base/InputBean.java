@@ -1,12 +1,17 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.bean.base;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
+import org.bitcoinj.msg.bitcoin.api.base.Input;
+import org.bitcoinj.msg.bitcoin.api.base.OutPoint;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
+import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
 import org.bitcoinj.script.Script;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class InputBean extends BitcoinObjectImpl<Input> implements Input {
@@ -26,12 +31,16 @@ public class InputBean extends BitcoinObjectImpl<Input> implements Input {
     @Nullable
     private Coin value;
 
-    public InputBean(TxBean parent, byte[] payload, int offset) {
+    public InputBean(Tx parent, byte[] payload, int offset) {
         super(parent, payload, offset);
     }
 
     public InputBean(byte[] payload) {
         this(null, payload, 0);
+    }
+
+    public InputBean(Tx txBean, InputStream in) {
+        super(txBean, in);
     }
 
 
@@ -110,11 +119,31 @@ public class InputBean extends BitcoinObjectImpl<Input> implements Input {
     }
 
     @Override
+    protected int parse(InputStream in) throws IOException {
+        int read;
+        outpoint = new OutPointBean(this, in);
+        read = outpoint.getMessageSize();
+        int scriptLen = (int) new VarInt(in).value;
+        read += VarInt.sizeOf(scriptLen);
+        scriptBytes = Utils.readBytesStrict(in, scriptLen);
+        read += scriptLen;
+        sequenceNumber = Utils.readUint32(in);
+        read += 4;
+        return read;
+    }
+
+    @Override
     public void serializeTo(OutputStream stream) throws IOException {
         outpoint.serializeTo(stream);
         stream.write(new VarInt(getScriptBytes().length).encode());
         stream.write(getScriptBytes());
         Utils.uint32ToByteStreamLE(sequenceNumber, stream);
+    }
+
+    @Override
+    protected int estimateMessageLength() {
+        int scriptLen = getScriptBytes().length;
+        return OutPoint.FIXED_MESSAGE_SIZE + 4 + VarInt.sizeOf(scriptLen) + scriptLen;
     }
 
     @Override

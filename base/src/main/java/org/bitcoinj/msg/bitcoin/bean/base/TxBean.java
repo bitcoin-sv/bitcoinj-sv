@@ -1,9 +1,16 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.bean.base;
 
 import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
+import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.api.base.Input;
+import org.bitcoinj.msg.bitcoin.api.base.Output;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
+import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +31,7 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
 
     private long lockTime;
 
-    public TxBean(BitcoinObjectImpl parent, byte[] payload, int offset) {
+    public TxBean(BitcoinObject parent, byte[] payload, int offset) {
         super(parent, payload, offset);
     }
 
@@ -32,12 +39,16 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         this(null, payload, offset);
     }
 
-    public TxBean(BitcoinObjectImpl parent, byte[] payload) {
+    public TxBean(BitcoinObject parent, byte[] payload) {
         this(parent, payload, 0);
     }
 
     public TxBean(byte[] payload) {
         this(null, payload, 0);
+    }
+
+    public TxBean(BitcoinObject parent, InputStream in) {
+        super(parent, in);
     }
 
     @Override
@@ -125,7 +136,35 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         lockTime = readUint32();
 
         hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(payload, offset, cursor - offset));
+    }
 
+    @Override
+    protected int parse(InputStream in) throws IOException {
+        int read = 0;
+        version = Utils.readUint32(in);
+        read += 4;
+
+        long numInputs = new VarInt(in).value;
+        read += VarInt.sizeOf(numInputs);
+        inputs = new ArrayList<>((int) numInputs);
+        for (long i = 0; i < numInputs; i++) {
+            Input input = new InputBean(this, in);
+            read += input.getMessageSize();
+            inputs.add(input);
+        }
+
+        // Now the outputs
+        long numOutputs = new VarInt(in).value;
+        outputs = new ArrayList<>((int) numOutputs);
+        for (long i = 0; i < numOutputs; i++) {
+            Output output = new OutputBean(this, in);
+            read += output.getMessageSize();
+            outputs.add(output);
+        }
+        lockTime = Utils.readUint32(in);
+        read += 4;
+
+        return read;
     }
 
     @Override
@@ -138,6 +177,15 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         for (Output out : outputs)
             out.serializeTo(stream);
         uint32ToByteStreamLE(lockTime, stream);
+    }
+
+    @Override
+    protected int estimateMessageLength() {
+        int len = 4 + 4 + VarInt.sizeOf(getInputs().size()) + VarInt.sizeOf(getOutputs().size());
+        len += getInputs().size() * (73 + 33); // sig + pubkey;
+        len += getOutputs().size() + (4 + 1 + 20); // p2pkh - 4 opcodes, 1 pushdata, 20 byte hash
+        len *= 2; //add some extra padding
+        return len;
     }
 
     public Tx makeNew(byte[] serialized) {

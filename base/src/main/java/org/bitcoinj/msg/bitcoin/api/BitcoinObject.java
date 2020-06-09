@@ -1,4 +1,4 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.api;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -8,14 +8,25 @@ import java.io.OutputStream;
 public interface BitcoinObject<I extends BitcoinObject> {
 
     byte[] EMPTY_ARRAY = new byte[0];
+    public static final int UNKNOWN_MESSAGE_LENGTH = Integer.MIN_VALUE;
 
-    int getMessageSize();
+    default int getMessageSize() {
+        if (isFixedSize()) {
+            return fixedSize();
+        }
+        throw new UnsupportedOperationException();
+    }
 
     byte[] serialize();
 
     void serializeTo(OutputStream stream) throws IOException;
 
     boolean isMutable();
+
+    /**
+     * Mark object as immutable.
+     */
+    void makeImmutable();
 
     /**
      * Should should only be called by copyMutable implementations to avoid traversing up the tree on every call.
@@ -35,7 +46,7 @@ public interface BitcoinObject<I extends BitcoinObject> {
      * makes an immutable copy of this object
      * @return
      */
-    default public I copy() {
+    default I copy() {
         return makeNew(serialize());
     }
 
@@ -43,10 +54,18 @@ public interface BitcoinObject<I extends BitcoinObject> {
      * makes a copy of the object and sets it's state to mutable
      * @return
      */
-    default public I mutableCopy() {
+    default I mutableCopy() {
         I copy = makeNew(serialize());
         copy.makeSelfMutable();
         return copy;
+    }
+
+    default int fixedSize() {
+        return UNKNOWN_MESSAGE_LENGTH;
+    }
+
+    default boolean isFixedSize() {
+        return fixedSize() != UNKNOWN_MESSAGE_LENGTH;
     }
 
 }

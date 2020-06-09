@@ -24,6 +24,8 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.BitcoinSerializer;
 import org.bitcoinj.msg.Message;
+import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
+import org.bitcoinj.msg.bitcoin.api.base.HeaderReadOnly;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
@@ -53,7 +55,7 @@ import static org.bitcoinj.core.Sha256Hash.*;
  *
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
-public class Block extends Message {
+public class Block extends Message implements HeaderReadOnly {
     /**
      * Flags used to control which elements of block validation are done on
      * received blocks.
@@ -589,7 +591,7 @@ public class Block extends Message {
      * Calculates the block hash by serializing the block and hashing the
      * resulting bytes.
      */
-    private Sha256Hash calculateHash() {
+    public Sha256Hash calculateHash() {
         try {
             ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(HEADER_SIZE);
             writeHeader(bos);
@@ -606,6 +608,16 @@ public class Block extends Message {
      */
     public String getHashAsString() {
         return getHash().toString();
+    }
+
+    @Override
+    public boolean hasBlockMetaData() {
+        return false;
+    }
+
+    @Override
+    public FullBlock getBlock() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -1039,7 +1051,7 @@ public class Block extends Message {
      * Returns the time at which the block was solved and broadcast, according to the clock of the solving node. This
      * is measured in seconds since the UNIX epoch (midnight Jan 1st 1970).
      */
-    public long getTimeSeconds() {
+    public long getTime() {
         maybeParseHeader();
         return time;
     }
@@ -1047,8 +1059,8 @@ public class Block extends Message {
     /**
      * Returns the time at which the block was solved and broadcast, according to the clock of the solving node.
      */
-    public Date getTime() {
-        return new Date(getTimeSeconds()*1000);
+    public Date getDateTime() {
+        return new Date(getTime()*1000);
     }
 
     public void setTime(long time) {
@@ -1218,8 +1230,8 @@ public class Block extends Message {
 
         b.setPrevBlockHash(getHash());
         // Don't let timestamp go backwards
-        if (getTimeSeconds() >= time)
-            b.setTime(getTimeSeconds() + 1);
+        if (getTime() >= time)
+            b.setTime(getTime() + 1);
         else
             b.setTime(time);
         b.solve();
@@ -1236,12 +1248,12 @@ public class Block extends Message {
 
     @VisibleForTesting
     public Block createNextBlock(@Nullable Address to, TransactionOutPoint prevOut) {
-        return createNextBlock(to, BitcoinJ.BLOCK_VERSION_GENESIS, prevOut, getTimeSeconds() + 5, pubkeyForTesting, FIFTY_COINS, BitcoinJ.BLOCK_HEIGHT_UNKNOWN);
+        return createNextBlock(to, BitcoinJ.BLOCK_VERSION_GENESIS, prevOut, getTime() + 5, pubkeyForTesting, FIFTY_COINS, BitcoinJ.BLOCK_HEIGHT_UNKNOWN);
     }
 
     @VisibleForTesting
     public Block createNextBlock(@Nullable Address to, Coin value) {
-        return createNextBlock(to, BitcoinJ.BLOCK_VERSION_GENESIS, null, getTimeSeconds() + 5, pubkeyForTesting, value, BitcoinJ.BLOCK_HEIGHT_UNKNOWN);
+        return createNextBlock(to, BitcoinJ.BLOCK_VERSION_GENESIS, null, getTime() + 5, pubkeyForTesting, value, BitcoinJ.BLOCK_HEIGHT_UNKNOWN);
     }
 
     @VisibleForTesting

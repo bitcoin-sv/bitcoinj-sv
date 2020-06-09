@@ -1,8 +1,8 @@
-package org.bitcoinj.msg.bitcoin;
+package org.bitcoinj.msg.bitcoin.api.base;
 
 import org.bitcoinj.core.Sha256Hash;
 
-public interface ReadableHeader {
+public interface HashProvider {
     /**
      * gets the header hash, calculating it if necessary.  If the header is part of a mutable FullBlock
      * this make also trigger calculation of the merkle tree.
@@ -10,15 +10,7 @@ public interface ReadableHeader {
      */
     Sha256Hash getHash();
 
-    long getVersion();
-
-    Sha256Hash getPrevBlockHash();
-
-    Sha256Hash getMerkleRoot();
-
-    long getTime();
-
-    long getDifficultyTarget();
-
-    long getNonce();
+    default String getHashAsString() {
+        return String.valueOf(getHash());
+    }
 }

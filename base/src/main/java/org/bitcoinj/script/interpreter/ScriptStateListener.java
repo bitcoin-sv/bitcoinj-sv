@@ -1,7 +1,7 @@
 package org.bitcoinj.script.interpreter;
 
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.msg.bitcoin.Tx;
+import org.bitcoinj.msg.bitcoin.api.base.Tx;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptVerifyFlag;
 

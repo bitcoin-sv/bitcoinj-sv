@@ -78,7 +78,7 @@ public class BlockTest {
     @Test
     public void testDate() throws Exception {
         Block block = Serializer.defaultFor(NET).makeBlock(blockBytes);
-        assertEquals("4 Nov 2010 16:06:04 GMT", block.getTime().toGMTString());
+        assertEquals("4 Nov 2010 16:06:04 GMT", block.getDateTime().toGMTString());
     }
 
     @Test

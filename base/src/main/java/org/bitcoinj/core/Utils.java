@@ -63,6 +63,60 @@ public class Utils {
     private static BlockingQueue<Boolean> mockSleepQueue;
 
     /**
+     * Reads up to the specified number of bytes and then resets the input stream to the starting position.
+     * If the requested number of bytes are not available the returned byte array will be truncated to the available length
+     * @param in
+     * @param requested
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readBytesAndReset(InputStream in, int requested) throws IOException {
+        in.mark(requested);
+        byte[] buf = readBytes(in, requested);
+        in.reset();
+        return buf;
+    }
+
+    /**
+     * Reads up to the specified number of bytes. If the requested number of bytes are not available the returned
+     * byte array will be truncated to the available length.
+     * @param in
+     * @param requested
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readBytes(InputStream in, int requested) throws IOException {
+        byte[] buf = new byte[requested];
+        int cursor = 0;
+        int read = 0;
+        while (read != -1 && cursor < requested) {
+            read = in.read(buf, cursor, requested - cursor);
+            cursor += read;
+        }
+        return cursor == requested ? buf : Arrays.copyOf(buf, cursor);
+    }
+
+    /**
+     * Reads exactly the specified number of bytes. If requested number of bytes are not available throws IOException
+     * @param in
+     * @param requested requested number of bytes
+     * @return
+     * @throws IOException if stream ends before requested bytes are read
+     */
+    public static byte[] readBytesStrict(InputStream in, int requested) throws IOException {
+        byte[] buf = new byte[requested];
+        int cursor = 0;
+        int read = 0;
+        while (read != -1 && cursor < requested) {
+            read = in.read(buf, cursor, requested - cursor);
+            cursor += read;
+        }
+        if (read == -1)
+            throw new IOException("requested bytes unavailable before stream EOF");
+        return buf;
+    }
+
+    /**
      * The regular {@link java.math.BigInteger#toByteArray()} method isn't quite what we often need: it appends a
      * leading zero to indicate that the number is positive and may need padding.
      *
@@ -198,16 +252,26 @@ public class Utils {
                 ((bytes[offset + 3] & 0xffl) << 24);
     }
 
+    /** Parse 4 bytes from the stream as unsigned 32-bit integer in little endian format. */
+    public static long readUint32(InputStream in) throws IOException {
+        return readUint32(readBytesStrict(in, 4), 0);
+    }
+
     /** Parse 8 bytes from the byte array (starting at the offset) as signed 64-bit integer in little endian format. */
     public static long readInt64(byte[] bytes, int offset) {
         return (bytes[offset] & 0xffl) |
-               ((bytes[offset + 1] & 0xffl) << 8) |
-               ((bytes[offset + 2] & 0xffl) << 16) |
-               ((bytes[offset + 3] & 0xffl) << 24) |
-               ((bytes[offset + 4] & 0xffl) << 32) |
-               ((bytes[offset + 5] & 0xffl) << 40) |
-               ((bytes[offset + 6] & 0xffl) << 48) |
-               ((bytes[offset + 7] & 0xffl) << 56);
+                ((bytes[offset + 1] & 0xffl) << 8) |
+                ((bytes[offset + 2] & 0xffl) << 16) |
+                ((bytes[offset + 3] & 0xffl) << 24) |
+                ((bytes[offset + 4] & 0xffl) << 32) |
+                ((bytes[offset + 5] & 0xffl) << 40) |
+                ((bytes[offset + 6] & 0xffl) << 48) |
+                ((bytes[offset + 7] & 0xffl) << 56);
+    }
+
+    /** Parse 8 bytes from the stream as signed 64-bit integer in little endian format. */
+    public static long readInt64(InputStream in) throws IOException {
+        return readInt64(readBytesStrict(in, 8), 0);
     }
 
     /** Parse 4 bytes from the byte array (starting at the offset) as unsigned 32-bit integer in big endian format. */
@@ -218,10 +282,20 @@ public class Utils {
                 (bytes[offset + 3] & 0xffl);
     }
 
+    /** Parse 4 bytes from the stream as unsigned 32-bit integer in big endian format. */
+    public static long readUint32BE(InputStream in) throws IOException {
+        return readUint32BE(readBytesStrict(in, 4), 0);
+    }
+
     /** Parse 2 bytes from the byte array (starting at the offset) as unsigned 16-bit integer in big endian format. */
     public static int readUint16BE(byte[] bytes, int offset) {
         return ((bytes[offset] & 0xff) << 8) |
                 (bytes[offset + 1] & 0xff);
+    }
+
+    /** Parse 2 bytes from the byte array (starting at the offset) as unsigned 16-bit integer in big endian format. */
+    public static int readUint16BE(InputStream in) throws IOException {
+        return readUint16BE(readBytesStrict(in, 2), 0);
     }
 
     /**

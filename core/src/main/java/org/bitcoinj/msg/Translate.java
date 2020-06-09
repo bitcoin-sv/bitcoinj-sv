@@ -1,6 +1,7 @@
 package org.bitcoinj.msg;
 
-import org.bitcoinj.msg.bitcoin.*;
+import org.bitcoinj.msg.bitcoin.api.base.*;
+import org.bitcoinj.msg.bitcoin.bean.base.*;
 import org.bitcoinj.msg.protocol.*;
 
 public class Translate {

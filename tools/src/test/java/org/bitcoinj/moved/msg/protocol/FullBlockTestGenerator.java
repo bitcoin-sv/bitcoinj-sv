@@ -931,7 +931,7 @@ public class FullBlockTestGenerator {
             b44.addTransaction(t);
 
             b44.setPrevBlockHash(b43.getHash());
-            b44.setTime(b43.block.getTimeSeconds() + 1);
+            b44.setTime(b43.block.getTime() + 1);
         }
         b44.solve();
         blocks.add(new BlockAndValidity(b44, true, false, b44.getHash(), chainHeadHeight + 15, "b44"));
@@ -959,7 +959,7 @@ public class FullBlockTestGenerator {
             b45.addTransaction(t, false);
 
             b45.setPrevBlockHash(b44.getHash());
-            b45.setTime(b44.getTimeSeconds() + 1);
+            b45.setTime(b44.getTime() + 1);
         }
         b45.solve();
         blocks.add(new BlockAndValidity(b45, false, true, b44.getHash(), chainHeadHeight + 15, "b45"));
@@ -972,7 +972,7 @@ public class FullBlockTestGenerator {
             b46.setMerkleRoot(Sha256Hash.ZERO_HASH);
 
             b46.setPrevBlockHash(b44.getHash());
-            b46.setTime(b44.getTimeSeconds() + 1);
+            b46.setTime(b44.getTime() + 1);
         }
         b46.solve();
         blocks.add(new BlockAndValidity(b46, false, true, b44.getHash(), chainHeadHeight + 15, "b46"));
@@ -1054,13 +1054,13 @@ public class FullBlockTestGenerator {
 
         // Block with invalid timestamp
         NewBlock b54 = createNextBlock(b53, chainHeadHeight + 16, out15, null);
-        b54.block.setTime(b35.block.getTimeSeconds() - 1);
+        b54.block.setTime(b35.block.getTime() - 1);
         b54.solve();
         blocks.add(new BlockAndValidity(b54, false, true, b44.getHash(), chainHeadHeight + 15, "b54"));
 
         // Block with valid timestamp
         NewBlock b55 = createNextBlock(b53, chainHeadHeight + 16, out15, null);
-        b55.block.setTime(b35.block.getTimeSeconds());
+        b55.block.setTime(b35.block.getTime());
         b55.solve();
         blocks.add(new BlockAndValidity(b55, true, false, b55.getHash(), chainHeadHeight + 16, "b55"));
         spendableOutputs.offer(b55.getCoinbaseOutput());
@@ -1197,7 +1197,7 @@ public class FullBlockTestGenerator {
             tx.addOutput(ZERO, OP_TRUE_SCRIPT);
             addOnlyInputToTransaction(tx, out18, 0);
             b62.addTransaction(tx);
-            checkState(!tx.isFinal(chainHeadHeight + 17, b62.block.getTimeSeconds()));
+            checkState(!tx.isFinal(chainHeadHeight + 17, b62.block.getTime()));
         }
         b62.solve();
         blocks.add(new BlockAndValidity(b62, false, true, b60.getHash(), chainHeadHeight + 18, "b62"));
@@ -1210,7 +1210,7 @@ public class FullBlockTestGenerator {
         {
             b63.block.getTransactions().get(0).setLockTime(0xffffffffL);
             b63.block.getTransactions().get(0).getInputs().get(0).setSequenceNumber(0xDEADBEEF);
-            checkState(!b63.block.getTransactions().get(0).isFinal(chainHeadHeight + 17, b63.block.getTimeSeconds()));
+            checkState(!b63.block.getTransactions().get(0).isFinal(chainHeadHeight + 17, b63.block.getTime()));
         }
         b63.solve();
         blocks.add(new BlockAndValidity(b63, false, true, b60.getHash(), chainHeadHeight + 18, "b63"));

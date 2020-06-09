@@ -304,7 +304,7 @@ public class Transaction extends ChildMessage {
      * @param relativityOffset A number that disambiguates the order of transactions within a block.
      */
     public void setBlockAppearance(StoredBlock block, boolean bestChain, int relativityOffset) {
-        long blockTime = block.getHeader().getTimeSeconds() * 1000;
+        long blockTime = block.getHeader().getTime() * 1000;
         if (bestChain && (updatedAt == null || updatedAt.getTime() == 0 || updatedAt.getTime() > blockTime)) {
             updatedAt = new Date(blockTime);
         }
