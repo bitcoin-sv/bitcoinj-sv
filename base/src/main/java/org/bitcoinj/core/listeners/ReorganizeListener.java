@@ -18,7 +18,7 @@ package org.bitcoinj.core.listeners;
 
 import java.util.List;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.blockchain.SPVBlockChain;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
 

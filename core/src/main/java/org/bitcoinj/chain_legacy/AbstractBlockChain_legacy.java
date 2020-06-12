@@ -21,7 +21,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
-import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.blockchain.AbstractBlockChain;
+import org.bitcoinj.blockchain.ChainEventListener;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.BlockStoreException;
@@ -153,7 +154,7 @@ public abstract class AbstractBlockChain_legacy {
     /**
      * Constructs a BlockChain connected to the given list of listeners (eg, wallets) and a store.
      */
-    public AbstractBlockChain_legacy(NetworkParameters params, List<? extends ChainEventListener_legacy> wallets,
+    public AbstractBlockChain_legacy(NetworkParameters params, List<? extends ChainEventListener> wallets,
                                      BlockStore_legacy blockStore) throws BlockStoreException {
         this.blockStore = blockStore;
         chainHead = blockStore.getChainHead();
@@ -164,10 +165,10 @@ public abstract class AbstractBlockChain_legacy {
         this.newBestBlockListeners = new CopyOnWriteArrayList<ListenerRegistration<NewBestBlockListener>>();
         this.reorganizeListeners = new CopyOnWriteArrayList<ListenerRegistration<ReorganizeListener>>();
         this.transactionReceivedListeners = new CopyOnWriteArrayList<ListenerRegistration<TransactionReceivedInBlockListener>>();
-        for (ChainEventListener_legacy l : wallets) {
+        for (ChainEventListener l : wallets) {
             addNewBestBlockListener(Threading.SAME_THREAD, l);
             addReorganizeListener(Threading.SAME_THREAD, l);
-            addTransactionReceivedListener(Threading.SAME_THREAD, l);
+            addTransactionReceivedListener(Threading.SAME_THREAD, (TransactionReceivedInBlockListener) l);
         }
 
         this.versionTally = new VersionTally_legacy(params);
@@ -180,10 +181,10 @@ public abstract class AbstractBlockChain_legacy {
      * have never been in use, or if the wallet has been loaded along with the BlockChain. Note that adding multiple
      * wallets is not well tested!
      */
-    public final void addChainEventListener(ChainEventListener_legacy chainEventListener) {
+    public final void addChainEventListener(ChainEventListener chainEventListener) {
         addNewBestBlockListener(Threading.SAME_THREAD, chainEventListener);
         addReorganizeListener(Threading.SAME_THREAD, chainEventListener);
-        addTransactionReceivedListener(Threading.SAME_THREAD, chainEventListener);
+        addTransactionReceivedListener(Threading.SAME_THREAD, (TransactionReceivedInBlockListener) chainEventListener);
         int listenerHeight = chainEventListener.getLastBlockSeenHeight();
         int chainHeight = getBestChainHeight();
         if (listenerHeight != chainHeight) {
@@ -205,10 +206,10 @@ public abstract class AbstractBlockChain_legacy {
     }
 
     /** Removes a wallet from the chain. */
-    public void removeChainEventListener(ChainEventListener_legacy chainEventListener) {
+    public void removeChainEventListener(ChainEventListener chainEventListener) {
         removeNewBestBlockListener(chainEventListener);
         removeReorganizeListener(chainEventListener);
-        removeTransactionReceivedListener(chainEventListener);
+        removeTransactionReceivedListener((TransactionReceivedInBlockListener) chainEventListener);
     }
 
     /**

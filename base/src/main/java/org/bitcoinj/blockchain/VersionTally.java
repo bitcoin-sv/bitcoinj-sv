@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.chain;
+package org.bitcoinj.blockchain;
 
 import org.bitcoinj.blockstore.BlockStore;
 import org.bitcoinj.exception.BlockStoreException;

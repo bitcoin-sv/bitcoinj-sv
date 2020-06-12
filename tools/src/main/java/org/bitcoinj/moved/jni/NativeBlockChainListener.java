@@ -16,8 +16,7 @@
 
 package org.bitcoinj.moved.jni;
 
-import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import org.bitcoinj.blockchain.AbstractBlockChain;
 import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 

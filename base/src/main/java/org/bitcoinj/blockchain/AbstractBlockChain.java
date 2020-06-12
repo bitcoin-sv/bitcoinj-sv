@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.chain;
+package org.bitcoinj.blockchain;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import org.bitcoinj.blockchain.ChainUtils;
 import org.bitcoinj.blockchain.pow.RulesPoolChecker;
 import org.bitcoinj.blockstore.SPVBlockStore;
 import org.bitcoinj.blockchain.pow.AbstractRuleCheckerFactory;
 import org.bitcoinj.blockchain.pow.factory.RuleCheckerFactory;
-import org.bitcoinj.chain_legacy.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.NewBestBlockListener;
 import org.bitcoinj.core.listeners.ReorganizeListener;
@@ -34,7 +32,6 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
 import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
 import org.bitcoinj.msg.bitcoin.api.extended.LiteBlock;
-import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.blockstore.BlockStore;
 import org.bitcoinj.utils.ListenerRegistration;
@@ -145,7 +142,7 @@ public abstract class AbstractBlockChain {
     /**
      * Constructs a BlockChain connected to the given list of listeners (eg, wallets) and a store.
      */
-    public AbstractBlockChain(NetworkParameters params, List<? extends ChainEventListener_legacy> wallets,
+    public AbstractBlockChain(NetworkParameters params, List<? extends ChainEventListener> wallets,
                               BlockStore blockStore) throws BlockStoreException {
         this.blockStore = blockStore;
         chainHead = blockStore.getChainHead();
@@ -155,7 +152,7 @@ public abstract class AbstractBlockChain {
 
         this.newBestBlockListeners = new CopyOnWriteArrayList<ListenerRegistration<NewBestBlockListener>>();
         this.reorganizeListeners = new CopyOnWriteArrayList<ListenerRegistration<ReorganizeListener>>();
-        for (ChainEventListener_legacy l : wallets) {
+        for (ChainEventListener l : wallets) {
             addChainEventListener(l);
         }
 
@@ -169,13 +166,13 @@ public abstract class AbstractBlockChain {
      * have never been in use, or if the wallet has been loaded along with the BlockChain. Note that adding multiple
      * wallets is not well tested!
      */
-    public final void addChainEventListener(ChainEventListener_legacy chainEventListener) {
+    public final void addChainEventListener(ChainEventListener chainEventListener) {
         addNewBestBlockListener(Threading.SAME_THREAD, chainEventListener);
         addReorganizeListener(Threading.SAME_THREAD, chainEventListener);
     }
 
     /** Removes a wallet from the chain. */
-    public void removeChainEventListener(ChainEventListener_legacy chainEventListener) {
+    public void removeChainEventListener(ChainEventListener chainEventListener) {
         removeNewBestBlockListener(chainEventListener);
         removeReorganizeListener(chainEventListener);
     }
@@ -230,17 +227,17 @@ public abstract class AbstractBlockChain {
     }
     
     /**
-     * Adds/updates the given {@link Block} with the block store.
+     * Adds/updates the given {@link LiteBlock} with the block store.
      * This version is used when the transactions have not been verified.
      * @param storedPrev The {@link LiteBlock} which immediately precedes block.
-     * @param block The {@link Block} to add/update.
+     * @param block The {@link LiteBlock} to add/update.
      * @return the newly created {@link LiteBlock}
      */
     protected abstract LiteBlock addToBlockStore(LiteBlock storedPrev, LiteBlock block)
             throws BlockStoreException, VerificationException;
 
     /**
-     * Rollback the block store to a given height. This is currently only supported by {@link SPVBlockChain_legacy} instances.
+     * Rollback the block store to a given height. This is currently only supported by {@link SPVBlockChain} instances.
      * 
      * @throws BlockStoreException
      *             if the operation fails or is unsupported.

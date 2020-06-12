@@ -19,6 +19,7 @@ package org.bitcoinj.chain_legacy;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import org.bitcoinj.blockchain.ChainEventListener;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.PrunedException;
 import org.bitcoinj.exception.VerificationException;
@@ -50,19 +51,19 @@ public class SPVBlockChain_legacy extends AbstractBlockChain_legacy {
      * {@link MemoryBlockStore_legacy} if you want to hold all headers in RAM and don't care about
      * disk serialization (this is rare).</p>
      */
-    public SPVBlockChain_legacy(NetworkParameters params, ChainEventListener_legacy chainEventListener, BlockStore_legacy blockStore) throws BlockStoreException {
+    public SPVBlockChain_legacy(NetworkParameters params, ChainEventListener chainEventListener, BlockStore_legacy blockStore) throws BlockStoreException {
         this(params, Collections.singletonList(chainEventListener), blockStore);
     }
 
     /** See {@link #SPVBlockChain_legacy(NetworkParameters, BlockStore_legacy)} */
     public SPVBlockChain_legacy(NetworkParameters params, BlockStore_legacy blockStore) throws BlockStoreException {
-        this(params, new ArrayList<ChainEventListener_legacy>(), blockStore);
+        this(params, new ArrayList<ChainEventListener>(), blockStore);
     }
 
     /**
      * Constructs a BlockChain connected to the given list of listeners and a store.
      */
-    public SPVBlockChain_legacy(NetworkParameters params, List<? extends ChainEventListener_legacy> chainEventListeners, BlockStore_legacy blockStore) throws BlockStoreException {
+    public SPVBlockChain_legacy(NetworkParameters params, List<? extends ChainEventListener> chainEventListeners, BlockStore_legacy blockStore) throws BlockStoreException {
         super(params, chainEventListeners, blockStore);
         this.blockStore = blockStore;
     }

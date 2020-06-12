@@ -15,20 +15,16 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.chain;
+package org.bitcoinj.blockchain;
 
-import org.bitcoinj.blockchain.ChainUtils;
 import org.bitcoinj.blockstore.BlockStore;
 import org.bitcoinj.blockstore.MemoryBlockStore;
 import org.bitcoinj.blockstore.SPVBlockStore;
-import org.bitcoinj.chain_legacy.ChainEventListener_legacy;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.bitcoin.api.extended.LiteBlock;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
-import org.bitcoinj.store.SPVBlockStore_legacy;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,19 +48,19 @@ public class SPVBlockChain extends AbstractBlockChain {
      * {@link MemoryBlockStore} if you want to hold all headers in RAM and don't care about
      * disk serialization (this is rare).</p>
      */
-    public SPVBlockChain(NetworkParameters params, ChainEventListener_legacy chainEventListener, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, ChainEventListener chainEventListener, BlockStore blockStore) throws BlockStoreException {
         this(params, Collections.singletonList(chainEventListener), blockStore);
     }
 
     /** See {@link #SPVBlockChain(NetworkParameters, BlockStore)} */
     public SPVBlockChain(NetworkParameters params, BlockStore blockStore) throws BlockStoreException {
-        this(params, new ArrayList<ChainEventListener_legacy>(), blockStore);
+        this(params, new ArrayList<ChainEventListener>(), blockStore);
     }
 
     /**
      * Constructs a BlockChain connected to the given list of listeners and a store.
      */
-    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener_legacy> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
         super(params, chainEventListeners, blockStore);
         this.blockStore = blockStore;
     }

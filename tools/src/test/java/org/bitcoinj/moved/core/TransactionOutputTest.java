@@ -15,7 +15,7 @@
 package org.bitcoinj.moved.core;
 
 import com.google.common.collect.ImmutableList;
-import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.blockchain.AbstractBlockChain;
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;

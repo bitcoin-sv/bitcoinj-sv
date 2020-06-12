@@ -17,7 +17,7 @@
 
 package org.bitcoinj.moved.msg.protocol;
 
-import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.blockchain.AbstractBlockChain;
 import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
 import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.chain_legacy.StoredBlock_legacy;

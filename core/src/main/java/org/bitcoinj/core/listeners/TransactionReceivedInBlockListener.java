@@ -16,8 +16,8 @@
 
 package org.bitcoinj.core.listeners;
 
-import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.blockchain.AbstractBlockChain;
+import org.bitcoinj.blockchain.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.msg.protocol.Transaction;

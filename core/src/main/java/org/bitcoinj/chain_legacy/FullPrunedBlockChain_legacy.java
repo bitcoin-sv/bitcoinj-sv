@@ -17,6 +17,7 @@
 
 package org.bitcoinj.chain_legacy;
 
+import org.bitcoinj.blockchain.ChainEventListener;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.PrunedException;
 import org.bitcoinj.exception.VerificationException;
@@ -68,13 +69,13 @@ public class FullPrunedBlockChain_legacy extends AbstractBlockChain_legacy {
      * Constructs a block chain connected to the given store.
      */
     public FullPrunedBlockChain_legacy(NetworkParameters params, FullPrunedBlockStore blockStore) throws BlockStoreException {
-        this(params, new ArrayList<ChainEventListener_legacy>(), blockStore);
+        this(params, new ArrayList<ChainEventListener>(), blockStore);
     }
 
     /**
      * Constructs a block chain connected to the given list of wallets and a store.
      */
-    public FullPrunedBlockChain_legacy(NetworkParameters params, List<ChainEventListener_legacy> listeners, FullPrunedBlockStore blockStore) throws BlockStoreException {
+    public FullPrunedBlockChain_legacy(NetworkParameters params, List<ChainEventListener> listeners, FullPrunedBlockStore blockStore) throws BlockStoreException {
         super(params, listeners, blockStore);
         this.blockStore = blockStore;
         // Ignore upgrading for now

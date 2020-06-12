@@ -17,7 +17,7 @@
 
 package org.bitcoinj.moved.store;
 
-import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.blockchain.AbstractBlockChain;
 import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Genesis_legacy;
