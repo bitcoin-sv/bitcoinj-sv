@@ -2,9 +2,9 @@
 
 ### Welcome to bitcoinj
 
-### Welcome to bitcoinj.cash
+### Welcome to bitcoinj.io
 
-The bitcoinj.cash library is a Java implementation of the Bitcoin cash protocol. This library is a fork of Mike Hearn's original bitcoinj library aimed at supporting the Bitcoin cash eco-system.
+The bitcoinj.io library is a Java implementation of the Bitcoin SV protocol. This library is a fork of Mike Hearn's original bitcoinj library aimed at supporting the Bitcoin cash eco-system.
 
 It allows maintaining a wallet and sending/receiving transactions without needing a full blockchain node. It comes with full documentation and some example apps showing how to use it.
 

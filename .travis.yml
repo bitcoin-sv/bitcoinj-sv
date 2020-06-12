@@ -1,4 +1,4 @@
-# configuration for https://travis-ci.org/bitcoincash-wallet/bitcoincashj
+# configuration for https://travis-ci.org/bitcoin-wallet/bitcoinj
 sudo: false
 dist: trusty
 language: java
