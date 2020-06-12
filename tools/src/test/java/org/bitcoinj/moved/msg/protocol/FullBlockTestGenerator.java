@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.msg.p2p.InventoryItem;
@@ -202,7 +202,7 @@ public class FullBlockTestGenerator {
         Queue<TransactionOutPointWithValue> spendableOutputs = new LinkedList<TransactionOutPointWithValue>();
 
         int chainHeadHeight = 1;
-        Block chainHead = Genesis.getFor(net).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, chainHeadHeight);
+        Block chainHead = Genesis_legacy.getFor(net).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, coinbaseOutKeyPubKey, chainHeadHeight);
         blocks.add(new BlockAndValidity(chainHead, true, false, chainHead.getHash(), 1, "Initial Block"));
         spendableOutputs.offer(new TransactionOutPointWithValue(
                 new TransactionOutPoint(net, 0, chainHead.getTransactions().get(0).getHash()),

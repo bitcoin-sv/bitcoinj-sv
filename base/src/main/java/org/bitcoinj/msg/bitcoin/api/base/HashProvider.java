@@ -13,4 +13,5 @@ public interface HashProvider {
     default String getHashAsString() {
         return String.valueOf(getHash());
     }
+
 }

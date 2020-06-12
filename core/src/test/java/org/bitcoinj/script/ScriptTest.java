@@ -306,16 +306,20 @@ public class ScriptTest {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
                 "script_valid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
-            Script scriptSig = parseScriptString(test.get(0).asText());
-            Script scriptPubKey = parseScriptString(test.get(1).asText());
-            Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
-            try {
-                ScriptUtils.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
-            } catch (ScriptExecutionException e) {
-                System.err.println(test);
-                System.err.flush();
-                throw e;
-            }
+            testValid(test);
+        }
+    }
+
+    private void testValid(JsonNode test) throws Exception {
+        Script scriptSig = parseScriptString(test.get(0).asText());
+        Script scriptPubKey = parseScriptString(test.get(1).asText());
+        Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
+        try {
+            ScriptUtils_legacy.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
+        } catch (ScriptExecutionException e) {
+            System.err.println(test);
+            System.err.flush();
+            throw e;
         }
     }
 
@@ -324,17 +328,21 @@ public class ScriptTest {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
                 "script_invalid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
-            try {
-                Script scriptSig = parseScriptString(test.get(0).asText());
-                Script scriptPubKey = parseScriptString(test.get(1).asText());
-                Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
-                ScriptUtils.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
-                System.err.println(test);
-                System.err.flush();
-                fail();
-            } catch (VerificationException e) {
-                // Expected.
-            }
+            testInvalid(test);
+        }
+    }
+
+    private void testInvalid(JsonNode test) throws Exception {
+        try {
+            Script scriptSig = parseScriptString(test.get(0).asText());
+            Script scriptPubKey = parseScriptString(test.get(1).asText());
+            Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
+            ScriptUtils_legacy.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
+            System.err.println(test);
+            System.err.flush();
+            fail();
+        } catch (VerificationException e) {
+            // Expected.
         }
     }
 
@@ -369,7 +377,7 @@ public class ScriptTest {
                     if (input.getOutpoint().getIndex() == 0xffffffffL)
                         input.getOutpoint().setIndex(-1);
                     assertTrue(scriptPubKeys.containsKey(input.getOutpoint()));
-                    ScriptUtils.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
+                    ScriptUtils_legacy.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
                             verifyFlags);
                 }
             } catch (Exception e) {
@@ -412,7 +420,7 @@ public class ScriptTest {
                 TransactionInput input = transaction.getInputs().get(i);
                 assertTrue(scriptPubKeys.containsKey(input.getOutpoint()));
                 try {
-                    ScriptUtils.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
+                    ScriptUtils_legacy.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
                             verifyFlags);
                 } catch (VerificationException e) {
                     valid = false;

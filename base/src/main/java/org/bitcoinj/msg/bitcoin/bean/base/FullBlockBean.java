@@ -1,15 +1,16 @@
 package org.bitcoinj.msg.bitcoin.bean.base;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
-import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
-import org.bitcoinj.msg.bitcoin.bean.extended.BlockMetaDataBean;
+import org.bitcoinj.msg.bitcoin.api.base.AbstractBlock;
+import org.bitcoinj.msg.bitcoin.api.extended.LiteBlock;
+import org.bitcoinj.msg.bitcoin.bean.MerkleBuilder;
+import org.bitcoinj.msg.bitcoin.bean.extended.BlockMetaBean;
 import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
 import org.bitcoinj.msg.bitcoin.api.base.Header;
-import org.bitcoinj.msg.bitcoin.api.base.MerkleRootProvider;
 import org.bitcoinj.msg.bitcoin.api.base.Tx;
-import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
+import org.bitcoinj.msg.bitcoin.bean.extended.LiteBlockBean;
 import org.bitcoinj.utils.Threading;
 
 import java.io.IOException;
@@ -24,11 +25,11 @@ import java.util.concurrent.ExecutorService;
 import static org.bitcoinj.core.Sha256Hash.hashTwice;
 import static org.bitcoinj.core.Sha256Hash.of;
 
-public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullBlock, MerkleRootProvider {
+public class FullBlockBean extends HashableImpl<FullBlock> implements FullBlock {
 
-    private HeaderBean header;
+    private Header header;
 
-    private BlockMetaDataBean metaData;
+    private BlockMetaBean metaData;
 
     private List<Tx> transactions;
 
@@ -44,13 +45,23 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
         super(null, in);
     }
 
+    /**
+     * Special case constructor for Genesis block
+     */
+    @VisibleForTesting
+    public FullBlockBean() {
+        super(null);
+        setHeader(new HeaderBean(this));
+        setTransactions(new ArrayList<>());
+    }
+
     @Override
-    public HeaderBean getHeader() {
+    public Header getHeader() {
         return header;
     }
 
     @Override
-    public void setHeader(HeaderBean header) {
+    public void setHeader(Header header) {
         checkMutable();
         this.header = header;
     }
@@ -105,8 +116,6 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
             cursor += tx.getMessageSize();
         }
 
-        header.afterBlockParse();
-
         //fill in the meta data
         buildMetaData();
     }
@@ -127,8 +136,6 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
             read += tx.getMessageSize();
         }
 
-        header.afterBlockParse();
-
         //fill in the meta data
         buildMetaData();
 
@@ -138,7 +145,7 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
     private void buildMetaData() {
         //have to pass null so calling the setters doesn't clear parent payload.
         //it isn't part of the same serialized payload though so it doesn't need a parent
-        metaData = new BlockMetaDataBean();
+        metaData = new BlockMetaBean();
         metaData.setTxCount(transactions.size());
         metaData.setBlockSize(cursor - offset);
         metaData.makeImmutable();
@@ -169,10 +176,14 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
     @Override
     public void makeSelfMutable() {
         super.makeSelfMutable();
-        header.makeSelfMutable(); //also nulls block hash
-        header.setMerkleRoot(null); //needs to be nulled in case txs change.
-        for (Tx tx: getTransactions())
-            tx.makeSelfMutable();
+        if (header != null) {
+            header.makeSelfMutable(); //also nulls block hash
+            header.setMerkleRoot(null); //needs to be nulled in case txs change.
+        }
+        if (transactions != null) {
+            for (Tx tx : getTransactions())
+                tx.makeSelfMutable();
+        }
     }
 
     /**
@@ -182,61 +193,20 @@ public class FullBlockBean extends BitcoinObjectImpl<FullBlock> implements FullB
 
     @Override
     public Sha256Hash calculateMerkleRoot() {
-        List<byte[]> tree = buildMerkleTree();
-        return Sha256Hash.wrap(tree.get(tree.size() - 1));
+        return MerkleBuilder.calculateMerkleRootFromTxs(transactions);
     }
 
-    private List<byte[]> buildMerkleTree() {
-        // The Merkle root is based on a tree of hashes calculated from the transactions:
-        //
-        //     root
-        //      / \
-        //   A      B
-        //  / \    / \
-        // t1 t2 t3 t4
-        //
-        // The tree is represented as a list: t1,t2,t3,t4,A,B,root where each
-        // entry is a hash.
-        //
-        // The hashing algorithm is double SHA-256. The leaves are a hash of the serialized contents of the transaction.
-        // The interior nodes are hashes of the concenation of the two child hashes.
-        //
-        // This structure allows the creation of proof that a transaction was included into a block without having to
-        // provide the full block contents. Instead, you can provide only a Merkle branch. For example to prove tx2 was
-        // in a block you can just provide tx2, the hash(tx1) and B. Now the other party has everything they need to
-        // derive the root, which can be checked against the block header. These proofs aren't used right now but
-        // will be helpful later when we want to download partial block contents.
-        //
-        // Note that if the number of transactions is not even the last tx is repeated to make it so (see
-        // tx3 above). A tree with 5 transactions would look like this:
-        //
-        //         root
-        //        /     \
-        //       1        5
-        //     /   \     / \
-        //    2     3    4  4
-        //  / \   / \   / \
-        // t1 t2 t3 t4 t5 t5
-        ArrayList<byte[]> tree = new ArrayList<byte[]>();
-        // Start by adding all the hashes of the transactions as leaves of the tree.
-        for (Tx t : transactions) {
-            tree.add(t.calculateHash().getBytes());
-        }
-        int levelOffset = 0; // Offset in the list where the currently processed level starts.
-        // Step through each level, stopping when we reach the root (levelSize == 1).
-        for (int levelSize = transactions.size(); levelSize > 1; levelSize = (levelSize + 1) / 2) {
-            // For each pair of nodes on that level:
-            for (int left = 0; left < levelSize; left += 2) {
-                // The right hand node can be the same as the left hand, in the case where we don't have enough
-                // transactions.
-                int right = Math.min(left + 1, levelSize - 1);
-                byte[] leftBytes = Utils.reverseBytes(tree.get(levelOffset + left));
-                byte[] rightBytes = Utils.reverseBytes(tree.get(levelOffset + right));
-                tree.add(Utils.reverseBytes(hashTwice(leftBytes, 0, 32, rightBytes, 0, 32)));
-            }
-            // Move to the next level.
-            levelOffset += levelSize;
-        }
-        return tree;
+    @Override
+    public AbstractBlock getBlock() {
+        return this;
+    }
+
+    @Override
+    public LiteBlock asLiteBlock() {
+        LiteBlock lite = new LiteBlockBean();
+        lite.getHeader().copyFrom(getHeader());
+        lite.getBlockMeta().setBlockSize(getMessageSize());
+        lite.getBlockMeta().setTxCount(getTransactions().size());
+        return lite;
     }
 }

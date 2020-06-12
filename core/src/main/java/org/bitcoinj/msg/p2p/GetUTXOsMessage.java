@@ -18,7 +18,7 @@ package org.bitcoinj.msg.p2p;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import org.bitcoinj.chain.FullPrunedBlockChain;
+import org.bitcoinj.chain_legacy.FullPrunedBlockChain_legacy;
 import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.Message;
@@ -41,7 +41,7 @@ import java.util.List;
  * <p>Note that this message does not let you query the UTXO set by address, script or any other criteria. The
  * reason is that Bitcoin nodes don't calculate the necessary database indexes to answer such queries, to save
  * space and time. If you want to look up unspent outputs by address, you can either query a block explorer site,
- * or you can use the {@link FullPrunedBlockChain} class to build the required indexes yourself. Bear in that it will
+ * or you can use the {@link FullPrunedBlockChain_legacy} class to build the required indexes yourself. Bear in that it will
  * be quite slow and disk intensive to do that!</p>
  *
  * <p>Instances of this class are not safe for use by multiple threads.</p>

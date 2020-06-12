@@ -14,13 +14,13 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.listeners.DownloadProgressTracker;
 import org.bitcoinj.core.*;
 import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.SPVBlockStore;
+import org.bitcoinj.store.SPVBlockStore_legacy;
 import org.bitcoinj.moved.wallet.DeterministicSeed;
 import org.bitcoinj.moved.wallet.Wallet;
 
@@ -59,8 +59,8 @@ public class RestoreFromSeed {
         }
 
         // Setting up the BlochChain, the BlocksStore and connecting to the network.
-        SPVBlockStore chainStore = new SPVBlockStore(params, chainFile);
-        SPVBlockChain chain = new SPVBlockChain(params, chainStore);
+        SPVBlockStore_legacy chainStore = new SPVBlockStore_legacy(params, chainFile);
+        SPVBlockChain_legacy chain = new SPVBlockChain_legacy(params, chainStore);
         PeerGroup peers = new PeerGroup(params, chain);
         peers.addPeerDiscovery(new DnsDiscovery(params));
 

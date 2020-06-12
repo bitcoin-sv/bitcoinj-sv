@@ -17,13 +17,13 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
@@ -42,8 +42,8 @@ public class RefreshWallet {
 
         // Set up the components and link them together.
         final NetworkParameters params = TestNet3Params.get();
-        BlockStore blockStore = new MemoryBlockStore(params);
-        SPVBlockChain chain = new SPVBlockChain(params, wallet, blockStore);
+        BlockStore_legacy blockStore = new MemoryBlockStore_legacy(params);
+        SPVBlockChain_legacy chain = new SPVBlockChain_legacy(params, wallet, blockStore);
 
         final PeerGroup peerGroup = new PeerGroup(params, chain);
         peerGroup.startAsync();

@@ -1,9 +1,10 @@
 package org.bitcoinj.msg.bitcoin.bean.base;
 
+import org.bitcoinj.core.BitcoinJ;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
-import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
+import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.bitcoin.api.base.AbstractBlock;
 import org.bitcoinj.msg.bitcoin.api.base.Header;
 import org.bitcoinj.msg.bitcoin.api.base.Tx;
 
@@ -13,8 +14,7 @@ import java.io.OutputStream;
 
 public class HeaderBean extends HashableImpl<Header> implements Header<Header> {
 
-    // block hash which is hash of serialized header
-    private FullBlock block;
+    private AbstractBlock block;
 
     // Fields defined as part of the protocol format.
     private long version;
@@ -24,50 +24,31 @@ public class HeaderBean extends HashableImpl<Header> implements Header<Header> {
     private long difficultyTarget; // "nBits"
     private long nonce;
 
-    //full block meta data, not part of protocol
-    private boolean hasBlockMetaData = false;
-
-    private long txCount;
-    private Tx coinbase;
-    private long serializedLength;
-
-    public HeaderBean(FullBlock parent) {
+    public HeaderBean(AbstractBlock parent) {
         super(parent);
+        this.block = parent;
     }
 
-    public HeaderBean(FullBlock parent, byte[] payload, int offset) {
+    public HeaderBean(AbstractBlock parent, byte[] payload, int offset) {
         super(parent, payload, offset);
-        block = parent;
-        //block may be in the process of parsing so we won't add the block meta data yet.
+        this.block = parent;
     }
 
-    public HeaderBean(FullBlock parent, byte[] payload) {
+    public HeaderBean(AbstractBlock parent, byte[] payload) {
         this(parent, payload, 0);
     }
 
     public HeaderBean(byte[] payload) {
-        super(null, payload, 0);
+        this(null, payload, 0);
     }
 
-    public HeaderBean(FullBlock parent, InputStream in) {
+    public HeaderBean(AbstractBlock parent, InputStream in) {
         super(parent, in);
-        block = parent;
-    }
-
-    public void afterBlockParse() {
-        txCount = block.getTransactions().size();
-        coinbase = block.getTransactions().get(0);
-        serializedLength = block.getMessageSize();
-        hasBlockMetaData = true;
+        this.block = parent;
     }
 
     @Override
-    public boolean hasBlockMetaData() {
-        return hasBlockMetaData;
-    }
-
-    @Override
-    public FullBlock getBlock() {
+    public AbstractBlock getBlock() {
         return block;
     }
 
@@ -145,40 +126,6 @@ public class HeaderBean extends HashableImpl<Header> implements Header<Header> {
     public void setNonce(long nonce) {
         checkMutable();
         this.nonce = nonce;
-    }
-
-    @Override
-    public long getTxCount() {
-        return txCount;
-    }
-
-    @Override
-    public void setTxCount(long txCount) {
-        checkMutable();
-        this.txCount = txCount;
-    }
-
-    @Override
-    public Tx getCoinbase() {
-        checkMutable();
-        return coinbase;
-    }
-
-    @Override
-    public void setCoinbase(Tx coinbase) {
-        checkMutable();
-        this.coinbase = coinbase;
-    }
-
-    @Override
-    public long getSerializedLength() {
-        return serializedLength;
-    }
-
-    @Override
-    public void setSerializedLength(long serializedLength) {
-        checkMutable();
-        this.serializedLength = serializedLength;
     }
 
     @Override

@@ -19,8 +19,8 @@ package org.bitcoinj.core.listeners;
 import java.util.List;
 
 import org.bitcoinj.chain.SPVBlockChain;
-import org.bitcoinj.chain.StoredBlock;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
 
 /**
  * Listener interface for when the best chain has changed.
@@ -36,6 +36,6 @@ public interface ReorganizeListener {
      *
      * The oldBlocks/newBlocks lists are ordered height-wise from top first to bottom last (i.e. newest blocks first).
      */
-    void reorganize(StoredBlock splitPoint, List<StoredBlock> oldBlocks,
-                    List<StoredBlock> newBlocks) throws VerificationException;
+    void reorganize(ChainInfoReadOnly splitPoint, List<ChainInfoReadOnly> oldBlocks,
+                    List<ChainInfoReadOnly> newBlocks) throws VerificationException;
 }

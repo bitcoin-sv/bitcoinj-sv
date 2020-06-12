@@ -4,10 +4,10 @@ import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
-import org.bitcoinj.msg.bitcoin.api.base.Input;
-import org.bitcoinj.msg.bitcoin.api.base.Output;
+import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
+import org.bitcoinj.msg.bitcoin.api.base.TxInput;
+import org.bitcoinj.msg.bitcoin.api.base.TxOutput;
 import org.bitcoinj.msg.bitcoin.api.base.Tx;
-import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,16 +18,16 @@ import java.util.List;
 
 import static org.bitcoinj.core.Utils.uint32ToByteStreamLE;
 
-public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
+public class TxBean extends HashableImpl<Tx> implements Tx {
 
     private Sha256Hash hash;
 
     // These are bitcoin serialized.
     private long version;
 
-    private List<Input> inputs;
+    private List<TxInput> inputs;
 
-    private List<Output> outputs;
+    private List<TxOutput> outputs;
 
     private long lockTime;
 
@@ -35,16 +35,26 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         super(parent, payload, offset);
     }
 
-    public TxBean(byte[] payload, int offset) {
-        this(null, payload, offset);
+    public TxBean(byte[] payload) {
+        this(null, payload, 0);
     }
 
-    public TxBean(BitcoinObject parent, byte[] payload) {
+    public TxBean(FullBlock parent, byte[] payload) {
         this(parent, payload, 0);
     }
 
-    public TxBean(byte[] payload) {
-        this(null, payload, 0);
+    /**
+     * Constructor for building manually
+     * @param parent
+     */
+    public TxBean(BitcoinObject parent) {
+        super(parent);
+        //assigned defaults here instead of on fields as they may overwrite parsed values if other
+        //constructors are called.
+        version = 1;
+        inputs = new ArrayList<>(4);
+        outputs = new ArrayList<>(2);
+        lockTime = 0; //this is default for java but we are being explicit
     }
 
     public TxBean(BitcoinObject parent, InputStream in) {
@@ -59,6 +69,9 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
 
     @Override
     public Sha256Hash getHash() {
+        if (hash == null) {
+            hash = calculateHash();
+        }
         return hash;
     }
 
@@ -80,23 +93,23 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
     }
 
     @Override
-    public List<Input> getInputs() {
+    public List<TxInput> getInputs() {
         return isMutable() ? inputs : Collections.unmodifiableList(inputs);
     }
 
     @Override
-    public void setInputs(List<Input> inputs) {
+    public void setInputs(List<TxInput> inputs) {
         checkMutable();
         this.inputs = inputs;
     }
 
     @Override
-    public List<Output> getOutputs() {
+    public List<TxOutput> getOutputs() {
         return isMutable() ? outputs : Collections.unmodifiableList(outputs);
     }
 
     @Override
-    public void setOutputs(List<Output> outputs) {
+    public void setOutputs(List<TxOutput> outputs) {
         checkMutable();
         this.outputs = outputs;
     }
@@ -121,7 +134,7 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         long numInputs = readVarInt();
         inputs = new ArrayList<>((int) numInputs);
         for (long i = 0; i < numInputs; i++) {
-            Input input = new InputBean(this, payload, cursor);
+            TxInput input = new TxInputBean(this, payload, cursor);
             cursor += input.getMessageSize();
             inputs.add(input);
         }
@@ -129,7 +142,7 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         long numOutputs = readVarInt();
         outputs = new ArrayList<>((int) numOutputs);
         for (long i = 0; i < numOutputs; i++) {
-            Output output = new OutputBean(this, payload, cursor);
+            TxOutput output = new TxOutputBean(this, payload, cursor);
             cursor += output.getMessageSize();
             outputs.add(output);
         }
@@ -148,7 +161,7 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         read += VarInt.sizeOf(numInputs);
         inputs = new ArrayList<>((int) numInputs);
         for (long i = 0; i < numInputs; i++) {
-            Input input = new InputBean(this, in);
+            TxInput input = new TxInputBean(this, in);
             read += input.getMessageSize();
             inputs.add(input);
         }
@@ -157,7 +170,7 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
         long numOutputs = new VarInt(in).value;
         outputs = new ArrayList<>((int) numOutputs);
         for (long i = 0; i < numOutputs; i++) {
-            Output output = new OutputBean(this, in);
+            TxOutput output = new TxOutputBean(this, in);
             read += output.getMessageSize();
             outputs.add(output);
         }
@@ -171,10 +184,10 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
     public void serializeTo(OutputStream stream) throws IOException {
         uint32ToByteStreamLE(version, stream);
         stream.write(new VarInt(inputs.size()).encode());
-        for (Input in : inputs)
+        for (TxInput in : inputs)
             in.serializeTo(stream);
         stream.write(new VarInt(outputs.size()).encode());
-        for (Output out : outputs)
+        for (TxOutput out : outputs)
             out.serializeTo(stream);
         uint32ToByteStreamLE(lockTime, stream);
     }
@@ -195,10 +208,14 @@ public class TxBean extends BitcoinObjectImpl<Tx> implements Tx {
     @Override
     public void makeSelfMutable() {
         super.makeSelfMutable();
-        for (Input in: getInputs()) {
-            in.makeSelfMutable();
+        if (inputs != null) {
+            for (TxInput in : getInputs()) {
+                in.makeSelfMutable();
+            }
         }
-        for (Output out: getOutputs())
-            out.makeSelfMutable();
+        if (outputs != null) {
+            for (TxOutput out : getOutputs())
+                out.makeSelfMutable();
+        }
     }
 }

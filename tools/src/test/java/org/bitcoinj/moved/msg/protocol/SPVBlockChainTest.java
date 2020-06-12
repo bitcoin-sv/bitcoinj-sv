@@ -18,17 +18,18 @@
 package org.bitcoinj.moved.msg.protocol;
 
 import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.SPVBlockChain;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.DefaultMsgAccessors;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.*;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.moved.wallet.Wallet;
@@ -57,15 +58,15 @@ public class SPVBlockChainTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private SPVBlockChain testNetChain;
+    private SPVBlockChain_legacy testNetChain;
 
     private Wallet wallet;
-    private SPVBlockChain chain;
-    private BlockStore blockStore;
+    private SPVBlockChain_legacy chain;
+    private BlockStore_legacy blockStore;
     private Address coinbaseTo;
     private static final NetworkParameters PARAMS = UnitTestParams.get();
     private static final Net NET = Net.UNITTEST;
-    private final StoredBlock[] block = new StoredBlock[1];
+    private final StoredBlock_legacy[] block = new StoredBlock_legacy[1];
     private Transaction coinbaseTransaction;
 
     private static class TweakableTestNet2Params extends TestNet2Params {
@@ -82,7 +83,7 @@ public class SPVBlockChainTest {
 
 
     private void resetBlockStore() {
-        blockStore = new MemoryBlockStore(PARAMS);
+        blockStore = new MemoryBlockStore_legacy(PARAMS);
     }
 
     @Before
@@ -90,11 +91,11 @@ public class SPVBlockChainTest {
         originalTestnetParams = Net.replaceForTesting(net, testNet);
         BriefLogFormatter.initVerbose();
         Context.propagate(new Context(testNet, 100, Coin.ZERO, false));
-        testNetChain = new SPVBlockChain(testNet, new Wallet(testNet), new MemoryBlockStore(testNet));
+        testNetChain = new SPVBlockChain_legacy(testNet, new Wallet(testNet), new MemoryBlockStore_legacy(testNet));
         Context.propagate(new Context(PARAMS, 100, Coin.ZERO, false));
         wallet = new Wallet(PARAMS) {
             @Override
-            public void receiveFromBlock(Transaction tx, StoredBlock block, SPVBlockChain.NewBlockType blockType,
+            public void receiveFromBlock(Transaction tx, StoredBlock_legacy block, AbstractBlockChain.NewBlockType blockType,
                                          int relativityOffset) throws VerificationException {
                 super.receiveFromBlock(tx, block, blockType, relativityOffset);
                 SPVBlockChainTest.this.block[0] = block;
@@ -106,7 +107,7 @@ public class SPVBlockChainTest {
         wallet.freshReceiveKey();
 
         resetBlockStore();
-        chain = new SPVBlockChain(PARAMS, wallet, blockStore);
+        chain = new SPVBlockChain_legacy(PARAMS, wallet, blockStore);
 
         coinbaseTo = wallet.currentReceiveKey().toAddress(PARAMS);
     }
@@ -119,7 +120,7 @@ public class SPVBlockChainTest {
     @Test
     public void testBasicChaining() throws Exception {
         // Check that we can plug a few blocks together and the futures work.
-        ListenableFuture<StoredBlock> future = testNetChain.getHeightFuture(2);
+        ListenableFuture<StoredBlock_legacy> future = testNetChain.getHeightFuture(2);
         // Block 1 from the testnet.
         Block b1 = getBlock1();
         assertTrue(testNetChain.add(b1));
@@ -157,7 +158,7 @@ public class SPVBlockChainTest {
 
     @Test
     public void unconnectedBlocks() throws Exception {
-        Block b1 = Genesis.getFor(NET).createNextBlock(coinbaseTo);
+        Block b1 = Genesis_legacy.getFor(NET).createNextBlock(coinbaseTo);
         Block b2 = b1.createNextBlock(coinbaseTo);
         Block b3 = b2.createNextBlock(coinbaseTo);
         // Connected.
@@ -174,7 +175,7 @@ public class SPVBlockChainTest {
     public void difficultyTransitions() throws Exception {
         // Add a bunch of blocks in a loop until we reach a difficulty transition point. The unit test params have an
         // artificially shortened period.
-        Block prev = Genesis.getFor(NET);
+        Block prev = Genesis_legacy.getFor(NET);
         Utils.setMockClock(System.currentTimeMillis()/1000);
         for (int height = 0; height < PARAMS.getInterval() - 1; height++) {
             Block newBlock = prev.createNextBlock(coinbaseTo, 1, Utils.currentTimeSeconds(), height);
@@ -259,8 +260,8 @@ public class SPVBlockChainTest {
 
     private void testDeprecatedBlockVersion(final long deprecatedVersion, final long newVersion)
             throws Exception {
-        final BlockStore versionBlockStore = new MemoryBlockStore(PARAMS);
-        final SPVBlockChain versionChain = new SPVBlockChain(PARAMS, versionBlockStore);
+        final BlockStore_legacy versionBlockStore = new MemoryBlockStore_legacy(PARAMS);
+        final SPVBlockChain_legacy versionChain = new SPVBlockChain_legacy(PARAMS, versionBlockStore);
 
         // Build a historical chain of version 3 blocks
         long timeSeconds = 1231006505;
@@ -293,7 +294,7 @@ public class SPVBlockChainTest {
     @Test
     public void duplicates() throws Exception {
         // Adding a block twice should not have any effect, in particular it should not send the block to the wallet.
-        Block b1 = Genesis.getFor(NET).createNextBlock(coinbaseTo);
+        Block b1 = Genesis_legacy.getFor(NET).createNextBlock(coinbaseTo);
         Block b2 = b1.createNextBlock(coinbaseTo);
         Block b3 = b2.createNextBlock(coinbaseTo);
         assertTrue(chain.add(b1));
@@ -314,7 +315,7 @@ public class SPVBlockChainTest {
         // Covers issue 166 in which transactions that depend on each other inside a block were not always being
         // considered relevant.
         Address somebodyElse = new ECKey().toAddress(PARAMS);
-        Block b1 = Genesis.getFor(NET).createNextBlock(somebodyElse);
+        Block b1 = Genesis_legacy.getFor(NET).createNextBlock(somebodyElse);
         ECKey key = wallet.freshReceiveKey();
         Address addr = key.toAddress(PARAMS);
         // Create a tx that gives us some coins, and another that spends it to someone else in the same block.
@@ -342,7 +343,7 @@ public class SPVBlockChainTest {
         Address addressToSendTo = receiveKey.toAddress(PARAMS);
 
         // Create a block, sending the coinbase to the coinbaseTo address (which is in the wallet).
-        Block b1 = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, wallet.currentReceiveKey().getPubKey(), height++);
+        Block b1 = Genesis_legacy.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, wallet.currentReceiveKey().getPubKey(), height++);
         chain.add(b1);
 
         // Check a transaction has been received.
@@ -440,7 +441,7 @@ public class SPVBlockChainTest {
     @Test
     public void estimatedBlockTime() throws Exception {
         NetworkParameters params = MainNetParams.get();
-        SPVBlockChain prod = new SPVBlockChain(params, new MemoryBlockStore(params));
+        SPVBlockChain_legacy prod = new SPVBlockChain_legacy(params, new MemoryBlockStore_legacy(params));
         Date d = prod.estimateBlockTime(200000);
         // The actual date of block 200,000 was 2012-09-22 10:47:00
         assertEquals(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US).parse("2012-10-23T08:35:05.000-0700"), d);
@@ -448,7 +449,7 @@ public class SPVBlockChainTest {
 
     @Test
     public void falsePositives() throws Exception {
-        double decay = AbstractBlockChain.FP_ESTIMATOR_ALPHA;
+        double decay = AbstractBlockChain_legacy.FP_ESTIMATOR_ALPHA;
         assertTrue(0 == chain.getFalsePositiveRate()); // Exactly
         chain.trackFalsePositives(55);
         assertEquals(decay * 55, chain.getFalsePositiveRate(), 1e-4);
@@ -477,7 +478,7 @@ public class SPVBlockChainTest {
     public void rollbackBlockStore() throws Exception {
         // This test simulates an issue on Android, that causes the VM to crash while receiving a block, so that the
         // block store is persisted but the wallet is not.
-        Block b1 = Genesis.getFor(NET).createNextBlock(coinbaseTo);
+        Block b1 = Genesis_legacy.getFor(NET).createNextBlock(coinbaseTo);
         Block b2 = b1.createNextBlock(coinbaseTo);
         // Add block 1, no frills.
         assertTrue(chain.add(b1));

@@ -14,9 +14,9 @@
 
 package org.bitcoinj.tools;
 
-import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.FullPrunedBlockChain;
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import org.bitcoinj.chain_legacy.FullPrunedBlockChain_legacy;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.PrunedException;
 import org.bitcoinj.exception.VerificationException;
@@ -45,7 +45,7 @@ public class BlockImporter {
         else
             params = MainNetParams.get();
         
-        BlockStore store;
+        BlockStore_legacy store;
         if (args[1].equals("H2")) {
             Preconditions.checkArgument(args.length == 3);
             store = new H2FullPrunedBlockStore(params, args[2], 100);
@@ -54,20 +54,20 @@ public class BlockImporter {
             store = new MemoryFullPrunedBlockStore(params, 100);
         } else if (args[1].equals("Mem")) {
             Preconditions.checkArgument(args.length == 2);
-            store = new MemoryBlockStore(params);
+            store = new MemoryBlockStore_legacy(params);
         } else if (args[1].equals("SPV")) {
             Preconditions.checkArgument(args.length == 3);
-            store = new SPVBlockStore(params, new File(args[2]));
+            store = new SPVBlockStore_legacy(params, new File(args[2]));
         } else {
             System.err.println("Unknown store " + args[1]);
             return;
         }
         
-        AbstractBlockChain chain = null;
+        AbstractBlockChain_legacy chain = null;
         if (store instanceof FullPrunedBlockStore)
-            chain = new FullPrunedBlockChain(params, (FullPrunedBlockStore) store);
+            chain = new FullPrunedBlockChain_legacy(params, (FullPrunedBlockStore) store);
         else
-            chain = new SPVBlockChain(params, store);
+            chain = new SPVBlockChain_legacy(params, store);
         
         BlockFileLoader loader = new BlockFileLoader(params, BlockFileLoader.getReferenceClientBlockFileList());
         

@@ -16,14 +16,14 @@
 
 package org.bitcoinj.utils;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.Context;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.store.BlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.testing.FakeTxBuilder;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -46,7 +46,7 @@ public class VersionTallyTest {
      */
     @Test
     public void testNullWhileEmpty() {
-        VersionTally instance = new VersionTally(PARAMS);
+        VersionTally_legacy instance = new VersionTally_legacy(PARAMS);
         for (int i = 0; i < PARAMS.getMajorityWindow(); i++) {
             assertNull(instance.getCountAtOrAbove(1));
             instance.add(1);
@@ -59,7 +59,7 @@ public class VersionTallyTest {
      */
     @Test
     public void testSize() {
-        VersionTally instance = new VersionTally(PARAMS);
+        VersionTally_legacy instance = new VersionTally_legacy(PARAMS);
         assertEquals(PARAMS.getMajorityWindow(), instance.size());
     }
 
@@ -68,7 +68,7 @@ public class VersionTallyTest {
      */
     @Test
     public void testVersionCounts() {
-        VersionTally instance = new VersionTally(PARAMS);
+        VersionTally_legacy instance = new VersionTally_legacy(PARAMS);
 
         // Fill the tally with 1s
         for (int i = 0; i < PARAMS.getMajorityWindow(); i++) {
@@ -94,19 +94,19 @@ public class VersionTallyTest {
 
     @Test
     public void testInitialize() throws BlockStoreException {
-        final BlockStore blockStore = new MemoryBlockStore(PARAMS);
-        final SPVBlockChain chain = new SPVBlockChain(PARAMS, blockStore);
+        final BlockStore_legacy blockStore = new MemoryBlockStore_legacy(PARAMS);
+        final SPVBlockChain_legacy chain = new SPVBlockChain_legacy(PARAMS, blockStore);
 
         // Build a historical chain of version 2 blocks
         long timeSeconds = 1231006505;
-        StoredBlock chainHead = null;
+        StoredBlock_legacy chainHead = null;
         for (int height = 0; height < PARAMS.getMajorityWindow(); height++) {
             chainHead = FakeTxBuilder.createFakeBlock(blockStore, 2, timeSeconds, height).storedBlock;
             assertEquals(2, chainHead.getHeader().getVersion());
             timeSeconds += 60;
         }
 
-        VersionTally instance = new VersionTally(PARAMS);
+        VersionTally_legacy instance = new VersionTally_legacy(PARAMS);
         instance.initialize(blockStore, chainHead);
         assertEquals(PARAMS.getMajorityWindow(), instance.getCountAtOrAbove(2).intValue());
     }

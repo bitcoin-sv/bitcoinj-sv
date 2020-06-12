@@ -16,8 +16,8 @@
 
 package org.bitcoinj.store;
 
-import org.bitcoinj.chain.StoredBlock;
-import org.bitcoinj.chain.StoredUndoableBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
+import org.bitcoinj.chain_legacy.StoredUndoableBlock_legacy;
 import org.bitcoinj.core.*;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -25,7 +25,7 @@ import com.google.common.collect.Lists;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.UTXOProviderException;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.TransactionOutPoint;
 import org.bitcoinj.params.NetworkParameters;
@@ -238,21 +238,21 @@ class TransactionalMultiKeyHashMap<UniqueKeyType, MultiKeyType, ValueType> {
 }
 
 /**
- * Keeps {@link StoredBlock}s, {@link StoredUndoableBlock}s and {@link org.bitcoinj.core.UTXO}s in memory.
+ * Keeps {@link StoredBlock_legacy}s, {@link StoredUndoableBlock_legacy}s and {@link org.bitcoinj.core.UTXO}s in memory.
  * Used primarily for unit testing.
  */
 public class MemoryFullPrunedBlockStore implements FullPrunedBlockStore {
     protected static class StoredBlockAndWasUndoableFlag {
-        public StoredBlock block;
+        public StoredBlock_legacy block;
         public boolean wasUndoable;
-        public StoredBlockAndWasUndoableFlag(StoredBlock block, boolean wasUndoable) { this.block = block; this.wasUndoable = wasUndoable; }
+        public StoredBlockAndWasUndoableFlag(StoredBlock_legacy block, boolean wasUndoable) { this.block = block; this.wasUndoable = wasUndoable; }
     }
     private TransactionalHashMap<Sha256Hash, StoredBlockAndWasUndoableFlag> blockMap;
-    private TransactionalMultiKeyHashMap<Sha256Hash, Integer, StoredUndoableBlock> fullBlockMap;
+    private TransactionalMultiKeyHashMap<Sha256Hash, Integer, StoredUndoableBlock_legacy> fullBlockMap;
     //TODO: Use something more suited to remove-heavy use?
     private TransactionalHashMap<StoredTransactionOutPoint, UTXO> transactionOutputMap;
-    private StoredBlock chainHead;
-    private StoredBlock verifiedChainHead;
+    private StoredBlock_legacy chainHead;
+    private StoredBlock_legacy verifiedChainHead;
     private int fullStoreDepth;
     private NetworkParameters params;
     
@@ -263,15 +263,15 @@ public class MemoryFullPrunedBlockStore implements FullPrunedBlockStore {
      */
     public MemoryFullPrunedBlockStore(NetworkParameters params, int fullStoreDepth) {
         blockMap = new TransactionalHashMap<Sha256Hash, StoredBlockAndWasUndoableFlag>();
-        fullBlockMap = new TransactionalMultiKeyHashMap<Sha256Hash, Integer, StoredUndoableBlock>();
+        fullBlockMap = new TransactionalMultiKeyHashMap<Sha256Hash, Integer, StoredUndoableBlock_legacy>();
         transactionOutputMap = new TransactionalHashMap<StoredTransactionOutPoint, UTXO>();
         this.fullStoreDepth = fullStoreDepth > 0 ? fullStoreDepth : 1;
         // Insert the genesis block.
         try {
-            StoredBlock storedGenesisHeader = new StoredBlock(Genesis.getFor(params).cloneAsHeader(), Genesis.getFor(params).getWork(), 0);
+            StoredBlock_legacy storedGenesisHeader = new StoredBlock_legacy(Genesis_legacy.getFor(params).cloneAsHeader(), Genesis_legacy.getFor(params).getWork(), 0);
             // The coinbase in the genesis block is not spendable
             List<Transaction> genesisTransactions = Lists.newLinkedList();
-            StoredUndoableBlock storedGenesis = new StoredUndoableBlock(Genesis.getFor(params).getHash(), genesisTransactions);
+            StoredUndoableBlock_legacy storedGenesis = new StoredUndoableBlock_legacy(Genesis_legacy.getFor(params).getHash(), genesisTransactions);
             put(storedGenesisHeader, storedGenesis);
             setChainHead(storedGenesisHeader);
             setVerifiedChainHead(storedGenesisHeader);
@@ -284,14 +284,14 @@ public class MemoryFullPrunedBlockStore implements FullPrunedBlockStore {
     }
 
     @Override
-    public synchronized void put(StoredBlock block) throws BlockStoreException {
+    public synchronized void put(StoredBlock_legacy block) throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         Sha256Hash hash = block.getHeader().getHash();
         blockMap.put(hash, new StoredBlockAndWasUndoableFlag(block, false));
     }
     
     @Override
-    public synchronized final void put(StoredBlock storedBlock, StoredUndoableBlock undoableBlock) throws BlockStoreException {
+    public synchronized final void put(StoredBlock_legacy storedBlock, StoredUndoableBlock_legacy undoableBlock) throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         Sha256Hash hash = storedBlock.getHeader().getHash();
         fullBlockMap.put(hash, storedBlock.getHeight(), undoableBlock);
@@ -300,7 +300,7 @@ public class MemoryFullPrunedBlockStore implements FullPrunedBlockStore {
 
     @Override
     @Nullable
-    public synchronized StoredBlock get(Sha256Hash hash) throws BlockStoreException {
+    public synchronized StoredBlock_legacy get(Sha256Hash hash) throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         StoredBlockAndWasUndoableFlag storedBlock = blockMap.get(hash);
         return storedBlock == null ? null : storedBlock.block;
@@ -308,7 +308,7 @@ public class MemoryFullPrunedBlockStore implements FullPrunedBlockStore {
     
     @Override
     @Nullable
-    public synchronized StoredBlock getOnceUndoableStoredBlock(Sha256Hash hash) throws BlockStoreException {
+    public synchronized StoredBlock_legacy getOnceUndoableStoredBlock(Sha256Hash hash) throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         StoredBlockAndWasUndoableFlag storedBlock = blockMap.get(hash);
         return (storedBlock != null && storedBlock.wasUndoable) ? storedBlock.block : null;
@@ -316,31 +316,31 @@ public class MemoryFullPrunedBlockStore implements FullPrunedBlockStore {
     
     @Override
     @Nullable
-    public synchronized StoredUndoableBlock getUndoBlock(Sha256Hash hash) throws BlockStoreException {
+    public synchronized StoredUndoableBlock_legacy getUndoBlock(Sha256Hash hash) throws BlockStoreException {
         Preconditions.checkNotNull(fullBlockMap, "MemoryFullPrunedBlockStore is closed");
         return fullBlockMap.get(hash);
     }
 
     @Override
-    public synchronized StoredBlock getChainHead() throws BlockStoreException {
+    public synchronized StoredBlock_legacy getChainHead() throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         return chainHead;
     }
 
     @Override
-    public synchronized final void setChainHead(StoredBlock chainHead) throws BlockStoreException {
+    public synchronized final void setChainHead(StoredBlock_legacy chainHead) throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         this.chainHead = chainHead;
     }
     
     @Override
-    public synchronized StoredBlock getVerifiedChainHead() throws BlockStoreException {
+    public synchronized StoredBlock_legacy getVerifiedChainHead() throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         return verifiedChainHead;
     }
 
     @Override
-    public synchronized final void setVerifiedChainHead(StoredBlock chainHead) throws BlockStoreException {
+    public synchronized final void setVerifiedChainHead(StoredBlock_legacy chainHead) throws BlockStoreException {
         Preconditions.checkNotNull(blockMap, "MemoryFullPrunedBlockStore is closed");
         this.verifiedChainHead = chainHead;
         if (this.chainHead.getHeight() < chainHead.getHeight())

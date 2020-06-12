@@ -17,20 +17,24 @@
 
 package org.bitcoinj.chain;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.PrunedException;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.p2p.FilteredBlock;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.BlockStore;
+import org.bitcoinj.blockchain.ChainUtils;
+import org.bitcoinj.blockstore.BlockStore;
+import org.bitcoinj.blockstore.MemoryBlockStore;
+import org.bitcoinj.blockstore.SPVBlockStore;
+import org.bitcoinj.chain_legacy.ChainEventListener_legacy;
+import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.exception.BlockStoreException;
+import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.bitcoin.api.extended.LiteBlock;
+import org.bitcoinj.params.NetworkParameters;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
+import org.bitcoinj.store.SPVBlockStore_legacy;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A BlockChain implements the <i>simplified payment verification</i> mode of the Bitcoin protocol. It is the right
@@ -44,41 +48,31 @@ public class SPVBlockChain extends AbstractBlockChain {
     /**
      * <p>Constructs a BlockChain connected to the given wallet and store.
      *
-     * <p>For the store, you should use {@link org.bitcoinj.store.SPVBlockStore} or you could also try a
-     * {@link org.bitcoinj.store.MemoryBlockStore} if you want to hold all headers in RAM and don't care about
+     * <p>For the store, you should use {@link SPVBlockStore} or you could also try a
+     * {@link MemoryBlockStore} if you want to hold all headers in RAM and don't care about
      * disk serialization (this is rare).</p>
      */
-    public SPVBlockChain(NetworkParameters params, ChainEventListener chainEventListener, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, ChainEventListener_legacy chainEventListener, BlockStore blockStore) throws BlockStoreException {
         this(params, Collections.singletonList(chainEventListener), blockStore);
     }
 
     /** See {@link #SPVBlockChain(NetworkParameters, BlockStore)} */
     public SPVBlockChain(NetworkParameters params, BlockStore blockStore) throws BlockStoreException {
-        this(params, new ArrayList<ChainEventListener>(), blockStore);
+        this(params, new ArrayList<ChainEventListener_legacy>(), blockStore);
     }
 
     /**
      * Constructs a BlockChain connected to the given list of listeners and a store.
      */
-    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener_legacy> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
         super(params, chainEventListeners, blockStore);
         this.blockStore = blockStore;
     }
 
     @Override
-    protected StoredBlock addToBlockStore(StoredBlock storedPrev, Block blockHeader, TransactionOutputChanges txOutChanges)
+    protected LiteBlock addToBlockStore(LiteBlock storedPrev, LiteBlock blockHeader)
             throws BlockStoreException, VerificationException {
-        StoredBlock newBlock = storedPrev.build(blockHeader);
-        blockStore.put(newBlock);
-        return newBlock;
-    }
-    
-    @Override
-    protected StoredBlock addToBlockStore(StoredBlock storedPrev, Block blockHeader)
-            throws BlockStoreException, VerificationException {
-        if (blockHeader.hasTransactions())
-            blockHeader = blockHeader.cloneAsHeader();
-        StoredBlock newBlock = storedPrev.build(blockHeader);
+        LiteBlock newBlock = ChainUtils.buildNextInChain(storedPrev, blockHeader);
         blockStore.put(newBlock);
         return newBlock;
     }
@@ -93,9 +87,9 @@ public class SPVBlockChain extends AbstractBlockChain {
                 return; // nothing to do
 
             // Look for the block we want to be the new chain head
-            StoredBlock newChainHead = blockStore.getChainHead();
+            LiteBlock newChainHead = blockStore.getChainHead();
             while (newChainHead.getHeight() > height) {
-                newChainHead = newChainHead.getPrev(blockStore);
+                newChainHead = blockStore.getPrev(newChainHead);
                 if (newChainHead == null)
                     throw new BlockStoreException("Unreachable height");
             }
@@ -107,32 +101,8 @@ public class SPVBlockChain extends AbstractBlockChain {
             lock.unlock();
         }
     }
-
     @Override
-    public boolean shouldVerifyTransactions() {
-        return false;
-    }
-
-    @Override
-    protected TransactionOutputChanges connectTransactions(int height, Block block) {
-        // Don't have to do anything as this is only called if(shouldVerifyTransactions())
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected TransactionOutputChanges connectTransactions(StoredBlock newBlock) {
-        // Don't have to do anything as this is only called if(shouldVerifyTransactions())
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void disconnectTransactions(StoredBlock block) {
-        // Don't have to do anything as this is only called if(shouldVerifyTransactions())
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void doSetChainHead(StoredBlock chainHead) throws BlockStoreException {
+    protected void doSetChainHead(LiteBlock chainHead) throws BlockStoreException {
         blockStore.setChainHead(chainHead);
     }
 
@@ -142,16 +112,8 @@ public class SPVBlockChain extends AbstractBlockChain {
     }
 
     @Override
-    protected StoredBlock getStoredBlockInCurrentScope(Sha256Hash hash) throws BlockStoreException {
+    protected LiteBlock getStoredBlockInCurrentScope(Sha256Hash hash) throws BlockStoreException {
         return blockStore.get(hash);
     }
 
-    @Override
-    public boolean add(FilteredBlock block) throws VerificationException, PrunedException {
-        boolean success = super.add(block);
-        if (success) {
-            trackFilteredTransactions(block.getTransactionCount());
-        }
-        return success;
-    }
 }

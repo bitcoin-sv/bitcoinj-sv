@@ -17,7 +17,7 @@
 
 package org.bitcoinj.moved.testing;
 
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.BlockStoreException;
@@ -27,7 +27,7 @@ import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.store.BlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -236,18 +236,18 @@ public class FakeTxBuilder {
     }
 
     public static class BlockPair {
-        public StoredBlock storedBlock;
+        public StoredBlock_legacy storedBlock;
         public Block block;
     }
 
     /** Emulates receiving a valid block that builds on top of the chain. */
-    public static BlockPair createFakeBlock(BlockStore blockStore, long version,
+    public static BlockPair createFakeBlock(BlockStore_legacy blockStore, long version,
                                             long timeSeconds, Transaction... transactions) {
         return createFakeBlock(blockStore, version, timeSeconds, 0, transactions);
     }
 
     /** Emulates receiving a valid block */
-    public static BlockPair createFakeBlock(BlockStore blockStore, StoredBlock previousStoredBlock, long version,
+    public static BlockPair createFakeBlock(BlockStore_legacy blockStore, StoredBlock_legacy previousStoredBlock, long version,
                                             long timeSeconds, int height,
                                             Transaction... transactions) {
         try {
@@ -273,12 +273,12 @@ public class FakeTxBuilder {
         }
     }
 
-    public static BlockPair createFakeBlock(BlockStore blockStore, StoredBlock previousStoredBlock, int height, Transaction... transactions) {
+    public static BlockPair createFakeBlock(BlockStore_legacy blockStore, StoredBlock_legacy previousStoredBlock, int height, Transaction... transactions) {
         return createFakeBlock(blockStore, previousStoredBlock, BitcoinJ.BLOCK_VERSION_BIP66, Utils.currentTimeSeconds(), height, transactions);
     }
 
     /** Emulates receiving a valid block that builds on top of the chain. */
-    public static BlockPair createFakeBlock(BlockStore blockStore, long version, long timeSeconds, int height, Transaction... transactions) {
+    public static BlockPair createFakeBlock(BlockStore_legacy blockStore, long version, long timeSeconds, int height, Transaction... transactions) {
         try {
             return createFakeBlock(blockStore, blockStore.getChainHead(), version, timeSeconds, height, transactions);
         } catch (BlockStoreException e) {
@@ -287,17 +287,17 @@ public class FakeTxBuilder {
     }
 
     /** Emulates receiving a valid block that builds on top of the chain. */
-    public static BlockPair createFakeBlock(BlockStore blockStore, int height,
+    public static BlockPair createFakeBlock(BlockStore_legacy blockStore, int height,
                                             Transaction... transactions) {
         return createFakeBlock(blockStore, BitcoinJ.BLOCK_VERSION_GENESIS, Utils.currentTimeSeconds(), height, transactions);
     }
 
     /** Emulates receiving a valid block that builds on top of the chain. */
-    public static BlockPair createFakeBlock(BlockStore blockStore, Transaction... transactions) {
+    public static BlockPair createFakeBlock(BlockStore_legacy blockStore, Transaction... transactions) {
         return createFakeBlock(blockStore, BitcoinJ.BLOCK_VERSION_GENESIS, Utils.currentTimeSeconds(), 0, transactions);
     }
 
-    public static Block makeSolvedTestBlock(BlockStore blockStore, Address coinsTo) throws BlockStoreException {
+    public static Block makeSolvedTestBlock(BlockStore_legacy blockStore, Address coinsTo) throws BlockStoreException {
         Block b = blockStore.getChainHead().getHeader().createNextBlock(coinsTo);
         b.solve();
         return b;

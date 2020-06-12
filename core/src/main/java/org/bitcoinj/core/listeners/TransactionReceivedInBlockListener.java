@@ -16,9 +16,10 @@
 
 package org.bitcoinj.core.listeners;
 
+import org.bitcoinj.chain.AbstractBlockChain;
 import org.bitcoinj.chain.SPVBlockChain;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.p2p.FilteredBlock;
@@ -41,8 +42,8 @@ public interface TransactionReceivedInBlockListener {
      * that a transaction occurred at, so the relativity count is not reflective of anything in an absolute sense but
      * rather exists only to order the transaction relative to the others.</p>
      */
-    void receiveFromBlock(Transaction tx, StoredBlock block,
-                          SPVBlockChain.NewBlockType blockType,
+    void receiveFromBlock(Transaction tx, StoredBlock_legacy block,
+                          AbstractBlockChain.NewBlockType blockType,
                           int relativityOffset) throws VerificationException;
     /**
      * <p>Called by the {@link SPVBlockChain} when we receive a new {@link FilteredBlock} that contains the given
@@ -62,7 +63,7 @@ public interface TransactionReceivedInBlockListener {
      *
      * @return whether the transaction is known about i.e. was considered relevant previously.
      */
-    boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block,
-                                       SPVBlockChain.NewBlockType blockType,
+    boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock_legacy block,
+                                       AbstractBlockChain.NewBlockType blockType,
                                        int relativityOffset) throws VerificationException;
 }

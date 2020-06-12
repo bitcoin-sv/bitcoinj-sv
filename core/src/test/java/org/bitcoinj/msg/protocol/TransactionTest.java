@@ -17,15 +17,12 @@
 
 package org.bitcoinj.msg.protocol;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
-import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.Translate;
+import org.bitcoinj.msg.*;
 import org.bitcoinj.params.*;
 import org.bitcoinj.script.*;
 import org.bitcoinj.script.interpreter.ScriptExecutionException;
@@ -125,7 +122,7 @@ public class TransactionTest {
         int TEST_LOCK_TIME = 20;
         Date now = Calendar.getInstance().getTime();
 
-        SPVBlockChain mockSPVBlockChain = createMock(SPVBlockChain.class);
+        SPVBlockChain_legacy mockSPVBlockChain = createMock(SPVBlockChain_legacy.class);
         EasyMock.expect(mockSPVBlockChain.estimateBlockTime(TEST_LOCK_TIME)).andReturn(now);
 
         Transaction tx = FakeTxBuilder.createFakeTx(NET);
@@ -200,22 +197,22 @@ public class TransactionTest {
                 ScriptBuilder.createCLTVPaymentChannelInput(incorrectSig, toSig);
 
         try {
-            ScriptUtils.correctlySpends(scriptSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+            ScriptUtils_legacy.correctlySpends(scriptSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
         } catch (ScriptExecutionException e) {
             e.printStackTrace();
             fail("Settle transaction failed to correctly spend the payment channel");
         }
 
         try {
-            ScriptUtils.correctlySpends(refundSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+            ScriptUtils_legacy.correctlySpends(refundSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Refund passed before expiry");
         } catch (ScriptExecutionException e) { }
         try {
-            ScriptUtils.correctlySpends(invalidScriptSig1, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+            ScriptUtils_legacy.correctlySpends(invalidScriptSig1, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Invalid sig 1 passed");
         } catch (ScriptExecutionException e) { }
         try {
-            ScriptUtils.correctlySpends(invalidScriptSig2, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+            ScriptUtils_legacy.correctlySpends(invalidScriptSig2, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Invalid sig 2 passed");
         } catch (ScriptExecutionException e) { }
     }
@@ -241,14 +238,14 @@ public class TransactionTest {
                 ScriptBuilder.createCLTVPaymentChannelRefund(incorrectSig);
 
         try {
-            ScriptUtils.correctlySpends(scriptSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS_PRE_GENESIS);
+            ScriptUtils_legacy.correctlySpends(scriptSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS_PRE_GENESIS);
         } catch (ScriptExecutionException e) {
             e.printStackTrace();
             fail("Refund failed to correctly spend the payment channel");
         }
 
         try {
-            ScriptUtils.correctlySpends(invalidScriptSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+            ScriptUtils_legacy.correctlySpends(invalidScriptSig, tx, 0, outputScript, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
             fail("Invalid sig passed");
         } catch (ScriptExecutionException e) { }
     }
@@ -266,7 +263,7 @@ public class TransactionTest {
         cal.set(2085, 10, 4, 17, 53, 21);
         cal.set(Calendar.MILLISECOND, 0);
 
-        SPVBlockChain mockSPVBlockChain = createMock(SPVBlockChain.class);
+        SPVBlockChain_legacy mockSPVBlockChain = createMock(SPVBlockChain_legacy.class);
         EasyMock.expect(mockSPVBlockChain.estimateBlockTime(TEST_LOCK_TIME)).andReturn(cal.getTime());
 
         replay(mockSPVBlockChain);
@@ -395,7 +392,7 @@ public class TransactionTest {
      */
     @Test
     public void testHashForSignatureThreadSafety() {
-        Block genesis = Genesis.getFor(Net.UNITTEST);
+        Block genesis = Genesis_legacy.getFor(Net.UNITTEST);
         Block block1 = genesis.createNextBlock(new ECKey().toAddress(UnitTestParams.get()),
                     genesis.getTransactions().get(0).getOutput(0).getOutPointFor());
 
@@ -429,7 +426,7 @@ public class TransactionTest {
 
         Script sig = tx.getInput(0).getScriptSig();
 
-        ScriptUtils.correctlySpends(sig, tx, 0, txConnected.getOutput(1).getScriptPubKey(), txConnected.getOutput(1).getValue(), ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+        ScriptUtils_legacy.correctlySpends(sig, tx, 0, txConnected.getOutput(1).getScriptPubKey(), txConnected.getOutput(1).getValue(), ScriptVerifyFlag.ALL_VERIFY_FLAGS);
 
 
     }

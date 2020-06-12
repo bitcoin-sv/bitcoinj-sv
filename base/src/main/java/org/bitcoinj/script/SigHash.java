@@ -6,11 +6,11 @@ import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.ecc.TransactionSignature;
 import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
-import org.bitcoinj.msg.bitcoin.api.base.Input;
-import org.bitcoinj.msg.bitcoin.api.base.Output;
+import org.bitcoinj.msg.bitcoin.api.base.TxInput;
+import org.bitcoinj.msg.bitcoin.api.base.TxOutput;
 import org.bitcoinj.msg.bitcoin.api.base.Tx;
 import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
-import org.bitcoinj.msg.bitcoin.bean.base.OutputBean;
+import org.bitcoinj.msg.bitcoin.bean.base.TxOutputBean;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -77,11 +77,15 @@ public class SigHash {
             byte[] hashOutputs = new byte[32];
             anyoneCanPay = (sigHashType & Flags.ANYONECANPAY.value) == Flags.ANYONECANPAY.value;
 
+            TxOutput indexedOutput = transaction.getOutputs().get(inputIndex);
+            TxInput indexedInput = transaction.getInputs().get(inputIndex);
+
             if (!anyoneCanPay) {
                 ByteArrayOutputStream bosHashPrevouts = new UnsafeByteArrayOutputStream(256);
                 for (int i = 0; i < transaction.getInputs().size(); ++i) {
-                    bosHashPrevouts.write(transaction.getInputs().get(i).getOutpoint().getHash().getReversedBytes());
-                    uint32ToByteStreamLE(transaction.getInputs().get(i).getOutpoint().getIndex(), bosHashPrevouts);
+                    TxInput input = transaction.getInputs().get(i);
+                    bosHashPrevouts.write(input.getOutpoint().getHash().getReversedBytes());
+                    uint32ToByteStreamLE(input.getOutpoint().getIndex(), bosHashPrevouts);
                 }
                 hashPrevouts = Sha256Hash.hashTwice(bosHashPrevouts.toByteArray());
             }
@@ -97,33 +101,34 @@ public class SigHash {
             if (type != Flags.SINGLE && type != Flags.NONE) {
                 ByteArrayOutputStream bosHashOutputs = new UnsafeByteArrayOutputStream(256);
                 for (int i = 0; i < transaction.getOutputs().size(); ++i) {
+                    TxOutput output = transaction.getOutputs().get(i);
                     uint64ToByteStreamLE(
-                            BigInteger.valueOf(transaction.getOutputs().get(i).getValue().getValue()),
+                            BigInteger.valueOf(output.getValue().getValue()),
                             bosHashOutputs
                     );
-                    bosHashOutputs.write(new VarInt(transaction.getOutputs().get(i).getScriptBytes().length).encode());
-                    bosHashOutputs.write(transaction.getOutputs().get(i).getScriptBytes());
+                    bosHashOutputs.write(new VarInt(output.getScriptBytes().length).encode());
+                    bosHashOutputs.write(output.getScriptBytes());
                 }
                 hashOutputs = Sha256Hash.hashTwice(bosHashOutputs.toByteArray());
             } else if (type == Flags.SINGLE && inputIndex < transaction.getOutputs().size()) {
                 ByteArrayOutputStream bosHashOutputs = new UnsafeByteArrayOutputStream(256);
                 uint64ToByteStreamLE(
-                        BigInteger.valueOf(transaction.getOutputs().get(inputIndex).getValue().getValue()),
+                        BigInteger.valueOf(indexedOutput.getValue().getValue()),
                         bosHashOutputs
                 );
-                bosHashOutputs.write(new VarInt(transaction.getOutputs().get(inputIndex).getScriptBytes().length).encode());
-                bosHashOutputs.write(transaction.getOutputs().get(inputIndex).getScriptBytes());
+                bosHashOutputs.write(new VarInt(indexedOutput.getScriptBytes().length).encode());
+                bosHashOutputs.write(indexedOutput.getScriptBytes());
                 hashOutputs = Sha256Hash.hashTwice(bosHashOutputs.toByteArray());
             }
             uint32ToByteStreamLE(transaction.getVersion(), bos);
             bos.write(hashPrevouts);
             bos.write(hashSequence);
-            bos.write(transaction.getInputs().get(inputIndex).getOutpoint().getHash().getReversedBytes());
-            uint32ToByteStreamLE(transaction.getInputs().get(inputIndex).getOutpoint().getIndex(), bos);
+            bos.write(indexedInput.getOutpoint().getHash().getReversedBytes());
+            uint32ToByteStreamLE(indexedInput.getOutpoint().getIndex(), bos);
             bos.write(new VarInt(connectedScript.length).encode());
             bos.write(connectedScript);
             uint64ToByteStreamLE(BigInteger.valueOf(prevValue.getValue()), bos);
-            uint32ToByteStreamLE(transaction.getInputs().get(inputIndex).getSequenceNumber(), bos);
+            uint32ToByteStreamLE(indexedInput.getSequenceNumber(), bos);
             bos.write(hashOutputs);
             uint32ToByteStreamLE(transaction.getLockTime(), bos);
             uint32ToByteStreamLE(0x000000ff & sigHashType, bos);
@@ -147,9 +152,6 @@ public class SigHash {
         try {
             // Create a copy of this transaction to operate upon because we need make changes to the inputs and outputs.
             // It would not be thread-safe to change the attributes of the transaction object itself.
-//            Transaction tx = Serializer.defaultFor(transaction.getNet()).makeTransaction(transaction.bitcoinSerialize());
-//            tx.ensureParsed();
-            //byte[] originalTxBytes = transaction.serialize();
             Tx tx = transaction.mutableCopy();
 
             // Clear input scripts in preparation for signing. If we're signing a fresh
@@ -171,12 +173,12 @@ public class SigHash {
             // Set the input to the script of its output. Bitcoin Core does this but the step has no obvious purpose as
             // the signature covers the hash of the prevout transaction which obviously includes the output script
             // already. Perhaps it felt safer to him in some way, or is another leftover from how the code was written.
-            Input input = tx.getInputs().get(inputIndex);
+            TxInput input = tx.getInputs().get(inputIndex);
             input.setScriptBytes(connectedScript);
 
             if ((sigHashType & 0x1f) == Flags.NONE.value) {
                 // SIGHASH_NONE means no outputs are signed at all - the signature is effectively for a "blank cheque".
-                tx.setOutputs(new ArrayList<Output>(0));
+                tx.setOutputs(new ArrayList<TxOutput>(0));
                 // The signature isn't broken by new versions of the transaction issued by other parties.
                 for (int i = 0; i < tx.getInputs().size(); i++)
                     if (i != inputIndex)
@@ -196,9 +198,9 @@ public class SigHash {
                 }
                 // In SIGHASH_SINGLE the outputs after the matching input index are deleted, and the outputs before
                 // that position are "nulled out". Unintuitively, the value in a "null" transaction is set to -1.
-                tx.setOutputs(new ArrayList<Output>(tx.getOutputs().subList(0, inputIndex + 1)));
+                tx.setOutputs(new ArrayList<TxOutput>(tx.getOutputs().subList(0, inputIndex + 1)));
                 for (int i = 0; i < inputIndex; i++) {
-                    Output output = new OutputBean(tx).makeMutable();
+                    TxOutput output = new TxOutputBean(tx).makeMutable();
                     output.setValue(Coin.NEGATIVE_SATOSHI);
                     output.setScriptBytes(new byte[]{});
                     tx.getOutputs().set(i, output);

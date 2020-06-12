@@ -16,13 +16,13 @@
 
 package org.bitcoinj.core;
 
-import org.bitcoinj.chain.SPVBlockChain;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.BlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.store.FullPrunedBlockStore;
 import com.google.common.base.Charsets;
@@ -31,6 +31,7 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
+import org.bitcoinj.store.SPVBlockStore_legacy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ import java.util.TreeMap;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * <p>Vends hard-coded {@link StoredBlock}s for blocks throughout the chain. Checkpoints serve two purposes:</p>
+ * <p>Vends hard-coded {@link StoredBlock_legacy}s for blocks throughout the chain. Checkpoints serve two purposes:</p>
  * <ol>
  *    <li>They act as a safety mechanism against huge re-orgs that could rewrite large chunks of history, thus
  *    constraining the block chain to be a consensus mechanism only for recent parts of the timeline.</li>
@@ -60,8 +61,8 @@ import static com.google.common.base.Preconditions.*;
  *    headers from the genesis block.</li>
  * </ol>
  *
- * <p>Checkpoints are used by the SPV {@link SPVBlockChain} to initialize fresh
- * {@link org.bitcoinj.store.SPVBlockStore}s. They are not used by fully validating mode, which instead has a
+ * <p>Checkpoints are used by the SPV {@link SPVBlockChain_legacy} to initialize fresh
+ * {@link SPVBlockStore_legacy}s. They are not used by fully validating mode, which instead has a
  * different concept of checkpoints that are used to hard-code the validity of blocks that violate BIP30 (duplicate
  * coinbase transactions). Those "checkpoints" can be found in NetworkParameters.</p>
  *
@@ -82,7 +83,7 @@ public class CheckpointManager {
     private static final int MAX_SIGNATURES = 256;
 
     // Map of block header time to data.
-    protected final TreeMap<Long, StoredBlock> checkpoints = new TreeMap<Long, StoredBlock>();
+    protected final TreeMap<Long, StoredBlock_legacy> checkpoints = new TreeMap<Long, StoredBlock_legacy>();
 
     protected final NetworkParameters params;
     protected final Sha256Hash dataHash;
@@ -137,12 +138,12 @@ public class CheckpointManager {
             digestInputStream.on(true);
             int numCheckpoints = dis.readInt();
             checkState(numCheckpoints > 0);
-            final int size = StoredBlock.COMPACT_SERIALIZED_SIZE;
+            final int size = StoredBlock_legacy.COMPACT_SERIALIZED_SIZE;
             ByteBuffer buffer = ByteBuffer.allocate(size);
             for (int i = 0; i < numCheckpoints; i++) {
                 if (dis.read(buffer.array(), 0, size) < size)
                     throw new IOException("Incomplete read whilst loading checkpoints.");
-                StoredBlock block = StoredBlock.deserializeCompact(params, buffer);
+                StoredBlock_legacy block = StoredBlock_legacy.deserializeCompact(params, buffer);
                 buffer.position(0);
                 checkpoints.put(block.getHeader().getTime(), block);
             }
@@ -172,7 +173,7 @@ public class CheckpointManager {
             checkState(numCheckpoints > 0);
             // Hash numCheckpoints in a way compatible to the binary format.
             hasher.putBytes(ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN).putInt(numCheckpoints).array());
-            final int size = StoredBlock.COMPACT_SERIALIZED_SIZE;
+            final int size = StoredBlock_legacy.COMPACT_SERIALIZED_SIZE;
             ByteBuffer buffer = ByteBuffer.allocate(size);
             for (int i = 0; i < numCheckpoints; i++) {
                 byte[] bytes = BASE64.decode(reader.readLine());
@@ -180,7 +181,7 @@ public class CheckpointManager {
                 buffer.position(0);
                 buffer.put(bytes);
                 buffer.position(0);
-                StoredBlock block = StoredBlock.deserializeCompact(params, buffer);
+                StoredBlock_legacy block = StoredBlock_legacy.deserializeCompact(params, buffer);
                 checkpoints.put(block.getHeader().getTime(), block);
             }
             HashCode hash = hasher.hash();
@@ -192,17 +193,17 @@ public class CheckpointManager {
     }
 
     /**
-     * Returns a {@link StoredBlock} representing the last checkpoint before the given time, for example, normally
+     * Returns a {@link StoredBlock_legacy} representing the last checkpoint before the given time, for example, normally
      * you would want to know the checkpoint before the earliest wallet birthday.
      */
-    public StoredBlock getCheckpointBefore(long time) {
+    public StoredBlock_legacy getCheckpointBefore(long time) {
         try {
-            checkArgument(time > Genesis.getFor(params).getTime());
+            checkArgument(time > Genesis_legacy.getFor(params).getTime());
             // This is thread safe because the map never changes after creation.
-            Map.Entry<Long, StoredBlock> entry = checkpoints.floorEntry(time);
+            Map.Entry<Long, StoredBlock_legacy> entry = checkpoints.floorEntry(time);
             if (entry != null) return entry.getValue();
-            Block genesis = Genesis.getFor(params).cloneAsHeader();
-            return new StoredBlock(genesis, genesis.getWork(), 0);
+            Block genesis = Genesis_legacy.getFor(params).cloneAsHeader();
+            return new StoredBlock_legacy(genesis, genesis.getWork(), 0);
         } catch (VerificationException e) {
             throw new RuntimeException(e);  // Cannot happen.
         }
@@ -225,7 +226,7 @@ public class CheckpointManager {
      *
      * <p>Note that time is adjusted backwards by a week to account for possible clock drift in the block headers.</p>
      */
-    public static void checkpoint(NetworkParameters params, InputStream checkpoints, BlockStore store, long time)
+    public static void checkpoint(NetworkParameters params, InputStream checkpoints, BlockStore_legacy store, long time)
             throws IOException, BlockStoreException {
         checkNotNull(params);
         checkNotNull(store);
@@ -238,7 +239,7 @@ public class CheckpointManager {
 
         BufferedInputStream stream = new BufferedInputStream(checkpoints);
         CheckpointManager manager = new CheckpointManager(params, stream);
-        StoredBlock checkpoint = manager.getCheckpointBefore(time);
+        StoredBlock_legacy checkpoint = manager.getCheckpointBefore(time);
         store.put(checkpoint);
         store.setChainHead(checkpoint);
     }

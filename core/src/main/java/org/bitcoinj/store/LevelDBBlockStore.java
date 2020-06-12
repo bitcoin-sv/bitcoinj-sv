@@ -14,10 +14,10 @@
 
 package org.bitcoinj.store;
 
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.NetworkParameters;
 import org.fusesource.leveldbjni.*;
@@ -30,15 +30,15 @@ import java.nio.*;
 /**
  * An SPV block store that writes every header it sees to a <a href="https://github.com/fusesource/leveldbjni">LevelDB</a>.
  * This allows for fast lookup of block headers by block hash at the expense of more costly inserts and higher disk
- * usage than the {@link SPVBlockStore}. If all you want is a regular wallet you don't need this class: it exists for
+ * usage than the {@link SPVBlockStore_legacy}. If all you want is a regular wallet you don't need this class: it exists for
  * specialised applications where you need to quickly verify a standalone SPV proof.
  */
-public class LevelDBBlockStore implements BlockStore {
+public class LevelDBBlockStore implements BlockStore_legacy {
     private static final byte[] CHAIN_HEAD_KEY = "chainhead".getBytes();
 
     private final NetworkParameters params;
     private DB db;
-    private final ByteBuffer buffer = ByteBuffer.allocate(StoredBlock.COMPACT_SERIALIZED_SIZE);
+    private final ByteBuffer buffer = ByteBuffer.allocate(StoredBlock_legacy.COMPACT_SERIALIZED_SIZE);
     private final File path;
 
     /** Creates a LevelDB SPV block store using the JNI/C++ version of LevelDB. */
@@ -73,34 +73,34 @@ public class LevelDBBlockStore implements BlockStore {
     private synchronized void initStoreIfNeeded() throws BlockStoreException {
         if (db.get(CHAIN_HEAD_KEY) != null)
             return;   // Already initialised.
-        Block genesis = Genesis.getFor(params).cloneAsHeader();
-        StoredBlock storedGenesis = new StoredBlock(genesis, genesis.getWork(), 0);
+        Block genesis = Genesis_legacy.getFor(params).cloneAsHeader();
+        StoredBlock_legacy storedGenesis = new StoredBlock_legacy(genesis, genesis.getWork(), 0);
         put(storedGenesis);
         setChainHead(storedGenesis);
     }
 
     @Override
-    public synchronized void put(StoredBlock block) throws BlockStoreException {
+    public synchronized void put(StoredBlock_legacy block) throws BlockStoreException {
         buffer.clear();
         block.serializeCompact(buffer);
         db.put(block.getHeader().getHash().getBytes(), buffer.array());
     }
 
     @Override @Nullable
-    public synchronized StoredBlock get(Sha256Hash hash) throws BlockStoreException {
+    public synchronized StoredBlock_legacy get(Sha256Hash hash) throws BlockStoreException {
         byte[] bits = db.get(hash.getBytes());
         if (bits == null)
             return null;
-        return StoredBlock.deserializeCompact(params, ByteBuffer.wrap(bits));
+        return StoredBlock_legacy.deserializeCompact(params, ByteBuffer.wrap(bits));
     }
 
     @Override
-    public synchronized StoredBlock getChainHead() throws BlockStoreException {
+    public synchronized StoredBlock_legacy getChainHead() throws BlockStoreException {
         return get(Sha256Hash.wrap(db.get(CHAIN_HEAD_KEY)));
     }
 
     @Override
-    public synchronized void setChainHead(StoredBlock chainHead) throws BlockStoreException {
+    public synchronized void setChainHead(StoredBlock_legacy chainHead) throws BlockStoreException {
         db.put(CHAIN_HEAD_KEY, chainHead.getHeader().getHash().getBytes());
     }
 

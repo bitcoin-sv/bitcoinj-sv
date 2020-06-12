@@ -97,7 +97,7 @@ public class GenerateLowSTests {
         final TransactionInput input = proposedTransaction.partialTx.getInput(0);
 
         TxHelper.verify(input, output);
-        ScriptUtils.correctlySpends(input.getScriptSig(), outputTransaction, 0, output.getScriptPubKey(),
+        ScriptUtils_legacy.correctlySpends(input.getScriptSig(), outputTransaction, 0, output.getScriptPubKey(),
             EnumSet.of(ScriptVerifyFlag.DERSIG, ScriptVerifyFlag.P2SH));
 
         final Script scriptSig = input.getScriptSig();
@@ -115,7 +115,7 @@ public class GenerateLowSTests {
         final BigInteger highS = HIGH_S_DIFFERENCE.subtract(signature.s);
         final TransactionSignature highSig = new TransactionSignature(signature.r, highS);
         input.setScriptSig(new ScriptBuilder().data(highSig.encodeToBitcoin()).data(scriptSig.getChunks().get(1).data()).build());
-        ScriptUtils.correctlySpends(input.getScriptSig(), outputTransaction, 0, output.getScriptPubKey(),
+        ScriptUtils_legacy.correctlySpends(input.getScriptSig(), outputTransaction, 0, output.getScriptPubKey(),
             EnumSet.of(ScriptVerifyFlag.P2SH));
 
         // A high-S transaction without the LOW_S flag, for the tx_valid.json set

@@ -28,19 +28,19 @@ import java.util.concurrent.TimeUnit;
 import java.io.*;
 import java.nio.ByteBuffer;
 
-import org.bitcoinj.chain.StoredBlock;
-import org.bitcoinj.chain.StoredUndoableBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
+import org.bitcoinj.chain_legacy.StoredUndoableBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.AddressFormatException;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.UTXOProviderException;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.script.Script;
-import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.bitcoinj.script.ScriptUtils;
+import org.bitcoinj.script.interpreter.ScriptExecutionException;
 import org.iq80.leveldb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,9 +70,9 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
 
     // Standard blockstore properties
     protected Sha256Hash chainHeadHash;
-    protected StoredBlock chainHeadBlock;
+    protected StoredBlock_legacy chainHeadBlock;
     protected Sha256Hash verifiedChainHeadHash;
-    protected StoredBlock verifiedChainHeadBlock;
+    protected StoredBlock_legacy verifiedChainHeadBlock;
     protected int fullStoreDepth;
     // Indicates if we track and report runtime for each method
     // this is very useful to focus performance tuning on correct areas.
@@ -322,14 +322,14 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
         try {
             // Set up the genesis block. When we start out fresh, it is by
             // definition the top of the chain.
-            StoredBlock storedGenesisHeader = new StoredBlock(Genesis.getFor(params).cloneAsHeader(),
-                    Genesis.getFor(params).getWork(), 0);
+            StoredBlock_legacy storedGenesisHeader = new StoredBlock_legacy(Genesis_legacy.getFor(params).cloneAsHeader(),
+                    Genesis_legacy.getFor(params).getWork(), 0);
             // The coinbase in the genesis block is not spendable. This is
             // because of how the reference client inits
             // its database - the genesis transaction isn't actually in the db
             // so its spent flags can never be updated.
             List<Transaction> genesisTransactions = Lists.newLinkedList();
-            StoredUndoableBlock storedGenesis = new StoredUndoableBlock(Genesis.getFor(params).getHash(),
+            StoredUndoableBlock_legacy storedGenesis = new StoredUndoableBlock_legacy(Genesis_legacy.getFor(params).getHash(),
                     genesisTransactions);
             beginDatabaseBatchWrite();
             put(storedGenesisHeader, storedGenesis);
@@ -383,17 +383,17 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
     }
 
     @Override
-    public void put(StoredBlock block) throws BlockStoreException {
+    public void put(StoredBlock_legacy block) throws BlockStoreException {
         putUpdateStoredBlock(block, false);
     }
 
     @Override
-    public StoredBlock getChainHead() throws BlockStoreException {
+    public StoredBlock_legacy getChainHead() throws BlockStoreException {
         return chainHeadBlock;
     }
 
     @Override
-    public void setChainHead(StoredBlock chainHead) throws BlockStoreException {
+    public void setChainHead(StoredBlock_legacy chainHead) throws BlockStoreException {
         if (instrument)
             beginMethod("setChainHead");
         Sha256Hash hash = chainHead.getHeader().getHash();
@@ -486,7 +486,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
         }
     }
 
-    protected void putUpdateStoredBlock(StoredBlock storedBlock, boolean wasUndoable) {
+    protected void putUpdateStoredBlock(StoredBlock_legacy storedBlock, boolean wasUndoable) {
         // We put as one record as then the get is much faster.
         if (instrument)
             beginMethod("putUpdateStoredBlock");
@@ -500,7 +500,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
     }
 
     @Override
-    public void put(StoredBlock storedBlock, StoredUndoableBlock undoableBlock) throws BlockStoreException {
+    public void put(StoredBlock_legacy storedBlock, StoredUndoableBlock_legacy undoableBlock) throws BlockStoreException {
         if (instrument)
             beginMethod("put");
         int height = storedBlock.getHeight();
@@ -604,16 +604,16 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
     }
 
     @Override
-    public StoredBlock getOnceUndoableStoredBlock(Sha256Hash hash) throws BlockStoreException {
+    public StoredBlock_legacy getOnceUndoableStoredBlock(Sha256Hash hash) throws BlockStoreException {
         return get(hash, true);
     }
 
     @Override
-    public StoredBlock get(Sha256Hash hash) throws BlockStoreException {
+    public StoredBlock_legacy get(Sha256Hash hash) throws BlockStoreException {
         return get(hash, false);
     }
 
-    public StoredBlock get(Sha256Hash hash, boolean wasUndoableOnly) throws BlockStoreException {
+    public StoredBlock_legacy get(Sha256Hash hash, boolean wasUndoableOnly) throws BlockStoreException {
 
         // Optimize for chain head
         if (chainHeadHash != null && chainHeadHash.equals(hash))
@@ -640,7 +640,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
         }
         // TODO Should I chop the last byte off? Seems to work with it left
         // there...
-        StoredBlock stored = StoredBlock.deserializeCompact(params, ByteBuffer.wrap(result));
+        StoredBlock_legacy stored = StoredBlock_legacy.deserializeCompact(params, ByteBuffer.wrap(result));
         stored.getHeader().verifyHeader();
 
         if (instrument)
@@ -649,7 +649,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
     }
 
     @Override
-    public StoredUndoableBlock getUndoBlock(Sha256Hash hash) throws BlockStoreException {
+    public StoredUndoableBlock_legacy getUndoBlock(Sha256Hash hash) throws BlockStoreException {
         try {
             if (instrument)
                 beginMethod("getUndoBlock");
@@ -666,7 +666,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
                         // skip storing it but only 4 bytes!
             int txOutSize = bb.getInt();
 
-            StoredUndoableBlock block;
+            StoredUndoableBlock_legacy block;
             if (txOutSize == 0) {
                 int txSize = bb.getInt();
                 byte[] transactions = new byte[txSize];
@@ -680,13 +680,13 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
                     transactionList.add(tx);
                     offset += tx.getMessageSize();
                 }
-                block = new StoredUndoableBlock(hash, transactionList);
+                block = new StoredUndoableBlock_legacy(hash, transactionList);
             } else {
                 byte[] txOutChanges = new byte[txOutSize];
                 bb.get(txOutChanges);
                 TransactionOutputChanges outChangesObject = new TransactionOutputChanges(
                         new ByteArrayInputStream(txOutChanges));
-                block = new StoredUndoableBlock(hash, outChangesObject);
+                block = new StoredUndoableBlock_legacy(hash, outChangesObject);
             }
             if (instrument)
                 endMethod("getUndoBlock");
@@ -974,12 +974,12 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
     }
 
     @Override
-    public StoredBlock getVerifiedChainHead() throws BlockStoreException {
+    public StoredBlock_legacy getVerifiedChainHead() throws BlockStoreException {
         return verifiedChainHeadBlock;
     }
 
     @Override
-    public void setVerifiedChainHead(StoredBlock chainHead) throws BlockStoreException {
+    public void setVerifiedChainHead(StoredBlock_legacy chainHead) throws BlockStoreException {
         if (instrument)
             beginMethod("setVerifiedChainHead");
         Sha256Hash hash = chainHead.getHeader().getHash();

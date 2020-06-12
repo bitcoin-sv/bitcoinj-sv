@@ -14,9 +14,9 @@
 
 package org.bitcoinj.store;
 
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.params.*;
 import org.junit.*;
 
@@ -35,13 +35,13 @@ public class LevelDBBlockStoreTest {
         store.reset();
 
         // Check the first block in a new store is the genesis block.
-        StoredBlock genesis = store.getChainHead();
-        assertEquals(Genesis.getFor(params), genesis.getHeader());
+        StoredBlock_legacy genesis = store.getChainHead();
+        assertEquals(Genesis_legacy.getFor(params), genesis.getHeader());
         assertEquals(0, genesis.getHeight());
 
         // Build a new block.
         Address to = Address.fromBase58(params, "mrj2K6txjo2QBcSmuAzHj4nD1oXSEJE1Qo");
-        StoredBlock b1 = genesis.build(genesis.getHeader().createNextBlock(to).cloneAsHeader());
+        StoredBlock_legacy b1 = genesis.build(genesis.getHeader().createNextBlock(to).cloneAsHeader());
         store.put(b1);
         store.setChainHead(b1);
         store.close();
@@ -49,10 +49,10 @@ public class LevelDBBlockStoreTest {
         // Check we can get it back out again if we rebuild the store object.
         store = new LevelDBBlockStore(params, f);
         try {
-            StoredBlock b2 = store.get(b1.getHeader().getHash());
+            StoredBlock_legacy b2 = store.get(b1.getHeader().getHash());
             assertEquals(b1, b2);
             // Check the chain head was stored correctly also.
-            StoredBlock chainHead = store.getChainHead();
+            StoredBlock_legacy chainHead = store.getChainHead();
             assertEquals(b1, chainHead);
         } finally {
             store.close();

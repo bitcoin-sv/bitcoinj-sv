@@ -56,14 +56,6 @@ import static org.bitcoinj.core.Sha256Hash.*;
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
 public class Block extends Message implements HeaderReadOnly {
-    /**
-     * Flags used to control which elements of block validation are done on
-     * received blocks.
-     */
-    public enum VerifyFlag {
-        /** Check that block height is in coinbase transaction (BIP 34). */
-        HEIGHT_IN_COINBASE
-    }
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
 
@@ -611,11 +603,6 @@ public class Block extends Message implements HeaderReadOnly {
     }
 
     @Override
-    public boolean hasBlockMetaData() {
-        return false;
-    }
-
-    @Override
     public FullBlock getBlock() {
         throw new UnsupportedOperationException();
     }
@@ -779,7 +766,7 @@ public class Block extends Message implements HeaderReadOnly {
     }
 
     /** Returns true if the hash of the block is OK (lower than difficulty target). */
-    protected boolean checkProofOfWork(boolean throwException) throws VerificationException {
+    public boolean checkProofOfWork(boolean throwException) throws VerificationException {
         // This part is key - it is what proves the block was as difficult to make as it claims
         // to be. Note however that in the context of this function, the block can claim to be
         // as difficult as it wants to be .... if somebody was able to take control of our network
@@ -802,7 +789,7 @@ public class Block extends Message implements HeaderReadOnly {
         return true;
     }
 
-    private void checkTimestamp() throws VerificationException {
+    public void checkTimestamp() throws VerificationException {
         maybeParseHeader();
         // Allow injection of a fake clock to allow unit testing.
         long currentTime = Utils.currentTimeSeconds();
@@ -896,12 +883,12 @@ public class Block extends Message implements HeaderReadOnly {
      * to validate the coinbase input script of v2 and above blocks.
      * @throws VerificationException if there was an error verifying the block.
      */
-    private void checkTransactions(final int height, final EnumSet<VerifyFlag> flags)
+    private void checkTransactions(final int height, final EnumSet<BitcoinJ.BlockVerifyFlag> flags)
             throws VerificationException {
         // The first transaction in a block must always be a coinbase transaction.
         if (!transactions.get(0).isCoinBase())
             throw new VerificationException("First tx is not coinbase");
-        if (flags.contains(Block.VerifyFlag.HEIGHT_IN_COINBASE) && height >= BitcoinJ.BLOCK_HEIGHT_GENESIS) {
+        if (flags.contains(BitcoinJ.BlockVerifyFlag.HEIGHT_IN_COINBASE) && height >= BitcoinJ.BLOCK_HEIGHT_GENESIS) {
             transactions.get(0).checkCoinBaseHeight(height);
         }
         // The rest must not be.
@@ -939,7 +926,7 @@ public class Block extends Message implements HeaderReadOnly {
      * whether to test for height in the coinbase transaction).
      * @throws VerificationException if there was an error verifying the block.
      */
-    public void verifyTransactions(final int height, final EnumSet<VerifyFlag> flags) throws VerificationException {
+    public void verifyTransactions(final int height, final EnumSet<BitcoinJ.BlockVerifyFlag> flags) throws VerificationException {
         // Now we need to check that the body of the block actually matches the headers. The network won't generate
         // an invalid block, but if we didn't validate this then an untrusted man-in-the-middle could obtain the next
         // valid block from the network and simply replace the transactions in it with their own fictional
@@ -964,7 +951,7 @@ public class Block extends Message implements HeaderReadOnly {
      * whether to test for height in the coinbase transaction).
      * @throws VerificationException if there was an error verifying the block.
      */
-    public void verify(final int height, final EnumSet<VerifyFlag> flags) throws VerificationException {
+    public void verify(final int height, final EnumSet<BitcoinJ.BlockVerifyFlag> flags) throws VerificationException {
         verifyHeader();
         verifyTransactions(height, flags);
     }

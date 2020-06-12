@@ -16,8 +16,9 @@
 
 package org.bitcoinj.moved.jni;
 
-import org.bitcoinj.chain.SPVBlockChain;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import org.bitcoinj.core.listeners.NewBestBlockListener;
 import org.bitcoinj.core.listeners.ReorganizeListener;
 import org.bitcoinj.core.listeners.TransactionReceivedInBlockListener;
 import org.bitcoinj.exception.VerificationException;
+import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
 import org.bitcoinj.msg.protocol.Transaction;
 
 /**
@@ -36,16 +38,16 @@ public class NativeBlockChainListener implements NewBestBlockListener, Reorganiz
     public long ptr;
 
     @Override
-    public native void notifyNewBestBlock(StoredBlock block) throws VerificationException;
+    public native void notifyNewBestBlock(ChainInfoReadOnly block) throws VerificationException;
 
     @Override
-    public native void reorganize(StoredBlock splitPoint, List<StoredBlock> oldBlocks, List<StoredBlock> newBlocks) throws VerificationException;
+    public native void reorganize(ChainInfoReadOnly splitPoint, List<ChainInfoReadOnly> oldBlocks, List<ChainInfoReadOnly> newBlocks) throws VerificationException;
 
     @Override
-    public native void receiveFromBlock(Transaction tx, StoredBlock block, SPVBlockChain.NewBlockType blockType,
+    public native void receiveFromBlock(Transaction tx, StoredBlock_legacy block, AbstractBlockChain.NewBlockType blockType,
                                         int relativityOffset) throws VerificationException;
 
     @Override
-    public native boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block, SPVBlockChain.NewBlockType blockType,
+    public native boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock_legacy block, AbstractBlockChain.NewBlockType blockType,
                                                      int relativityOffset) throws VerificationException;
 }

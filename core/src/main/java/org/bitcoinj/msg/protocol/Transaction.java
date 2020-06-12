@@ -18,7 +18,7 @@
 package org.bitcoinj.msg.protocol;
 
 //import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.ecc.TransactionSignature;
@@ -26,6 +26,7 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.ChildMessage;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.Translate;
+import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
 import org.bitcoinj.params.SerializeMode;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.*;
@@ -299,11 +300,11 @@ public class Transaction extends ChildMessage {
      *
      * <p>Sets updatedAt to be the earliest valid block time where this tx was seen.</p>
      *
-     * @param block     The {@link StoredBlock} in which the transaction has appeared.
+     * @param block     The {@link StoredBlock_legacy} in which the transaction has appeared.
      * @param bestChain whether to set the updatedAt timestamp from the block header (only if not already set)
      * @param relativityOffset A number that disambiguates the order of transactions within a block.
      */
-    public void setBlockAppearance(StoredBlock block, boolean bestChain, int relativityOffset) {
+    public void setBlockAppearance(ChainInfoReadOnly block, boolean bestChain, int relativityOffset) {
         long blockTime = block.getHeader().getTime() * 1000;
         if (bestChain && (updatedAt == null || updatedAt.getTime() == 0 || updatedAt.getTime() > blockTime)) {
             updatedAt = new Date(blockTime);
@@ -1002,7 +1003,7 @@ public class Transaction extends ChildMessage {
     /**
      * Gets the count of regular SigOps in this transactions
      */
-    public int getSigOpCount() throws ScriptExecutionException {
+    public int getSigOpCount() throws ScriptParseException {
         maybeParse();
         int sigOps = 0;
         for (TransactionInput input : inputs)

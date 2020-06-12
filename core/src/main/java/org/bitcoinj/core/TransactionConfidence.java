@@ -19,7 +19,7 @@ package org.bitcoinj.core;
 
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.temp.CoinSelector;
@@ -36,7 +36,7 @@ import static com.google.common.base.Preconditions.*;
 /**
  * <p>A TransactionConfidence object tracks data you can use to make a confidence decision about a transaction.
  * It also contains some pre-canned rules for common scenarios: if you aren't really sure what level of confidence
- * you need, these should prove useful. You can get a confidence object using {@link Transaction#getConfidence()}.
+ * you need, these should prove useful. You can get a confidence object using {@link org.bitcoinj.msg.protocol.TxHelper#getConfidence(Transaction)}.
  * They cannot be constructed directly.</p>
  *
  * <p>Confidence in a transaction can come in multiple ways:</p>
@@ -220,7 +220,7 @@ public class TransactionConfidence {
      * <p>Note that this is NOT called when every block arrives. Instead it is called when the transaction
      * transitions between confidence states, ie, from not being seen in the chain to being seen (not necessarily in
      * the best chain). If you want to know when the transaction gets buried under another block, implement a
-     * {@link org.bitcoinj.core.listeners.BlockChainListener}, attach it to a {@link SPVBlockChain} and then use the getters on the
+     * {org.bitcoinj.core.listeners.BlockChainListener}, attach it to a {@link SPVBlockChain_legacy} and then use the getters on the
      * confidence object to determine the new depth.</p>
      */
     public void addEventListener(Listener listener) {

@@ -17,9 +17,10 @@
 
 package org.bitcoinj.moved.store;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.moved.msg.protocol.BlockTest;
@@ -34,7 +35,7 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.moved.testing.FooWalletExtension;
 import org.bitcoinj.temp.KeyPurpose;
@@ -174,7 +175,7 @@ public class WalletProtobufSerializerTest {
         // t1 spends to our wallet.
         myWallet.receivePending(doubleSpends.t1, null);
         // t2 rolls back t1 and spends somewhere else.
-        myWallet.receiveFromBlock(doubleSpends.t2, null, SPVBlockChain.NewBlockType.BEST_CHAIN, 0);
+        myWallet.receiveFromBlock(doubleSpends.t2, null, AbstractBlockChain.NewBlockType.BEST_CHAIN, 0);
         Wallet wallet1 = roundTrip(myWallet);
         assertEquals(1, wallet1.getTransactions(true).size());
         Transaction t1 = wallet1.getTransaction(doubleSpends.t1.getHash());
@@ -220,7 +221,7 @@ public class WalletProtobufSerializerTest {
         assertEquals(1, wallet1.getLastBlockSeenHeight());
 
         // Test the Satoshi genesis block (hash of all zeroes) is roundtripped ok.
-        Block genesisBlock = Genesis.getFor(Net.MAINNET);
+        Block genesisBlock = Genesis_legacy.getFor(Net.MAINNET);
         wallet.setLastBlockSeenHash(genesisBlock.getHash());
         Wallet wallet2 = roundTrip(wallet);
         assertEquals(genesisBlock.getHash(), wallet2.getLastBlockSeenHash());
@@ -246,7 +247,7 @@ public class WalletProtobufSerializerTest {
     public void testAppearedAtChainHeightDepthAndWorkDone() throws Exception {
         // Test the TransactionConfidence appearedAtChainHeight, depth and workDone field are stored.
 
-        SPVBlockChain chain = new SPVBlockChain(PARAMS, myWallet, new MemoryBlockStore(PARAMS));
+        SPVBlockChain_legacy chain = new SPVBlockChain_legacy(PARAMS, myWallet, new MemoryBlockStore_legacy(PARAMS));
 
         final ArrayList<Transaction> txns = new ArrayList<Transaction>(2);
         myWallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
@@ -257,7 +258,7 @@ public class WalletProtobufSerializerTest {
         });
 
         // Start by building two blocks on top of the genesis block.
-        Block b1 = Genesis.getFor(NET).createNextBlock(myAddress);
+        Block b1 = Genesis_legacy.getFor(NET).createNextBlock(myAddress);
         BigInteger work1 = b1.getWork();
         assertTrue(work1.signum() > 0);
 
@@ -388,10 +389,10 @@ public class WalletProtobufSerializerTest {
     @Test
     public void coinbaseTxns() throws Exception {
         // Covers issue 420 where the outpoint index of a coinbase tx input was being mis-serialized.
-        Block b = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, myKey.getPubKey(), FIFTY_COINS, BitcoinJ.BLOCK_HEIGHT_GENESIS);
+        Block b = Genesis_legacy.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, myKey.getPubKey(), FIFTY_COINS, BitcoinJ.BLOCK_HEIGHT_GENESIS);
         Transaction coinbase = b.getTransactions().get(0);
         assertTrue(coinbase.isCoinBase());
-        SPVBlockChain chain = new SPVBlockChain(PARAMS, myWallet, new MemoryBlockStore(PARAMS));
+        SPVBlockChain_legacy chain = new SPVBlockChain_legacy(PARAMS, myWallet, new MemoryBlockStore_legacy(PARAMS));
         assertTrue(chain.add(b));
         // Wallet now has a coinbase tx in it.
         assertEquals(1, myWallet.getTransactions(true).size());

@@ -17,15 +17,16 @@
 package org.bitcoinj.moved.testing;
 
 import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.moved.wallet.Wallet;
 
@@ -48,8 +49,8 @@ public class TestWithWallet {
     protected ECKey myKey;
     protected Address myAddress;
     protected Wallet wallet;
-    protected SPVBlockChain chain;
-    protected BlockStore blockStore;
+    protected SPVBlockChain_legacy chain;
+    protected BlockStore_legacy blockStore;
 
     public void setUp() throws Exception {
         BriefLogFormatter.init();
@@ -57,8 +58,8 @@ public class TestWithWallet {
         wallet = new Wallet(PARAMS);
         myKey = wallet.currentReceiveKey();
         myAddress = myKey.toAddress(PARAMS);
-        blockStore = new MemoryBlockStore(PARAMS);
-        chain = new SPVBlockChain(PARAMS, wallet, blockStore);
+        blockStore = new MemoryBlockStore_legacy(PARAMS);
+        chain = new SPVBlockChain_legacy(PARAMS, wallet, blockStore);
     }
 
     public void tearDown() throws Exception {

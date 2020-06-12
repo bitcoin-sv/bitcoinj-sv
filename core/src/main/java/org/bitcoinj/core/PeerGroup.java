@@ -25,7 +25,7 @@ import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.subgraph.orchid.*;
 import net.jcip.annotations.*;
-import org.bitcoinj.chain.AbstractBlockChain;
+import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.PeerDiscoveryException;
 import org.bitcoinj.exception.VerificationException;
@@ -103,7 +103,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     protected final NetworkParameters params;
     protected final Net net;
-    @Nullable protected final AbstractBlockChain chain;
+    @Nullable protected final AbstractBlockChain_legacy chain;
 
     // This executor is used to queue up jobs: it's used when we don't want to use locks for mutual exclusion,
     // typically because the job might call in to user provided code that needs/wants the freedom to use the API
@@ -312,8 +312,8 @@ public class PeerGroup implements TransactionBroadcaster {
         this(context, null);
     }
 
-    /** See {@link #PeerGroup(Context, AbstractBlockChain)} */
-    public PeerGroup(NetworkParameters params, @Nullable AbstractBlockChain chain) {
+    /** See {@link #PeerGroup(Context, AbstractBlockChain_legacy)} */
+    public PeerGroup(NetworkParameters params, @Nullable AbstractBlockChain_legacy chain) {
         this(Context.getOrCreate(params), chain, new NioClientManager());
     }
 
@@ -321,13 +321,13 @@ public class PeerGroup implements TransactionBroadcaster {
      * Creates a PeerGroup for the given context and chain. Blocks will be passed to the chain as they are broadcast
      * and downloaded. This is probably the constructor you want to use.
      */
-    public PeerGroup(Context context, @Nullable AbstractBlockChain chain) {
+    public PeerGroup(Context context, @Nullable AbstractBlockChain_legacy chain) {
         this(context, chain, new NioClientManager());
     }
 
 
-    /** See {@link #PeerGroup(Context, AbstractBlockChain, ClientConnectionManager)} */
-    public PeerGroup(NetworkParameters params, @Nullable AbstractBlockChain chain, ClientConnectionManager connectionManager) {
+    /** See {@link #PeerGroup(Context, AbstractBlockChain_legacy, ClientConnectionManager)} */
+    public PeerGroup(NetworkParameters params, @Nullable AbstractBlockChain_legacy chain, ClientConnectionManager connectionManager) {
         this(Context.getOrCreate(params), chain, connectionManager, null);
     }
 
@@ -335,7 +335,7 @@ public class PeerGroup implements TransactionBroadcaster {
      * Creates a new PeerGroup allowing you to specify the {@link ClientConnectionManager} which is used to create new
      * connections and keep track of existing ones.
      */
-    public PeerGroup(Context context, @Nullable AbstractBlockChain chain, ClientConnectionManager connectionManager) {
+    public PeerGroup(Context context, @Nullable AbstractBlockChain_legacy chain, ClientConnectionManager connectionManager) {
         this(context, chain, connectionManager, null);
     }
 
@@ -343,12 +343,12 @@ public class PeerGroup implements TransactionBroadcaster {
      * Creates a new PeerGroup allowing you to specify the {@link ClientConnectionManager} which is used to create new
      * connections and keep track of existing ones.
      */
-    private PeerGroup(Context context, @Nullable AbstractBlockChain chain, ClientConnectionManager connectionManager, @Nullable TorClient torClient) {
+    private PeerGroup(Context context, @Nullable AbstractBlockChain_legacy chain, ClientConnectionManager connectionManager, @Nullable TorClient torClient) {
         checkNotNull(context);
         this.params = context.getParams();
         this.net = params.getNet();
         this.chain = chain;
-        fastCatchupTimeSecs = Genesis.getFor(params).getTime();
+        fastCatchupTimeSecs = Genesis_legacy.getFor(params).getTime();
         wallets = new CopyOnWriteArrayList<TxEventListener>();
         peerFilterProviders = new CopyOnWriteArrayList<PeerFilterProvider>();
         this.torClient = torClient;

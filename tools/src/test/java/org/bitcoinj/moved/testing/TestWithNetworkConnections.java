@@ -18,7 +18,7 @@
 package org.bitcoinj.moved.testing;
 
 import com.google.common.util.concurrent.SettableFuture;
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
 import org.bitcoinj.core.listeners.PreMessageReceivedEventListener;
@@ -31,8 +31,8 @@ import org.bitcoinj.net.*;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
@@ -60,8 +60,8 @@ public class TestWithNetworkConnections {
     protected static final NetworkParameters PARAMS = UnitTestParams.get();
     protected static final Net NET = Net.UNITTEST;
     protected Context context;
-    protected BlockStore blockStore;
-    protected org.bitcoinj.chain.SPVBlockChain SPVBlockChain;
+    protected BlockStore_legacy blockStore;
+    protected SPVBlockChain_legacy SPVBlockChain;
     protected Wallet wallet;
     protected ECKey key;
     protected Address address;
@@ -89,10 +89,10 @@ public class TestWithNetworkConnections {
     }
 
     public void setUp() throws Exception {
-        setUp(new MemoryBlockStore(UnitTestParams.get()));
+        setUp(new MemoryBlockStore_legacy(UnitTestParams.get()));
     }
     
-    public void setUp(BlockStore blockStore) throws Exception {
+    public void setUp(BlockStore_legacy blockStore) throws Exception {
         BriefLogFormatter.init();
         Context.propagate(new Context(PARAMS, 100, Coin.ZERO, false));
         this.blockStore = blockStore;
@@ -102,7 +102,7 @@ public class TestWithNetworkConnections {
             key = wallet.freshReceiveKey();
             address = key.toAddress(PARAMS);
         }
-        SPVBlockChain = new SPVBlockChain(PARAMS, wallet, blockStore);
+        SPVBlockChain = new SPVBlockChain_legacy(PARAMS, wallet, blockStore);
 
         startPeerServers();
         if (clientType == ClientType.NIO_CLIENT_MANAGER || clientType == ClientType.BLOCKING_CLIENT_MANAGER) {

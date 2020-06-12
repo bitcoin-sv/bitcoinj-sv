@@ -6,6 +6,7 @@ import org.bitcoinj.msg.bitcoin.api.base.Hashable;
 import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
 
 import java.io.InputStream;
+import java.util.Objects;
 
 public abstract class HashableImpl<C extends Hashable> extends BitcoinObjectImpl<C> implements Hashable<C> {
 
@@ -31,4 +32,16 @@ public abstract class HashableImpl<C extends Hashable> extends BitcoinObjectImpl
         return hash;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Hashable)) return false;
+        Hashable hashable = (Hashable) o;
+        return getHash().equals(hashable.getHash());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getHash());
+    }
 }

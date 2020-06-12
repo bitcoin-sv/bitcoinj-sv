@@ -17,14 +17,14 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.utils.BriefLogFormatter;
 
 import java.net.InetAddress;
@@ -39,8 +39,8 @@ public class FetchBlock {
         System.out.println("Connecting to node");
         final NetworkParameters params = TestNet3Params.get();
 
-        BlockStore blockStore = new MemoryBlockStore(params);
-        SPVBlockChain chain = new SPVBlockChain(params, blockStore);
+        BlockStore_legacy blockStore = new MemoryBlockStore_legacy(params);
+        SPVBlockChain_legacy chain = new SPVBlockChain_legacy(params, blockStore);
         PeerGroup peerGroup = new PeerGroup(params, chain);
         peerGroup.start();
         PeerAddress addr = new PeerAddress(InetAddress.getLocalHost(), params.getPort());

@@ -18,8 +18,8 @@ package org.bitcoinj.core;
 
 import com.google.common.base.*;
 import com.google.common.base.Objects;
-import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.PrunedException;
 import org.bitcoinj.exception.VerificationException;
@@ -29,7 +29,7 @@ import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.net.StreamConnection;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.BlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.temp.TxEventListener;
 import org.bitcoinj.utils.ListenerRegistration;
@@ -71,7 +71,7 @@ public class Peer extends PeerSocketHandler {
 
     private final NetworkParameters params;
     private final Net net;
-    private final AbstractBlockChain blockChain;
+    private final AbstractBlockChain_legacy blockChain;
     private final Context context;
 
     private final CopyOnWriteArrayList<ListenerRegistration<BlocksDownloadedEventListener>> blocksDownloadedEventListeners
@@ -195,7 +195,7 @@ public class Peer extends PeerSocketHandler {
      * <p>The remoteAddress provided should match the remote address of the peer which is being connected to, and is
      * used to keep track of which peers relayed transactions and offer more descriptive logging.</p>
      */
-    public Peer(NetworkParameters params, VersionMessage ver, @Nullable AbstractBlockChain chain, PeerAddress remoteAddress) {
+    public Peer(NetworkParameters params, VersionMessage ver, @Nullable AbstractBlockChain_legacy chain, PeerAddress remoteAddress) {
         this(params, ver, remoteAddress, chain);
     }
 
@@ -214,7 +214,7 @@ public class Peer extends PeerSocketHandler {
      * used to keep track of which peers relayed transactions and offer more descriptive logging.</p>
      */
     public Peer(NetworkParameters params, VersionMessage ver, PeerAddress remoteAddress,
-                @Nullable AbstractBlockChain chain) {
+                @Nullable AbstractBlockChain_legacy chain) {
         this(params, ver, remoteAddress, chain, Integer.MAX_VALUE);
     }
 
@@ -233,7 +233,7 @@ public class Peer extends PeerSocketHandler {
      * used to keep track of which peers relayed transactions and offer more descriptive logging.</p>
      */
     public Peer(NetworkParameters params, VersionMessage ver, PeerAddress remoteAddress,
-                @Nullable AbstractBlockChain chain, int downloadTxDependencyDepth) {
+                @Nullable AbstractBlockChain_legacy chain, int downloadTxDependencyDepth) {
         super(params, remoteAddress);
         this.params = Preconditions.checkNotNull(params);
         this.net = params.getNet();
@@ -243,7 +243,7 @@ public class Peer extends PeerSocketHandler {
         this.vDownloadData = chain != null;
         this.getDataFutures = new CopyOnWriteArrayList<GetDataRequest>();
         this.getAddrFutures = new LinkedList<SettableFuture<AddressMessage>>();
-        this.fastCatchupTimeSecs = Genesis.getFor(params).getTime();
+        this.fastCatchupTimeSecs = Genesis_legacy.getFor(params).getTime();
         this.pendingPings = new CopyOnWriteArrayList<PendingPing>();
         this.vMinProtocolVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG);
         this.txEventListeners = new CopyOnWriteArrayList<TxEventListener>();
@@ -272,7 +272,7 @@ public class Peer extends PeerSocketHandler {
      * <p>The remoteAddress provided should match the remote address of the peer which is being connected to, and is
      * used to keep track of which peers relayed transactions and offer more descriptive logging.</p>
      */
-    public Peer(NetworkParameters params, AbstractBlockChain blockChain, PeerAddress peerAddress, String thisSoftwareName, String thisSoftwareVersion) {
+    public Peer(NetworkParameters params, AbstractBlockChain_legacy blockChain, PeerAddress peerAddress, String thisSoftwareName, String thisSoftwareVersion) {
         this(params, new VersionMessage(params.getNet(), blockChain.getBestChainHeight()), blockChain, peerAddress);
         this.versionMessage.appendToSubVer(thisSoftwareName, thisSoftwareVersion, null);
     }
@@ -1375,7 +1375,7 @@ public class Peer extends PeerSocketHandler {
         lock.lock();
         try {
             if (secondsSinceEpoch == 0) {
-                fastCatchupTimeSecs = Genesis.getFor(params).getTime();
+                fastCatchupTimeSecs = Genesis_legacy.getFor(params).getTime();
                 downloadBlockBodies = true;
             } else {
                 fastCatchupTimeSecs = secondsSinceEpoch;
@@ -1454,8 +1454,8 @@ public class Peer extends PeerSocketHandler {
         // This is because it requires scanning all the block chain headers, which is very slow. Instead we add the top
         // 100 block headers. If there is a re-org deeper than that, we'll end up downloading the entire chain. We
         // must always put the genesis block as the first entry.
-        BlockStore store = checkNotNull(blockChain).getBlockStore();
-        StoredBlock chainHead = blockChain.getChainHead();
+        BlockStore_legacy store = checkNotNull(blockChain).getBlockStore();
+        StoredBlock_legacy chainHead = blockChain.getChainHead();
         Sha256Hash chainHeadHash = chainHead.getHeader().getHash();
         // Did we already make this request? If so, don't do it again.
         if (Objects.equal(lastGetBlocksBegin, chainHeadHash) && Objects.equal(lastGetBlocksEnd, toHash)) {
@@ -1468,7 +1468,7 @@ public class Peer extends PeerSocketHandler {
         if (log.isDebugEnabled())
             log.debug("{}: blockChainDownloadLocked({}) current head = {}",
                     this, toHash, chainHead.getHeader().getHashAsString());
-        StoredBlock cursor = chainHead;
+        StoredBlock_legacy cursor = chainHead;
         for (int i = 100; cursor != null && i > 0; i--) {
             blockLocator.add(cursor.getHeader().getHash());
             try {
@@ -1480,7 +1480,7 @@ public class Peer extends PeerSocketHandler {
         }
         // Only add the locator if we didn't already do so. If the chain is < 50 blocks we already reached it.
         if (cursor != null)
-            blockLocator.add(Genesis.getFor(params).getHash());
+            blockLocator.add(Genesis_legacy.getFor(params).getHash());
 
         // Record that we requested this range of blocks so we can filter out duplicate requests in the event of a
         // block being solved during chain download.

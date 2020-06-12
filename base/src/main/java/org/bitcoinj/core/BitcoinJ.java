@@ -27,6 +27,12 @@ public class BitcoinJ {
     public static final int EVENT_HORIZON = 100;
 
     /**
+     * Time into the future (seconds) that a block timestamp can be considered valid
+     */
+    public static final long ALLOWED_TIME_DRIFT = 2 * 60 * 60; // Same value as Bitcoin Core.
+
+
+    /**
      * If feePerKb is lower than this, Bitcoin Core will treat it as if there were no fee.
      */
     public static final Coin REFERENCE_DEFAULT_MIN_TX_FEE = Coin.valueOf(1000); // 0.01 mBTC
@@ -53,4 +59,13 @@ public class BitcoinJ {
      * hash.
      */
     public static BigInteger LARGEST_HASH = BigInteger.ONE.shiftLeft(256);
+
+    /**
+     * Flags used to control which elements of block validation are done on
+     * received blocks.
+     */
+    public enum BlockVerifyFlag {
+        /** Check that block height is in coinbase transaction (BIP 34). */
+        HEIGHT_IN_COINBASE
+    }
 }

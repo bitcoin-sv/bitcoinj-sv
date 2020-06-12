@@ -17,11 +17,12 @@
 package org.bitcoinj.moved.protocols.channels;
 
 import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.SPVBlockChain;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
@@ -108,7 +109,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
             }
         }));
         sendMoneyToWallet(AbstractBlockChain.NewBlockType.BEST_CHAIN, COIN);
-        chain = new SPVBlockChain(PARAMS, wallet, blockStore); // Recreate chain as sendMoneyToWallet will confuse it
+        chain = new SPVBlockChain_legacy(PARAMS, wallet, blockStore); // Recreate chain as sendMoneyToWallet will confuse it
         serverWallet = new Wallet(PARAMS);
         serverKey = serverWallet.freshReceiveKey();
         chain.addChainEventListener(serverWallet);
@@ -1002,7 +1003,7 @@ public class PaymentChannelStateTest extends TestWithWallet {
         doubleSpendContract.addOutput(HALF_COIN, myKey);
         doubleSpendContract = new Transaction(NET, doubleSpendContract.bitcoinSerialize());
 
-        StoredBlock block = new StoredBlock(Genesis.getFor(NET).createNextBlock(myKey.toAddress(PARAMS)), BigInteger.TEN, 1);
+        StoredBlock_legacy block = new StoredBlock_legacy(Genesis_legacy.getFor(NET).createNextBlock(myKey.toAddress(PARAMS)), BigInteger.TEN, 1);
         serverWallet.receiveFromBlock(doubleSpendContract, block, AbstractBlockChain.NewBlockType.BEST_CHAIN, 0);
 
         // Now if we try to spend again the server will reject it since it saw a double-spend

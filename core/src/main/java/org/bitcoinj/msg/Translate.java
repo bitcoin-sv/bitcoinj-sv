@@ -19,16 +19,16 @@ public class Translate {
         return new FullBlockBean(block.unsafeBitcoinSerialize());
     }
 
-    public static Input toInput(TransactionInput input) {
-        return new InputBean(input.unsafeBitcoinSerialize());
+    public static TxInput toInput(TransactionInput input) {
+        return new TxInputBean(input.unsafeBitcoinSerialize());
     }
 
-    public static OutPoint toOutPoint(TransactionOutPoint outPoint) {
-        return new OutPointBean(outPoint.unsafeBitcoinSerialize());
+    public static TxOutPoint toOutPoint(TransactionOutPoint outPoint) {
+        return new TxOutPointBean(outPoint.unsafeBitcoinSerialize());
     }
 
-    public static Output toOutput(TransactionOutput output) {
-        return new OutputBean(output.unsafeBitcoinSerialize());
+    public static TxOutput toOutput(TransactionOutput output) {
+        return new TxOutputBean(output.unsafeBitcoinSerialize());
     }
 
 }

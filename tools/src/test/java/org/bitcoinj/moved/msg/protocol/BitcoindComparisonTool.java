@@ -20,13 +20,13 @@ package org.bitcoinj.moved.msg.protocol;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
-import org.bitcoinj.chain.FullPrunedBlockChain;
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.FullPrunedBlockChain_legacy;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.Message;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
@@ -51,7 +51,7 @@ public class BitcoindComparisonTool {
 
     private static NetworkParameters params;
     private static Net net;
-    private static FullPrunedBlockChain chain;
+    private static FullPrunedBlockChain_legacy chain;
     private static Sha256Hash bitcoindChainHead;
     private static volatile InventoryMessage mostRecentInv = null;
 
@@ -80,7 +80,7 @@ public class BitcoindComparisonTool {
             H2FullPrunedBlockStore store = new H2FullPrunedBlockStore(params, args.length > 0 ? args[0] : "BitcoindComparisonTool", blockList.maximumReorgBlockCount);
             store.resetStore();
             //store = new MemoryFullPrunedBlockStore(params, blockList.maximumReorgBlockCount);
-            chain = new FullPrunedBlockChain(params, store);
+            chain = new FullPrunedBlockChain_legacy(params, store);
         } catch (BlockStoreException e) {
             e.printStackTrace();
             System.exit(1);
@@ -89,7 +89,7 @@ public class BitcoindComparisonTool {
         VersionMessage ver = new VersionMessage(net, 42);
         ver.appendToSubVer("BlockAcceptanceComparisonTool", "1.1", null);
         ver.localServices = VersionMessage.NODE_NETWORK;
-        final Peer bitcoind = new Peer(params, ver, new SPVBlockChain(params, new MemoryBlockStore(params)), new PeerAddress(params, InetAddress.getLocalHost()));
+        final Peer bitcoind = new Peer(params, ver, new SPVBlockChain_legacy(params, new MemoryBlockStore_legacy(params)), new PeerAddress(params, InetAddress.getLocalHost()));
         Preconditions.checkState(bitcoind.getVersionMessage().hasBlockChain());
 
         final BlockWrapper currentBlock = new BlockWrapper();
@@ -211,7 +211,7 @@ public class BitcoindComparisonTool {
             }
         });
         
-        bitcoindChainHead = Genesis.getFor(params).getHash();
+        bitcoindChainHead = Genesis_legacy.getFor(params).getHash();
         
         // bitcoind MUST be on localhost or we will get banned as a DoSer
         new NioClient(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), args.length > 2 ? Integer.parseInt(args[2]) : params.getPort()), bitcoind, 1000);
@@ -219,7 +219,7 @@ public class BitcoindComparisonTool {
         connectedFuture.get();
 
         ArrayList<Sha256Hash> locator = new ArrayList<Sha256Hash>(1);
-        locator.add(Genesis.getFor(params).getHash());
+        locator.add(Genesis_legacy.getFor(params).getHash());
         Sha256Hash hashTo = Sha256Hash.wrap("0000000000000000000000000000000000000000000000000000000000000000");
                 
         int rulesSinceFirstFail = 0;

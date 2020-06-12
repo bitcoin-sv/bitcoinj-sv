@@ -18,11 +18,11 @@
 package org.bitcoinj.moved.msg.protocol;
 
 import com.google.common.collect.Lists;
-import org.bitcoinj.chain.FullPrunedBlockChain;
-import org.bitcoinj.chain.StoredUndoableBlock;
+import org.bitcoinj.chain_legacy.FullPrunedBlockChain_legacy;
+import org.bitcoinj.chain_legacy.StoredUndoableBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
@@ -67,7 +67,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
     };
     protected static final Net NET = Net.UNITTEST;
 
-    protected FullPrunedBlockChain chain;
+    protected FullPrunedBlockChain_legacy chain;
     protected FullPrunedBlockStore store;
 
     @Before
@@ -88,7 +88,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         RuleList blockList = generator.getBlocksToTest(false, false, null);
         
         store = createStore(PARAMS, blockList.maximumReorgBlockCount);
-        chain = new FullPrunedBlockChain(PARAMS, store);
+        chain = new FullPrunedBlockChain_legacy(PARAMS, store);
 
         for (Rule rule : blockList.list) {
             if (!(rule instanceof FullBlockTestGenerator.BlockAndValidity))
@@ -133,7 +133,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
     @Test
     public void skipScripts() throws Exception {
         store = createStore(PARAMS, 10);
-        chain = new FullPrunedBlockChain(PARAMS, store);
+        chain = new FullPrunedBlockChain_legacy(PARAMS, store);
 
         // Check that we aren't accidentally leaving any references
         // to the full StoredUndoableBlock's lying around (ie memory leaks)
@@ -142,7 +142,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis_legacy.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         TransactionOutput spendableOutput = rollingBlock.getTransactions().get(0).getOutput(0);
         for (int i = 1; i < PARAMS.getSpendableCoinbaseDepth(); i++) {
@@ -173,7 +173,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
     public void testFinalizedBlocks() throws Exception {
         final int UNDOABLE_BLOCKS_STORED = 10;
         store = createStore(PARAMS, UNDOABLE_BLOCKS_STORED);
-        chain = new FullPrunedBlockChain(PARAMS, store);
+        chain = new FullPrunedBlockChain_legacy(PARAMS, store);
         
         // Check that we aren't accidentally leaving any references
         // to the full StoredUndoableBlock's lying around (ie memory leaks)
@@ -182,7 +182,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis_legacy.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, rollingBlock.getTransactions().get(0).getHash());
         byte[] spendableOutputScriptPubKey = rollingBlock.getTransactions().get(0).getOutputs().get(0).getScriptBytes();
@@ -203,9 +203,9 @@ public abstract class AbstractFullPrunedBlockChainIT {
         rollingBlock.solve();
         
         chain.add(rollingBlock);
-        WeakReference<StoredUndoableBlock> undoBlock = new WeakReference<StoredUndoableBlock>(store.getUndoBlock(rollingBlock.getHash()));
+        WeakReference<StoredUndoableBlock_legacy> undoBlock = new WeakReference<StoredUndoableBlock_legacy>(store.getUndoBlock(rollingBlock.getHash()));
 
-        StoredUndoableBlock storedUndoableBlock = undoBlock.get();
+        StoredUndoableBlock_legacy storedUndoableBlock = undoBlock.get();
         assertNotNull(storedUndoableBlock);
         assertNull(storedUndoableBlock.getTransactions());
         WeakReference<TransactionOutputChanges> changes = new WeakReference<TransactionOutputChanges>(storedUndoableBlock.getTxOutChanges());
@@ -236,7 +236,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         
         store = createStore(params, 10);
         resetStore(store);
-        chain = new FullPrunedBlockChain(params, store);
+        chain = new FullPrunedBlockChain_legacy(params, store);
         for (Block block : loader)
             chain.add(block);
         try {
@@ -248,7 +248,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
     public void testGetOpenTransactionOutputs() throws Exception {
         final int UNDOABLE_BLOCKS_STORED = 10;
         store = createStore(PARAMS, UNDOABLE_BLOCKS_STORED);
-        chain = new FullPrunedBlockChain(PARAMS, store);
+        chain = new FullPrunedBlockChain_legacy(PARAMS, store);
 
         // Check that we aren't accidentally leaving any references
         // to the full StoredUndoableBlock's lying around (ie memory leaks)
@@ -256,7 +256,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis_legacy.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
@@ -299,7 +299,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
     public void testUTXOProviderWithWallet() throws Exception {
         final int UNDOABLE_BLOCKS_STORED = 10;
         store = createStore(PARAMS, UNDOABLE_BLOCKS_STORED);
-        chain = new FullPrunedBlockChain(PARAMS, store);
+        chain = new FullPrunedBlockChain_legacy(PARAMS, store);
 
         // Check that we aren't accidentally leaving any references
         // to the full StoredUndoableBlock's lying around (ie memory leaks)
@@ -307,7 +307,7 @@ public abstract class AbstractFullPrunedBlockChainIT {
         int height = 1;
 
         // Build some blocks on genesis block to create a spendable output.
-        Block rollingBlock = Genesis.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
+        Block rollingBlock = Genesis_legacy.getFor(NET).createNextBlockWithCoinbase(BitcoinJ.BLOCK_VERSION_GENESIS, outKey.getPubKey(), height++);
         chain.add(rollingBlock);
         Transaction transaction = rollingBlock.getTransactions().get(0);
         TransactionOutPoint spendableOutput = new TransactionOutPoint(NET, 0, transaction.getHash());
@@ -368,10 +368,10 @@ public abstract class AbstractFullPrunedBlockChainIT {
         final int UNDOABLE_BLOCKS_STORED = PARAMS.getMajorityEnforceBlockUpgrade() + 1;
         store = createStore(PARAMS, UNDOABLE_BLOCKS_STORED);
         try {
-            chain = new FullPrunedBlockChain(PARAMS, store);
+            chain = new FullPrunedBlockChain_legacy(PARAMS, store);
             ECKey outKey = new ECKey();
             int height = 1;
-            Block chainHead = Genesis.getFor(NET);
+            Block chainHead = Genesis_legacy.getFor(NET);
 
             // Build some blocks on genesis block to create a spendable output.
 

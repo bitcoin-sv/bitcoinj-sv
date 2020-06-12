@@ -17,7 +17,7 @@
 package org.bitcoinj.examples;
 
 import java.net.InetAddress;
-import org.bitcoinj.chain.FullPrunedBlockChain;
+import org.bitcoinj.chain_legacy.FullPrunedBlockChain_legacy;
 import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.store.FullPrunedBlockStore;
@@ -33,7 +33,7 @@ public class LevelDB {
                 MainNetParams.get(), args[0], 1000, 100 * 1024 * 1024l,
                 10 * 1024 * 1024, 100000, true, 390000);
 
-        FullPrunedBlockChain vChain = new FullPrunedBlockChain(
+        FullPrunedBlockChain_legacy vChain = new FullPrunedBlockChain_legacy(
                 MainNetParams.get(), store);
         vChain.setRunScripts(false);
 

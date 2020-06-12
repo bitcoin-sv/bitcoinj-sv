@@ -25,13 +25,16 @@ import com.google.common.util.concurrent.*;
 import com.google.protobuf.*;
 import net.jcip.annotations.*;
 import org.bitcoinj.chain.AbstractBlockChain;
-import org.bitcoinj.chain.ChainEventListener;
 import org.bitcoinj.chain.SPVBlockChain;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import org.bitcoinj.chain_legacy.ChainEventListener_legacy;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.ecc.ECKeyBytes;
 import org.bitcoinj.exception.UTXOProviderException;
+import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
 import org.bitcoinj.msg.p2p.BloomFilter;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.msg.Message;
@@ -96,7 +99,7 @@ import static com.google.common.base.Preconditions.*;
  * <p>To learn more about this class, read <b><a href="https://bitcoinj.github.io/working-with-the-wallet">
  *     working with the wallet.</a></b></p>
  *
- * <p>To fill up a Wallet with transactions, you need to use it in combination with a {@link SPVBlockChain} and various
+ * <p>To fill up a Wallet with transactions, you need to use it in combination with a {@link SPVBlockChain_legacy} and various
  * other objects, see the <a href="https://bitcoinj.github.io/getting-started">Getting started</a> tutorial
  * on the website to learn more about how to set everything up.</p>
  *
@@ -108,7 +111,7 @@ import static com.google.common.base.Preconditions.*;
  * for more information about this.</p>
  */
 public class Wallet extends BaseTaggableObject
-    implements PeerFilterProvider, KeyBag, TransactionBag, ChainEventListener, TxEventListener {
+    implements PeerFilterProvider, KeyBag, TransactionBag, ChainEventListener_legacy, TxEventListener {
     private static final Logger log = LoggerFactory.getLogger(Wallet.class);
     private static final int MINIMUM_BLOOM_DATA_LENGTH = 8;
 
@@ -1610,7 +1613,7 @@ public class Wallet extends BaseTaggableObject
     //region Inbound transaction reception and processing
 
     /**
-     * Called by the {@link SPVBlockChain} when we receive a new filtered block that contains a transactions previously
+     * Called by the {@link SPVBlockChain_legacy} when we receive a new filtered block that contains a transactions previously
      * received by a call to {@link #receivePending}.<p>
      *
      * This is necessary for the internal book-keeping Wallet does. When a transaction is received that sends us
@@ -1628,8 +1631,8 @@ public class Wallet extends BaseTaggableObject
      * block might change which chain is best causing a reorganize. A re-org can totally change our balance!
      */
     @Override
-    public boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock block,
-                                              SPVBlockChain.NewBlockType blockType,
+    public boolean notifyTransactionIsInBlock(Sha256Hash txHash, StoredBlock_legacy block,
+                                              AbstractBlockChain.NewBlockType blockType,
                                               int relativityOffset) throws VerificationException {
         lock.lock();
         try {
@@ -1853,7 +1856,7 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * Called by the {@link SPVBlockChain} when we receive a new block that sends coins to one of our addresses or
+     * Called by the {@link SPVBlockChain_legacy} when we receive a new block that sends coins to one of our addresses or
      * spends coins from one of our addresses (note that a single transaction can do both).<p>
      *
      * This is necessary for the internal book-keeping Wallet does. When a transaction is received that sends us
@@ -1871,8 +1874,8 @@ public class Wallet extends BaseTaggableObject
      * block might change which chain is best causing a reorganize. A re-org can totally change our balance!
      */
     @Override
-    public void receiveFromBlock(Transaction tx, StoredBlock block,
-                                 SPVBlockChain.NewBlockType blockType,
+    public void receiveFromBlock(Transaction tx, StoredBlock_legacy block,
+                                 AbstractBlockChain.NewBlockType blockType,
                                  int relativityOffset) throws VerificationException {
         lock.lock();
         try {
@@ -1887,15 +1890,15 @@ public class Wallet extends BaseTaggableObject
     // Whether to do a saveNow or saveLater when we are notified of the next best block.
     private boolean hardSaveOnNextBlock = false;
 
-    private void receive(Transaction tx, StoredBlock block, SPVBlockChain.NewBlockType blockType,
+    private void receive(Transaction tx, ChainInfoReadOnly block, AbstractBlockChain.NewBlockType blockType,
                          int relativityOffset) throws VerificationException {
         // Runs in a peer thread.
         checkState(lock.isHeldByCurrentThread());
 
         Coin prevBalance = getBalance();
         Sha256Hash txHash = tx.getHash();
-        boolean bestChain = blockType == SPVBlockChain.NewBlockType.BEST_CHAIN;
-        boolean sideChain = blockType == SPVBlockChain.NewBlockType.SIDE_CHAIN;
+        boolean bestChain = blockType == AbstractBlockChain.NewBlockType.BEST_CHAIN;
+        boolean sideChain = blockType == AbstractBlockChain.NewBlockType.SIDE_CHAIN;
 
         Coin valueSentFromMe = TxHelper.getValueSentFromMe(tx, this);
         Coin valueSentToMe = TxHelper.getValueSentToMe(tx, this);
@@ -2088,26 +2091,26 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * <p>Called by the {@link SPVBlockChain} when a new block on the best chain is seen, AFTER relevant wallet
+     * <p>Called by the {@link SPVBlockChain_legacy} when a new block on the best chain is seen, AFTER relevant wallet
      * transactions are extracted and sent to us UNLESS the new block caused a re-org, in which case this will
-     * not be called (the {@link Wallet#reorganize(StoredBlock, java.util.List, java.util.List)} method will
+     * not be called (the {@link Wallet#reorganize(ChainInfoReadOnly, java.util.List, java.util.List)} method will
      * call this one in that case).</p>
      * <p/>
      * <p>Used to update confidence data in each transaction and last seen block hash. Triggers auto saving.
      * Invokes the onWalletChanged event listener if there were any affected transactions.</p>
      */
     @Override
-    public void notifyNewBestBlock(StoredBlock block) throws VerificationException {
+    public void notifyNewBestBlock(ChainInfoReadOnly chainInfo) throws VerificationException {
         // Check to see if this block has been seen before.
-        Sha256Hash newBlockHash = block.getHeader().getHash();
+        Sha256Hash newBlockHash = chainInfo.getHeader().getHash();
         if (newBlockHash.equals(getLastBlockSeenHash()))
             return;
         lock.lock();
         try {
             // Store the new block hash.
             setLastBlockSeenHash(newBlockHash);
-            setLastBlockSeenHeight(block.getHeight());
-            setLastBlockSeenTimeSecs(block.getHeader().getTime());
+            setLastBlockSeenHeight(chainInfo.getHeight());
+            setLastBlockSeenTimeSecs(chainInfo.getHeader().getTime());
             // Notify all the BUILDING transactions of the new block.
             // This is so that they can update their depth.
             Set<Transaction> transactions = getTransactions(true);
@@ -3174,7 +3177,7 @@ public class Wallet extends BaseTaggableObject
      * @param chain If set, will be used to estimate lock times for block timelocked transactions.
      */
     public String toString(boolean includePrivateKeys, boolean includeTransactions, boolean includeExtensions,
-                           @Nullable AbstractBlockChain chain) {
+                           @Nullable AbstractBlockChain_legacy chain) {
         lock.lock();
         keyChainGroupLock.lock();
         try {
@@ -3246,7 +3249,7 @@ public class Wallet extends BaseTaggableObject
     }
 
     private void toStringHelper(StringBuilder builder, Map<Sha256Hash, Transaction> transactionMap,
-                                @Nullable AbstractBlockChain chain, @Nullable Comparator<Transaction> sortOrder) {
+                                @Nullable AbstractBlockChain_legacy chain, @Nullable Comparator<Transaction> sortOrder) {
         checkState(lock.isHeldByCurrentThread());
 
         final Collection<Transaction> txns;
@@ -4041,7 +4044,7 @@ public class Wallet extends BaseTaggableObject
                     // We assume if its already signed, its hopefully got a SIGHASH type that will not invalidate when
                     // we sign missing pieces (to check this would require either assuming any signatures are signing
                     // standard output types or a way to get processed signatures out of script execution)
-                    ScriptUtils.correctlySpends(txIn.getScriptSig(), tx, i, txIn.getConnectedOutput().getScriptPubKey());
+                    ScriptUtils_legacy.correctlySpends(txIn.getScriptSig(), tx, i, txIn.getConnectedOutput().getScriptPubKey());
                     log.warn("Input {} already correctly spends output, assuming SIGHASH type used will be safe and skipping signing.", i);
                     continue;
                 } catch (ScriptExecutionException e) {
@@ -4356,14 +4359,14 @@ public class Wallet extends BaseTaggableObject
     /**
      * <p>Don't call this directly. It's not intended for API users.</p>
      *
-     * <p>Called by the {@link SPVBlockChain} when the best chain (representing total work done) has changed. This can
+     * <p>Called by the {@link SPVBlockChain_legacy} when the best chain (representing total work done) has changed. This can
      * cause the number of confirmations of a transaction to go higher, lower, drop to zero and can even result in
      * a transaction going dead (will never confirm) due to a double spend.</p>
      *
      * <p>The oldBlocks/newBlocks lists are ordered height-wise from top first to bottom last.</p>
      */
     @Override
-    public void reorganize(StoredBlock splitPoint, List<StoredBlock> oldBlocks, List<StoredBlock> newBlocks) throws VerificationException {
+    public void reorganize(ChainInfoReadOnly splitPoint, List<ChainInfoReadOnly> oldBlocks, List<ChainInfoReadOnly> newBlocks) throws VerificationException {
         lock.lock();
         try {
             // This runs on any peer thread with the block chain locked.
@@ -4400,12 +4403,12 @@ public class Wallet extends BaseTaggableObject
 
             List<Sha256Hash> oldBlockHashes = new ArrayList<Sha256Hash>(oldBlocks.size());
             log.info("Old part of chain (top to bottom):");
-            for (StoredBlock b : oldBlocks) {
+            for (ChainInfoReadOnly b : oldBlocks) {
                 log.info("  {}", b.getHeader().getHashAsString());
                 oldBlockHashes.add(b.getHeader().getHash());
             }
             log.info("New part of chain (top to bottom):");
-            for (StoredBlock b : newBlocks) {
+            for (ChainInfoReadOnly b : newBlocks) {
                 log.info("  {}", b.getHeader().getHashAsString());
             }
 
@@ -4481,12 +4484,12 @@ public class Wallet extends BaseTaggableObject
             // This will pull them back out of the pending pool, or if the tx didn't appear in the old chain and
             // does appear in the new chain, will treat it as such and possibly kill pending transactions that
             // conflict.
-            for (StoredBlock block : newBlocks) {
+            for (ChainInfoReadOnly block : newBlocks) {
                 log.info("Replaying block {}", block.getHeader().getHashAsString());
                 for (TxOffsetPair pair : mapBlockTx.get(block.getHeader().getHash())) {
                     log.info("  tx {}", pair.tx.getHash());
                     try {
-                        receive(pair.tx, block, SPVBlockChain.NewBlockType.BEST_CHAIN, pair.offset);
+                        receive(pair.tx, block, AbstractBlockChain.NewBlockType.BEST_CHAIN, pair.offset);
                     } catch (ScriptExecutionException e) {
                         throw new RuntimeException(e);  // Cannot happen as these blocks were already verified.
                     }

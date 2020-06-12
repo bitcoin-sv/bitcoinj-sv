@@ -18,13 +18,13 @@
 package org.bitcoinj.moved.core;
 
 import com.google.common.collect.*;
-import org.bitcoinj.chain.StoredBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.moved.wallet.KeyChainGroup;
 import org.bitcoinj.moved.wallet.Wallet;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
@@ -57,10 +57,10 @@ public class FilteredBlockAndPartialMerkleTreeTests extends TestWithPeerGroup {
     @Before
     public void setUp() throws Exception {
         context = Context.getOrCreate(TestWithNetworkConnections.PARAMS);
-        MemoryBlockStore store = new MemoryBlockStore(TestWithNetworkConnections.PARAMS);
+        MemoryBlockStore_legacy store = new MemoryBlockStore_legacy(TestWithNetworkConnections.PARAMS);
 
         // Cheat and place the previous block (block 100000) at the head of the block store without supporting blocks
-        store.put(new StoredBlock(new Block(TestWithNetworkConnections.NET, HEX.decode("0100000050120119172a610421a6c3011dd330d9df07b63616c2cc1f1cd00200000000006657a9252aacd5c0b2940996ecff952228c3067cc38d4885efb5a4ac4247e9f337221b4d4c86041b0f2b5710")),
+        store.put(new StoredBlock_legacy(new Block(TestWithNetworkConnections.NET, HEX.decode("0100000050120119172a610421a6c3011dd330d9df07b63616c2cc1f1cd00200000000006657a9252aacd5c0b2940996ecff952228c3067cc38d4885efb5a4ac4247e9f337221b4d4c86041b0f2b5710")),
                 BigInteger.valueOf(1), 100000));
         store.setChainHead(store.get(Sha256Hash.wrap("000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506")));
 
@@ -103,7 +103,7 @@ public class FilteredBlockAndPartialMerkleTreeTests extends TestWithPeerGroup {
         ECKey key2 = new ECKey();
         Transaction tx1 = FakeTxBuilder.createFakeTx(TestWithNetworkConnections.NET, Coin.COIN,  key1);
         Transaction tx2 = FakeTxBuilder.createFakeTx(TestWithNetworkConnections.NET, Coin.FIFTY_COINS, key2.toAddress(TestWithNetworkConnections.PARAMS));
-        Block block = FakeTxBuilder.makeSolvedTestBlock(Genesis.getFor(TestWithNetworkConnections.NET), Address.fromBase58(TestWithNetworkConnections.PARAMS, "msg2t2V2sWNd85LccoddtWysBTR8oPnkzW"), tx1, tx2);
+        Block block = FakeTxBuilder.makeSolvedTestBlock(Genesis_legacy.getFor(TestWithNetworkConnections.NET), Address.fromBase58(TestWithNetworkConnections.PARAMS, "msg2t2V2sWNd85LccoddtWysBTR8oPnkzW"), tx1, tx2);
         BloomFilter filter = new BloomFilter(4, 0.1, 1);
         filter.insert(key1);
         filter.insert(key2);

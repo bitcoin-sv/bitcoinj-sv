@@ -28,13 +28,10 @@ import com.google.common.primitives.UnsignedLongs;
 import org.bitcoinj.exception.AddressFormatException;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -62,6 +59,11 @@ public class Utils {
 
     private static BlockingQueue<Boolean> mockSleepQueue;
 
+    public static InputStream bufferAsInputStream(ByteBuffer buffer) {
+        new ByteArrayInputStream(null).read();
+        return new BufferBackedInputStream(buffer);
+    }
+
     /**
      * Reads up to the specified number of bytes and then resets the input stream to the starting position.
      * If the requested number of bytes are not available the returned byte array will be truncated to the available length
@@ -86,9 +88,14 @@ public class Utils {
      * @throws IOException
      */
     public static byte[] readBytes(InputStream in, int requested) throws IOException {
+        //In the vast majority of cases we can do this in one read operation.
         byte[] buf = new byte[requested];
-        int cursor = 0;
-        int read = 0;
+        int read = in.read(buf, 0, requested);
+        if (read == requested)
+            return buf;
+
+        //for the edge case where this doesn't work we need some additional checks.
+        int cursor = read;
         while (read != -1 && cursor < requested) {
             read = in.read(buf, cursor, requested - cursor);
             cursor += read;
@@ -104,9 +111,14 @@ public class Utils {
      * @throws IOException if stream ends before requested bytes are read
      */
     public static byte[] readBytesStrict(InputStream in, int requested) throws IOException {
+        //In the vast majority of cases we can do this in one read operation.
         byte[] buf = new byte[requested];
-        int cursor = 0;
-        int read = 0;
+        int read = in.read(buf, 0, requested);;
+        if (read == requested)
+            return buf;
+
+        //for the edge case where this doesn't work we need some additional checks.
+        int cursor = read;
         while (read != -1 && cursor < requested) {
             read = in.read(buf, cursor, requested - cursor);
             cursor += read;

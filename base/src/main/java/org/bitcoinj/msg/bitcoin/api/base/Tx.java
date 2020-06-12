@@ -12,13 +12,13 @@ public interface Tx extends Hashable<Tx> {
 
     void setVersion(long version);
 
-    List<Input> getInputs();
+    List<TxInput> getInputs();
 
-    void setInputs(List<Input> inputs);
+    void setInputs(List<TxInput> inputs);
 
-    List<Output> getOutputs();
+    List<TxOutput> getOutputs();
 
-    void setOutputs(List<Output> outputs);
+    void setOutputs(List<TxOutput> outputs);
 
     long getLockTime();
 

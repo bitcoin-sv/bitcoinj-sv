@@ -19,13 +19,13 @@
 package org.bitcoinj.store;
 
 import com.google.common.collect.Lists;
-import org.bitcoinj.chain.StoredBlock;
-import org.bitcoinj.chain.StoredUndoableBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
+import org.bitcoinj.chain_legacy.StoredUndoableBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.exception.UTXOProviderException;
 import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis;
+import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -146,9 +146,9 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
     private static final String SELECT_COMPATIBILITY_COINBASE_SQL               = "SELECT coinbase FROM openoutputs WHERE 1 = 2";
 
     protected Sha256Hash chainHeadHash;
-    protected StoredBlock chainHeadBlock;
+    protected StoredBlock_legacy chainHeadBlock;
     protected Sha256Hash verifiedChainHeadHash;
-    protected StoredBlock verifiedChainHeadBlock;
+    protected StoredBlock_legacy verifiedChainHeadBlock;
     protected NetworkParameters params;
     protected ThreadLocal<Connection> conn;
     protected List<Connection> allConnections;
@@ -572,11 +572,11 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
         try {
             // Set up the genesis block. When we start out fresh, it is by
             // definition the top of the chain.
-            StoredBlock storedGenesisHeader = new StoredBlock(Genesis.getFor(params).cloneAsHeader(), Genesis.getFor(params).getWork(), 0);
+            StoredBlock_legacy storedGenesisHeader = new StoredBlock_legacy(Genesis_legacy.getFor(params).cloneAsHeader(), Genesis_legacy.getFor(params).getWork(), 0);
             // The coinbase in the genesis block is not spendable. This is because of how Bitcoin Core inits
             // its database - the genesis transaction isn't actually in the db so its spent flags can never be updated.
             List<Transaction> genesisTransactions = Lists.newLinkedList();
-            StoredUndoableBlock storedGenesis = new StoredUndoableBlock(Genesis.getFor(params).getHash(), genesisTransactions);
+            StoredUndoableBlock_legacy storedGenesis = new StoredUndoableBlock_legacy(Genesis_legacy.getFor(params).getHash(), genesisTransactions);
             put(storedGenesisHeader, storedGenesis);
             setChainHead(storedGenesisHeader);
             setVerifiedChainHead(storedGenesisHeader);
@@ -620,7 +620,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
         }
     }
 
-    protected void putUpdateStoredBlock(StoredBlock storedBlock, boolean wasUndoable) throws SQLException {
+    protected void putUpdateStoredBlock(StoredBlock_legacy storedBlock, boolean wasUndoable) throws SQLException {
         try {
             PreparedStatement s =
                     conn.get().prepareStatement(getInsertHeadersSQL());
@@ -652,7 +652,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
     }
 
     @Override
-    public void put(StoredBlock storedBlock) throws BlockStoreException {
+    public void put(StoredBlock_legacy storedBlock) throws BlockStoreException {
         maybeConnect();
         try {
             putUpdateStoredBlock(storedBlock, false);
@@ -663,7 +663,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
 
 
     @Override
-    public void put(StoredBlock storedBlock, StoredUndoableBlock undoableBlock) throws BlockStoreException {
+    public void put(StoredBlock_legacy storedBlock, StoredUndoableBlock_legacy undoableBlock) throws BlockStoreException {
         maybeConnect();
         // We skip the first 4 bytes because (on mainnet) the minimum target has 4 0-bytes
         byte[] hashBytes = new byte[28];
@@ -734,7 +734,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
         }
     }
 
-    public StoredBlock get(Sha256Hash hash, boolean wasUndoableOnly) throws BlockStoreException {
+    public StoredBlock_legacy get(Sha256Hash hash, boolean wasUndoableOnly) throws BlockStoreException {
         // Optimize for chain head
         if (chainHeadHash != null && chainHeadHash.equals(hash))
             return chainHeadBlock;
@@ -762,7 +762,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
             int height = results.getInt(2);
             Block b = Serializer.defaultFor(params).makeBlock(results.getBytes(3));
             b.verifyHeader();
-            StoredBlock stored = new StoredBlock(b, chainWork, height);
+            StoredBlock_legacy stored = new StoredBlock_legacy(b, chainWork, height);
             return stored;
         } catch (SQLException ex) {
             throw new BlockStoreException(ex);
@@ -785,17 +785,17 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
     }
 
     @Override
-    public StoredBlock get(Sha256Hash hash) throws BlockStoreException {
+    public StoredBlock_legacy get(Sha256Hash hash) throws BlockStoreException {
         return get(hash, false);
     }
 
     @Override
-    public StoredBlock getOnceUndoableStoredBlock(Sha256Hash hash) throws BlockStoreException {
+    public StoredBlock_legacy getOnceUndoableStoredBlock(Sha256Hash hash) throws BlockStoreException {
         return get(hash, true);
     }
 
     @Override
-    public StoredUndoableBlock getUndoBlock(Sha256Hash hash) throws BlockStoreException {
+    public StoredUndoableBlock_legacy getUndoBlock(Sha256Hash hash) throws BlockStoreException {
         maybeConnect();
         PreparedStatement s = null;
         try {
@@ -813,7 +813,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
             // Parse it.
             byte[] txOutChanges = results.getBytes(1);
             byte[] transactions = results.getBytes(2);
-            StoredUndoableBlock block;
+            StoredUndoableBlock_legacy block;
             if (txOutChanges == null) {
                 int offset = 0;
                 int numTxn = ((transactions[offset++] & 0xFF)) |
@@ -826,11 +826,11 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
                     transactionList.add(tx);
                     offset += tx.getMessageSize();
                 }
-                block = new StoredUndoableBlock(hash, transactionList);
+                block = new StoredUndoableBlock_legacy(hash, transactionList);
             } else {
                 TransactionOutputChanges outChangesObject =
                         new TransactionOutputChanges(new ByteArrayInputStream(txOutChanges));
-                block = new StoredUndoableBlock(hash, outChangesObject);
+                block = new StoredUndoableBlock_legacy(hash, outChangesObject);
             }
             return block;
         } catch (SQLException ex) {
@@ -859,12 +859,12 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
     }
 
     @Override
-    public StoredBlock getChainHead() throws BlockStoreException {
+    public StoredBlock_legacy getChainHead() throws BlockStoreException {
         return chainHeadBlock;
     }
 
     @Override
-    public void setChainHead(StoredBlock chainHead) throws BlockStoreException {
+    public void setChainHead(StoredBlock_legacy chainHead) throws BlockStoreException {
         Sha256Hash hash = chainHead.getHeader().getHash();
         this.chainHeadHash = hash;
         this.chainHeadBlock = chainHead;
@@ -882,12 +882,12 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
     }
 
     @Override
-    public StoredBlock getVerifiedChainHead() throws BlockStoreException {
+    public StoredBlock_legacy getVerifiedChainHead() throws BlockStoreException {
         return verifiedChainHeadBlock;
     }
 
     @Override
-    public void setVerifiedChainHead(StoredBlock chainHead) throws BlockStoreException {
+    public void setVerifiedChainHead(StoredBlock_legacy chainHead) throws BlockStoreException {
         Sha256Hash hash = chainHead.getHeader().getHash();
         this.verifiedChainHeadHash = hash;
         this.verifiedChainHeadBlock = chainHead;

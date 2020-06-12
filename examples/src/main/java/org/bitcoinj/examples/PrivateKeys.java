@@ -17,12 +17,12 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain.SPVBlockChain;
+import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.p2p.PeerAddress;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import java.math.BigInteger;
@@ -62,8 +62,8 @@ public class PrivateKeys {
             wallet.importKey(key);
 
             // Find the transactions that involve those coins.
-            final MemoryBlockStore blockStore = new MemoryBlockStore(params);
-            SPVBlockChain chain = new SPVBlockChain(params, wallet, blockStore);
+            final MemoryBlockStore_legacy blockStore = new MemoryBlockStore_legacy(params);
+            SPVBlockChain_legacy chain = new SPVBlockChain_legacy(params, wallet, blockStore);
 
             final PeerGroup peerGroup = new PeerGroup(params, chain);
             peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost()));

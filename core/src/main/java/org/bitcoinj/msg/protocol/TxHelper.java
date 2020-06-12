@@ -107,7 +107,7 @@ public class TxHelper {
         Script pubKey = output.getScriptPubKey();
         int myIndex = transactionInput.getParentTransaction().getInputs().indexOf(transactionInput);
         //this is used in tests for CLTV so we have to be more liberal about disabled opcodes than usual.
-        ScriptUtils.correctlySpends(transactionInput.getScriptSig(), transactionInput.getParentTransaction(), myIndex, pubKey, verifyFlags);
+        ScriptUtils_legacy.correctlySpends(transactionInput.getScriptSig(), transactionInput.getParentTransaction(), myIndex, pubKey, verifyFlags);
     }
 
     /**

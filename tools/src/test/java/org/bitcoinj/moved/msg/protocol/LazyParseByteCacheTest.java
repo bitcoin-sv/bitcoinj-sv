@@ -31,8 +31,8 @@ import org.bitcoinj.msg.MessageSerializer;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.junit.Before;
@@ -77,7 +77,7 @@ public class LazyParseByteCacheTest {
             "00 8b 48 30 45 02 21 00  f3 58 1e 19 72 ae 8a c7" +
             "c7 36 7a 7a 25 3b c1 13  52 23 ad b9 a4 68 bb 3a");
 
-    private BlockStore blockStore;
+    private BlockStore_legacy blockStore;
     private static final NetworkParameters PARAMS = UnitTestParams.get();
     private static final Net NET = Net.UNITTEST;
 
@@ -91,7 +91,7 @@ public class LazyParseByteCacheTest {
     private byte[] tx2BytesWithHeader;
 
     private void resetBlockStore() {
-        blockStore = new MemoryBlockStore(PARAMS);
+        blockStore = new MemoryBlockStore_legacy(PARAMS);
     }
     
     @Before

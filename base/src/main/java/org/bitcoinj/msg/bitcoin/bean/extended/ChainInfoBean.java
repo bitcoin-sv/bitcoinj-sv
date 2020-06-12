@@ -2,10 +2,12 @@ package org.bitcoinj.msg.bitcoin.bean.extended;
 
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.api.base.HeaderReadOnly;
 import org.bitcoinj.msg.bitcoin.api.extended.ChainInfo;
 import org.bitcoinj.msg.bitcoin.bean.BitcoinObjectImpl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
@@ -13,18 +15,26 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<ChainInfo> implements ChainInfo<ChainInfo> {
 
-    public static final int CHAIN_WORK_BYTES = 12;
     private static final byte[] EMPTY_BYTES = new byte[CHAIN_WORK_BYTES];
 
-    private BigInteger chainWork;
-    private int height;
+    private BigInteger chainWork = null;
+    private int height = -1;
 
-    public ChainInfoBean(BitcoinObject parent, byte[] payload, int offset) {
+    private HeaderReadOnly header;
+
+    public ChainInfoBean(HeaderReadOnly parent, byte[] payload, int offset) {
         super(parent, payload, offset);
+        this.header = parent;
     }
 
-    public ChainInfoBean(BitcoinObject parent) {
+    public ChainInfoBean(HeaderReadOnly parent, InputStream in) {
+        super(parent, in);
+        this.header = parent;
+    }
+
+    public ChainInfoBean(HeaderReadOnly parent) {
         super(parent);
+        this.header = parent;
     }
 
     @Override
@@ -58,8 +68,9 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
 
     @Override
     public void serializeTo(OutputStream stream) throws IOException {
-        byte[] chainWorkBytes = getChainWork().toByteArray();
+        byte[] chainWorkBytes = chainWork == null ? EMPTY_BYTES : chainWork.toByteArray();
         checkState(chainWorkBytes.length <= CHAIN_WORK_BYTES, "Ran out of space to store chain work!");
+        stream.write(chainWorkBytes);
         if (chainWorkBytes.length < CHAIN_WORK_BYTES) {
             // Pad to the right size.
             stream.write(EMPTY_BYTES, 0, CHAIN_WORK_BYTES - chainWorkBytes.length);
@@ -69,6 +80,11 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
 
     @Override
     public ChainInfo makeNew(byte[] serialized) {
-        return null;
+        return new ChainInfoBean(getHeader(), serialized, 0);
+    }
+
+    @Override
+    public HeaderReadOnly getHeader() {
+        return header;
     }
 }

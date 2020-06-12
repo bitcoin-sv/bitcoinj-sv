@@ -18,8 +18,8 @@
 
 package org.bitcoinj.store;
 
-import org.bitcoinj.chain.StoredBlock;
-import org.bitcoinj.chain.StoredUndoableBlock;
+import org.bitcoinj.chain_legacy.StoredBlock_legacy;
+import org.bitcoinj.chain_legacy.StoredUndoableBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.msg.protocol.Transaction;
@@ -171,7 +171,7 @@ public class PostgresFullPrunedBlockStore extends DatabaseFullPrunedBlockStore {
     }
 
     @Override
-    public void put(StoredBlock storedBlock, StoredUndoableBlock undoableBlock) throws BlockStoreException {
+    public void put(StoredBlock_legacy storedBlock, StoredUndoableBlock_legacy undoableBlock) throws BlockStoreException {
         maybeConnect();
         // We skip the first 4 bytes because (on mainnet) the minimum target has 4 0-bytes
         byte[] hashBytes = new byte[28];
