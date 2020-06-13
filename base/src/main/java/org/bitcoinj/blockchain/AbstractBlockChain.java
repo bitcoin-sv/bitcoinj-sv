@@ -311,7 +311,7 @@ public abstract class AbstractBlockChain {
             // are only lightly verified: presence in a valid connecting block is taken as proof of validity. See the
             // article here for more details: https://bitcoinj.github.io/security-model
             try {
-                block.verifyHeader();
+                block.verifyHeader(params.getNet());
                 storedPrev = getStoredBlockInCurrentScope(block.getPrevBlockHash());
                 if (storedPrev != null) {
                     height = storedPrev.getChainInfo().getHeight() + 1;

@@ -1,8 +1,14 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.api.base;
 
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 
 import java.util.Date;
 
@@ -31,11 +37,12 @@ public interface Header<C extends Header> extends BitcoinObject<C>, HeaderReadOn
      *
      * Note this will modify the nonce so can only be called on a mutable object.
      */
-    default void solve() {
+    default void solve(Net net) {
+        NetworkParameters params = net.params();
         while (true) {
             try {
                 // Is our proof of work valid yet?
-                if (checkProofOfWork(false))
+                if (checkProofOfWork(params, false))
                     return;
                 // No, so increment the nonce and try again.
                 setNonce(getNonce() + 1);

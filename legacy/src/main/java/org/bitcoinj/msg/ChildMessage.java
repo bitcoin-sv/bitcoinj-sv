@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Steve Coughlan.
+ * Copyright 2011 Steve Shadders.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,4 +104,7 @@ public abstract class ChildMessage extends Message {
         return parent == null ? parent.rootObject() : this;
     }
 
+    public BitcoinObject parent() {
+        return parent;
+    }
 }

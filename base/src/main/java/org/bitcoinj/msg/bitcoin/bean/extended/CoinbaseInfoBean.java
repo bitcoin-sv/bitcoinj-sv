@@ -1,5 +1,9 @@
 package org.bitcoinj.msg.bitcoin.bean.extended;
 
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
 import org.bitcoinj.msg.bitcoin.api.base.Tx;
 import org.bitcoinj.msg.bitcoin.api.extended.CoinbaseInfo;

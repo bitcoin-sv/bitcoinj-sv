@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.params;
 
 import com.google.common.annotations.VisibleForTesting;

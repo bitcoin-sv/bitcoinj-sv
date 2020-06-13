@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin;
 
 import org.bitcoinj.core.BitcoinJ;
@@ -38,8 +42,6 @@ public class Genesis {
                     net.ensureParams();
                     genesis = createGenesis(net);
                     configureGenesis(net, genesis);
-
-                    checkState(genesis.getHashAsString().equals(net.params().genesisHash()));
                     GENESIS_BLOCKS.put(net, genesis);
                 }
             }
@@ -63,7 +65,8 @@ public class Genesis {
                     info.setChainWork(genesis.getWork());
                     info.makeImmutable();
 
-                    checkState(genesis.getHashAsString().equals(net.params().genesisHash()));
+                    if (net != Net.UNITTEST)
+                        checkState(genesis.getHashAsString().equals(net.params().genesisHash()));
                     GENESIS_BLOCKS_LITE.put(net, genesis);
                 }
             }
@@ -123,7 +126,7 @@ public class Genesis {
         genesis.setTime(params.genesisTime());
         genesis.setNonce(params.genesisNonce());
         if (net == Net.UNITTEST) {
-            genesis.solve();
+            genesis.solve(net);
         } else {
             String genesisHash = genesis.getHashAsString();
             boolean genesisHashCorrect = genesisHash.equals(params.genesisHash());

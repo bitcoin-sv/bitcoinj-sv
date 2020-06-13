@@ -23,7 +23,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.Serializer;
 import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.moved.msg.protocol.BlockTest;
+import org.bitcoinj.moved.msg.protocol.BlockTest_legacy;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.msg.protocol.Transaction.Purpose;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
@@ -210,7 +210,7 @@ public class WalletProtobufSerializerTest {
         assertTrue(lastSeenBlockHash.isEmpty());
 
         // Create a block.
-        Block block = Serializer.defaultFor(NET).makeBlock(BlockTest.blockBytes);
+        Block block = Serializer.defaultFor(NET).makeBlock(BlockTest_legacy.blockBytes);
         Sha256Hash blockHash = block.getHash();
         wallet.setLastBlockSeenHash(blockHash);
         wallet.setLastBlockSeenHeight(1);

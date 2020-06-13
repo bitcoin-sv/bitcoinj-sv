@@ -1,9 +1,15 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.core;
 
 import java.math.BigInteger;
 
 /**
  * Placeholder for constants that are commonly referenced but don't necessarilly need to require a dependency on the original class
+ *
+ * @author Steve Shadders
  */
 public class BitcoinJ {
 

@@ -1,7 +1,11 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.api.base;
 
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.params.Net;
 
 import java.util.Date;
 
@@ -11,8 +15,8 @@ public interface AbstractBlock<C extends AbstractBlock> extends Header<C> {
 
     void setHeader(Header header);
 
-    default void verifyHeader() {
-        getHeader().verifyHeader();
+    default void verifyHeader(Net net) {
+        getHeader().verifyHeader(net);
     }
 
     default long getVersion() {

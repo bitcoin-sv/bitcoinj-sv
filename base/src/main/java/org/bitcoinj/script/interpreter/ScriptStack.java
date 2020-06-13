@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.script.interpreter;
 
 import org.slf4j.Logger;

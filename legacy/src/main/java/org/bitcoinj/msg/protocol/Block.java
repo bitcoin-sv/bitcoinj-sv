@@ -593,6 +593,11 @@ public class Block extends Message implements HeaderReadOnly {
         }
     }
 
+    @Override
+    public void clearHash() {
+        hash = null;
+    }
+
     /**
      * Returns the hash of the block (which for a valid, solved block should be below the target) in the form seen on
      * the block explorer. If you call this on block 1 in the mainnet chain
@@ -905,8 +910,9 @@ public class Block extends Message implements HeaderReadOnly {
      * of the chain and without a transaction index.
      *
      * @throws VerificationException
+     * @param net
      */
-    public void verifyHeader() throws VerificationException {
+    public void verifyHeader(Net net) throws VerificationException {
         // Prove that this block is OK. It might seem that we can just ignore most of these checks given that the
         // network is also verifying the blocks, but we cannot as it'd open us to a variety of obscure attacks.
         //
@@ -952,7 +958,7 @@ public class Block extends Message implements HeaderReadOnly {
      * @throws VerificationException if there was an error verifying the block.
      */
     public void verify(final int height, final EnumSet<BitcoinJ.BlockVerifyFlag> flags) throws VerificationException {
-        verifyHeader();
+        verifyHeader(net);
         verifyTransactions(height, flags);
     }
 
@@ -1223,7 +1229,7 @@ public class Block extends Message implements HeaderReadOnly {
             b.setTime(time);
         b.solve();
         try {
-            b.verifyHeader();
+            b.verifyHeader(net);
         } catch (VerificationException e) {
             throw new RuntimeException(e); // Cannot happen.
         }

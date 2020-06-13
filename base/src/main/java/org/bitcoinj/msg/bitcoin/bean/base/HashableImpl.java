@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.bean.base;
 
 import org.bitcoinj.core.Sha256Hash;
@@ -30,6 +34,11 @@ public abstract class HashableImpl<C extends Hashable> extends BitcoinObjectImpl
             hash = calculateHash();
         }
         return hash;
+    }
+
+    @Override
+    public void clearHash() {
+        hash = null;
     }
 
     @Override

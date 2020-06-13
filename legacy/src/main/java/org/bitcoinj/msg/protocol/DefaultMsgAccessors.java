@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) 2020 Steve Shadders
+ */
 package org.bitcoinj.msg.protocol;
 
 import org.bitcoinj.params.Net;

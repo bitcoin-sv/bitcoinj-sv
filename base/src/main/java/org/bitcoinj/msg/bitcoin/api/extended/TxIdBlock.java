@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.api.extended;
 
 import org.bitcoinj.core.Sha256Hash;

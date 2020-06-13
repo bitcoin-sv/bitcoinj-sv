@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.api.base;
 
 import org.bitcoinj.core.BitcoinJ;
@@ -6,6 +10,7 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
 import org.bitcoinj.params.Net;
+import org.bitcoinj.params.NetworkParameters;
 
 import java.math.BigInteger;
 import java.util.Locale;
@@ -39,8 +44,6 @@ public interface HeaderReadOnly<C extends BitcoinObject> extends Hashable<C> {
      */
     default BigInteger getDifficultyTargetAsInteger() throws VerificationException {
         BigInteger target = Utils.decodeCompactBits(getDifficultyTarget());
-        if (target.signum() <= 0 || target.compareTo(Net.MAINNET.params().getMaxTarget()) > 0)
-            throw new VerificationException("Difficulty target is bad: " + target.toString());
         return target;
     }
 
@@ -64,21 +67,22 @@ public interface HeaderReadOnly<C extends BitcoinObject> extends Hashable<C> {
      * of the chain and without a transaction index.
      *
      * @throws VerificationException
+     * @param net
      */
-    default void verifyHeader() throws VerificationException {
+    default void verifyHeader(Net net) throws VerificationException {
         // Prove that this block is OK. It might seem that we can just ignore most of these checks given that the
         // network is also verifying the blocks, but we cannot as it'd open us to a variety of obscure attacks.
         //
         // Firstly we need to ensure this block does in fact represent real work done. If the difficulty is high
         // enough, it's probably been done by the network.
-        checkProofOfWork(true);
+        checkProofOfWork(net.params(), true);
         checkTimestamp();
     }
 
     /**
      * Returns true if the hash of the block is OK (lower than difficulty target).
      */
-    default boolean checkProofOfWork(boolean throwException) throws VerificationException {
+    default boolean checkProofOfWork(NetworkParameters params, boolean throwException) throws VerificationException {
         // This part is key - it is what proves the block was as difficult to make as it claims
         // to be. Note however that in the context of this function, the block can claim to be
         // as difficult as it wants to be .... if somebody was able to take control of our network
@@ -88,9 +92,15 @@ public interface HeaderReadOnly<C extends BitcoinObject> extends Hashable<C> {
         // To prevent this attack from being possible, elsewhere we check that the difficultyTarget
         // field is of the right value. This requires us to have the preceeding blocks.
         BigInteger target = getDifficultyTargetAsInteger();
+        if (target.signum() <= 0 || target.compareTo(params.getMaxTarget()) > 0) {
+            if (throwException)
+                throw new VerificationException("Difficulty target is bad: " + target.toString());
+            else
+                return false;
+        }
 
-        BigInteger h = getHash().toBigInteger();
-        if (h.compareTo(target) > 0) {
+        BigInteger hash_ = getHash().toBigInteger();
+        if (hash_.compareTo(target) > 0) {
             // Proof of work check failed!
             if (throwException) {
                 throw new VerificationException("Hash is higher than target: " + getHashAsString() + " vs "

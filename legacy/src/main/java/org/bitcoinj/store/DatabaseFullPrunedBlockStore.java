@@ -761,7 +761,7 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
             BigInteger chainWork = new BigInteger(results.getBytes(1));
             int height = results.getInt(2);
             Block b = Serializer.defaultFor(params).makeBlock(results.getBytes(3));
-            b.verifyHeader();
+            b.verifyHeader(params.getNet());
             StoredBlock_legacy stored = new StoredBlock_legacy(b, chainWork, height);
             return stored;
         } catch (SQLException ex) {

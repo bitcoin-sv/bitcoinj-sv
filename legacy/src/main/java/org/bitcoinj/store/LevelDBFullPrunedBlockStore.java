@@ -641,7 +641,7 @@ public class LevelDBFullPrunedBlockStore implements FullPrunedBlockStore {
         // TODO Should I chop the last byte off? Seems to work with it left
         // there...
         StoredBlock_legacy stored = StoredBlock_legacy.deserializeCompact(params, ByteBuffer.wrap(result));
-        stored.getHeader().verifyHeader();
+        stored.getHeader().verifyHeader(params.getNet());
 
         if (instrument)
             endMethod("get");

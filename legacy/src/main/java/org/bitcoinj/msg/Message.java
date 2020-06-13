@@ -554,4 +554,8 @@ public abstract class Message implements BitcoinObject {
     public void makeImmutable() {
         throw new UnsupportedOperationException();
     }
+
+    public BitcoinObject parent() {
+        return null;
+    }
 }

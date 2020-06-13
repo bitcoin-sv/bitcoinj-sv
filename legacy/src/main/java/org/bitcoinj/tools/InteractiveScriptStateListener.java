@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2018 Steve Shadders
+ * All rights reserved
+ */
 package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;

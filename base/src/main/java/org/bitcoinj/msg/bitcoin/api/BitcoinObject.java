@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.api;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -37,6 +41,8 @@ public interface BitcoinObject<I extends BitcoinObject> {
     void makeSelfMutable();
 
     BitcoinObject rootObject();
+
+    BitcoinObject parent();
 
     I makeMutable();
 

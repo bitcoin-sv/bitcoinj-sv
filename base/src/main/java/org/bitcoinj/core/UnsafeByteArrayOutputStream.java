@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Steve Coughlan.
+ * Copyright 2011 Steve Shadders.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ import java.nio.ByteBuffer;
  * Unless the final length can be accurately predicted the only performance this will yield is due to unsynchronized
  * methods.
  *
- * @author git
+ * @author Steve Shadders
+ *
  */
 public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
 

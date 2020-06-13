@@ -1,7 +1,13 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.bean;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.bitcoin.api.BitcoinObject;
+import org.bitcoinj.msg.bitcoin.api.base.Hashable;
+import org.bitcoinj.msg.bitcoin.api.base.Header;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -168,10 +174,23 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
     protected void checkMutable() {
         if (!isMutable())
             throw new IllegalStateException("modifying fields on immutable object, call makeMutable() first");
+        //since this called before modifying fields we need to clear the hash
+        //to ensure it's recalculated accurately.
+        BitcoinObject par = this;
+        while (par != null) {
+            if (par instanceof Hashable) {
+                ((Hashable) par).clearHash();
+            }
+            par = par.parent();
+        }
     }
 
     public BitcoinObject rootObject() {
         return parent == null ? this : parent.rootObject();
+    }
+
+    public BitcoinObject parent() {
+        return parent;
     }
 
     protected long readUint32() throws ProtocolException {

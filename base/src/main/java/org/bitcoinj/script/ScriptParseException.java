@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) 2020 Steve Shadders
+ */
 package org.bitcoinj.script;
 
 import org.bitcoinj.exception.VerificationException;

@@ -1,9 +1,10 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.script;
 
-import org.bitcoinj.core.Coin;
-
 import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * Flags to pass to { Script#correctlySpends(Transaction, long, Script, Coin, Set)}.

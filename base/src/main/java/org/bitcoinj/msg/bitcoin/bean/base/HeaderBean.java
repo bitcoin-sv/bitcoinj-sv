@@ -1,12 +1,12 @@
+/**
+ * Copyright (c) 2020 Steve Shadders.
+ * All rights reserved.
+ */
 package org.bitcoinj.msg.bitcoin.bean.base;
-
-import org.bitcoinj.core.BitcoinJ;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.bitcoin.api.base.AbstractBlock;
 import org.bitcoinj.msg.bitcoin.api.base.Header;
-import org.bitcoinj.msg.bitcoin.api.base.Tx;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,9 +52,14 @@ public class HeaderBean extends HashableImpl<Header> implements Header<Header> {
         return block;
     }
 
+    /**
+     * set the hash with a mutability check, to clear the hash without the check
+     * call clearHash()
+     * @param hash
+     */
     @Override
     public void setHash(Sha256Hash hash) {
-        checkMutable();
+        clearHash();
         this.hash = hash;
     }
 
