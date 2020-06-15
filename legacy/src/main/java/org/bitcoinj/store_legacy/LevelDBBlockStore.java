@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.bitcoinj.store_legacy;
 
 import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;

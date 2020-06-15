@@ -35,7 +35,7 @@ import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
+import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.moved.testing.FooWalletExtension;
 import org.bitcoinj.temp.KeyPurpose;

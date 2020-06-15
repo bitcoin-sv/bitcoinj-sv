@@ -23,6 +23,8 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
 
     private BigInteger chainWork = null;
     private int height = -1;
+    //total number of txs in chain including this block
+    private long totalChainTxs = -1;
 
     private HeaderReadOnly header;
 
@@ -64,10 +66,21 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
     }
 
     @Override
+    public long getTotalChainTxs() {
+        return totalChainTxs;
+    }
+
+    @Override
+    public void setTotalChainTxs(long totalChainTxs) {
+        this.totalChainTxs = totalChainTxs;
+    }
+
+    @Override
     protected void parse() {
         byte[] chainWorkBytes = readBytes(CHAIN_WORK_BYTES);
         chainWork = new BigInteger(1, chainWorkBytes);
         height = (int) readUint32();
+        totalChainTxs = readInt64();
     }
 
     @Override
@@ -80,6 +93,7 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
             stream.write(EMPTY_BYTES, 0, CHAIN_WORK_BYTES - chainWorkBytes.length);
         }
         Utils.uint32ToByteStreamLE(getHeight(), stream);
+        Utils.int64ToByteStreamLE(totalChainTxs, stream);
     }
 
     @Override

@@ -24,8 +24,8 @@ import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.store.BlockStore_legacy;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
+import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.moved.wallet.Wallet;
 

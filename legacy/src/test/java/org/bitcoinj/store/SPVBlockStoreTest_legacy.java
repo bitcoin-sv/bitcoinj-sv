@@ -22,6 +22,7 @@ import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.params.UnitTestParams;
+import org.bitcoinj.store_legacy.SPVBlockStore_legacy;
 import org.junit.Test;
 
 import java.io.File;

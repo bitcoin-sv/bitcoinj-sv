@@ -24,7 +24,7 @@ import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.*;
+import org.bitcoinj.store_legacy.*;
 import org.bitcoinj.utils.BlockFileLoader;
 import com.google.common.base.Preconditions;
 

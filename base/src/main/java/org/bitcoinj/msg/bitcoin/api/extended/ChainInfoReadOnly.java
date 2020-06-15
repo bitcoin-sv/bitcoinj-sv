@@ -15,4 +15,6 @@ public interface ChainInfoReadOnly {
     BigInteger getChainWork();
 
     int getHeight();
+
+    long getTotalChainTxs();
 }

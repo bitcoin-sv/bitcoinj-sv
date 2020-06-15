@@ -18,6 +18,7 @@ import org.bitcoinj.chain_legacy.StoredBlock_legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.params.*;
+import org.bitcoinj.store_legacy.LevelDBBlockStore;
 import org.junit.*;
 
 import java.io.*;

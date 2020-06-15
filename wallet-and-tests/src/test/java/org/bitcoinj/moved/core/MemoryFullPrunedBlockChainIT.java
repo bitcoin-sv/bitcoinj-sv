@@ -17,8 +17,8 @@ package org.bitcoinj.moved.core;
 import org.bitcoinj.moved.msg.protocol.AbstractFullPrunedBlockChainIT;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.FullPrunedBlockStore;
-import org.bitcoinj.store.MemoryFullPrunedBlockStore;
+import org.bitcoinj.store_legacy.FullPrunedBlockStore;
+import org.bitcoinj.store_legacy.MemoryFullPrunedBlockStore;
 
 /**
  * A MemoryStore implementation of the FullPrunedBlockStoreTest

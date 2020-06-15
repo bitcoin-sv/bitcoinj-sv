@@ -38,7 +38,9 @@ import org.bitcoinj.pow_legacy.AbstractPowRulesChecker_legacy;
 import org.bitcoinj.pow_legacy.AbstractRuleCheckerFactory_legacy;
 import org.bitcoinj.pow_legacy.factory.RuleCheckerFactory_legacy;
 import org.bitcoinj.script.interpreter.ScriptExecutionException;
-import org.bitcoinj.store.*;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
+import org.bitcoinj.store_legacy.H2FullPrunedBlockStore;
+import org.bitcoinj.store_legacy.SPVBlockStore_legacy;
 import org.bitcoinj.utils.*;
 import org.slf4j.*;
 
@@ -68,7 +70,7 @@ import static com.google.common.base.Preconditions.*;
  * <p>There are two subclasses of AbstractBlockChain that are useful: {@link SPVBlockChain_legacy}, which is the simplest
  * class and implements <i>simplified payment verification</i>. This is a lightweight and efficient mode that does
  * not verify the contents of blocks, just their headers. A {@link FullPrunedBlockChain_legacy} paired with a
- * {@link org.bitcoinj.store.H2FullPrunedBlockStore} implements full verification, which is equivalent to
+ * {@link H2FullPrunedBlockStore} implements full verification, which is equivalent to
  * Bitcoin Core. To learn more about the alternative security models, please consult the articles on the
  * website.</p>
  *

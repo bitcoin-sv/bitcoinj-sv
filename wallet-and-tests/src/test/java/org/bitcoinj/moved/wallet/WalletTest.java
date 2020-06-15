@@ -38,7 +38,7 @@ import org.bitcoinj.script.ScriptUtils_legacy;
 import org.bitcoinj.signers.StatelessTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;
 import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
+import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
 import org.bitcoinj.temp.*;
 import org.bitcoinj.utils.ExchangeRate;
 import org.bitcoinj.utils.Fiat;

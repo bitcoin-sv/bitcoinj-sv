@@ -31,7 +31,7 @@ import org.bitcoinj.script.ScriptUtils;
 import org.bitcoinj.script.ScriptUtils_legacy;
 import org.bitcoinj.script.ScriptVerifyFlag;
 import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
+import org.bitcoinj.store_legacy.FullPrunedBlockStore;
 import org.bitcoinj.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

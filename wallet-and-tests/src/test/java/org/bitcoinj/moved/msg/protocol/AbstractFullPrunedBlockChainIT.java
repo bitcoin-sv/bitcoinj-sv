@@ -30,7 +30,7 @@ import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.params.UnitTestParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
+import org.bitcoinj.store_legacy.FullPrunedBlockStore;
 import org.bitcoinj.utils.BlockFileLoader;
 import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.temp.SendRequest;

@@ -22,16 +22,16 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.Genesis_legacy;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
+import org.bitcoinj.store_legacy.FullPrunedBlockStore;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
-import org.bitcoinj.store.SPVBlockStore_legacy;
+import org.bitcoinj.store_legacy.SPVBlockStore_legacy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

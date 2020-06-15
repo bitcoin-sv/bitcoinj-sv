@@ -29,7 +29,7 @@ import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.net.StreamConnection;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.temp.TxEventListener;
 import org.bitcoinj.utils.ListenerRegistration;

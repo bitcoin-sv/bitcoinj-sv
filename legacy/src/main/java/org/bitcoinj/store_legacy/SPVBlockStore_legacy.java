@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.bitcoinj.store_legacy;
 
 import org.bitcoinj.blockstore.ChainFileLockedException;
 import org.bitcoinj.blockstore.WindowsMMapHack;

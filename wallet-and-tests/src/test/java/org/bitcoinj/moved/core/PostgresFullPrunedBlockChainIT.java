@@ -17,8 +17,8 @@ package org.bitcoinj.moved.core;
 import org.bitcoinj.moved.msg.protocol.AbstractFullPrunedBlockChainIT;
 import org.bitcoinj.exception.BlockStoreException;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.FullPrunedBlockStore;
-import org.bitcoinj.store.PostgresFullPrunedBlockStore;
+import org.bitcoinj.store_legacy.FullPrunedBlockStore;
+import org.bitcoinj.store_legacy.PostgresFullPrunedBlockStore;
 import org.junit.After;
 import org.junit.Test;
 

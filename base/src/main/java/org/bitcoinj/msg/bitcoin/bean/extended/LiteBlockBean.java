@@ -44,6 +44,11 @@ public class LiteBlockBean<C extends LiteBlock> extends HashableImpl<LiteBlock> 
     }
 
     @Override
+    public long getTotalChainTxs() {
+        return chainInfo.getTotalChainTxs();
+    }
+
+    @Override
     public void setHeader(Header header) {
         this.header = header;
     }

@@ -27,6 +27,7 @@ public class ChainUtils {
         nextBlock.getChainInfo().makeMutable();
         nextBlock.getChainInfo().setChainWork(chainWork);
         nextBlock.getChainInfo().setHeight(height);
+        nextBlock.getChainInfo().setTotalChainTxs(thisBlock.getTotalChainTxs() + nextBlock.getBlockMeta().getTxCount());
         return nextBlock;
     }
 

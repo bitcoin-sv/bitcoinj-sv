@@ -19,7 +19,7 @@ package org.bitcoinj.utils;
 import java.util.Stack;
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.chain_legacy.StoredBlock_legacy;
-import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
 
 /**

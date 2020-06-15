@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.bitcoinj.store_legacy;
 
 import com.google.common.collect.Lists;
 import org.bitcoinj.chain_legacy.StoredBlock_legacy;
@@ -1129,10 +1129,10 @@ public abstract class DatabaseFullPrunedBlockStore implements FullPrunedBlockSto
     /**
      * Calculate the balance for a coinbase, to-address, or p2sh address.
      *
-     * <p>The balance {@link org.bitcoinj.store.DatabaseFullPrunedBlockStore#getBalanceSelectSQL()} returns
+     * <p>The balance {@link DatabaseFullPrunedBlockStore#getBalanceSelectSQL()} returns
      * the balance (summed) as an number, then use calculateClientSide=false</p>
      *
-     * <p>The balance {@link org.bitcoinj.store.DatabaseFullPrunedBlockStore#getBalanceSelectSQL()} returns
+     * <p>The balance {@link DatabaseFullPrunedBlockStore#getBalanceSelectSQL()} returns
      * the all the openoutputs as stored in the DB (binary), then use calculateClientSide=true</p>
      *
      * @param address The address to calculate the balance of

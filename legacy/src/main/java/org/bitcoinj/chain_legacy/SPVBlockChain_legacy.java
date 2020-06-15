@@ -26,10 +26,10 @@ import org.bitcoinj.exception.VerificationException;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.p2p.FilteredBlock;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
-import org.bitcoinj.store.SPVBlockStore_legacy;
+import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import org.bitcoinj.store_legacy.SPVBlockStore_legacy;
 
 import java.util.ArrayList;
 import java.util.Collections;

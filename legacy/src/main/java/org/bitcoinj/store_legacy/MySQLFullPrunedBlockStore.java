@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.bitcoinj.store_legacy;
 
 import org.bitcoinj.params.NetworkParameters;
 import org.bitcoinj.exception.BlockStoreException;

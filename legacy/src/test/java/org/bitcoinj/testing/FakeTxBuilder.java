@@ -25,7 +25,7 @@ import org.bitcoinj.msg.*;
 import org.bitcoinj.msg.protocol.*;
 import org.bitcoinj.params.Net;
 import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
 
 import java.io.ByteArrayOutputStream;

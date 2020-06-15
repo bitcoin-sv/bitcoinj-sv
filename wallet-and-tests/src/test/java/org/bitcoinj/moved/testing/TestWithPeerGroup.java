@@ -26,8 +26,8 @@ import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.net.BlockingClientManager;
 import org.bitcoinj.net.ClientConnectionManager;
 import org.bitcoinj.net.NioClientManager;
-import org.bitcoinj.store.BlockStore_legacy;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
+import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
 import org.bitcoinj.utils.ContextPropagatingThreadFactory;
 
 import java.net.InetSocketAddress;

@@ -25,7 +25,7 @@ import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.BlockStore_legacy;
+import org.bitcoinj.store_legacy.BlockStore_legacy;
 import org.bitcoinj.exception.BlockStoreException;
 import com.google.common.base.Objects;
 import org.bitcoinj.utils.ObjectGetter;
@@ -114,6 +114,11 @@ public class StoredBlock_legacy implements ChainInfoReadOnly {
      */
     public int getHeight() {
         return height;
+    }
+
+    @Override
+    public long getTotalChainTxs() {
+        return -1;
     }
 
     public int getTxCount() { return txCount; }

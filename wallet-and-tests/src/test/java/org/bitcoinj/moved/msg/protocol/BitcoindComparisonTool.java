@@ -32,7 +32,8 @@ import org.bitcoinj.msg.p2p.*;
 import org.bitcoinj.msg.protocol.Block;
 import org.bitcoinj.net.*;
 import org.bitcoinj.params.*;
-import org.bitcoinj.store.*;
+import org.bitcoinj.store_legacy.H2FullPrunedBlockStore;
+import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
 import org.bitcoinj.utils.*;
 import org.slf4j.*;
 

@@ -12,7 +12,7 @@ public interface ChainInfo<C extends BitcoinObject> extends BitcoinObject<C>, Ch
 
     public static final int CHAIN_WORK_BYTES = 12;
 
-    public static final int FIXED_MESSAGE_SIZE = CHAIN_WORK_BYTES + 4;
+    public static final int FIXED_MESSAGE_SIZE = CHAIN_WORK_BYTES + 4 + 8;
 
     void setChainWork(BigInteger chainWork);
 
@@ -22,4 +22,6 @@ public interface ChainInfo<C extends BitcoinObject> extends BitcoinObject<C>, Ch
     default int fixedSize() {
         return FIXED_MESSAGE_SIZE;
     }
+
+    void setTotalChainTxs(long totalChainTxs);
 }
