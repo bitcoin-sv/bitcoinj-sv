@@ -166,7 +166,7 @@ public class StackItem<C> {
     }
 
     public enum Type {
-        BYTES, INT, STRING;
+        BYTES, INT, BOOL, STRING, ANY;
     }
 }
 
