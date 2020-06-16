@@ -17,18 +17,18 @@
 package org.bitcoinj.moved.protocols.channels;
 
 import com.google.common.collect.*;
-import org.bitcoinj.core.*;
-import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.SigHash;
-import org.bitcoinj.temp.MissingSigsMode;
-import org.bitcoinj.temp.SendRequest;
+import io.bitcoinj.core.*;
+import io.bitcoinj.ecc.TransactionSignature;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionInput;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.script.Script;
+import io.bitcoinj.script.ScriptBuilder;
+import io.bitcoinj.script.SigHash;
+import io.bitcoinj.temp.MissingSigsMode;
+import io.bitcoinj.temp.SendRequest;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.util.concurrent.FutureCallback;

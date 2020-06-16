@@ -14,13 +14,13 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.core.listeners.DownloadProgressTracker;
-import org.bitcoinj.core.*;
-import org.bitcoinj.net.discovery.DnsDiscovery;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.SPVBlockStore_legacy;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.listeners.DownloadProgressTracker;
+import io.bitcoinj.core.*;
+import io.bitcoinj.net.discovery.DnsDiscovery;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.store.SPVBlockStore_legacy;
 import org.bitcoinj.moved.wallet.DeterministicSeed;
 import org.bitcoinj.moved.wallet.Wallet;
 

@@ -18,21 +18,21 @@
 //package org.bitcoinj.moved.msg.protocol;
 //
 //import com.google.common.io.ByteStreams;
-//import org.bitcoinj.blockchain.AbstractBlockChain;
-//import org.bitcoinj.chain_legacy.StoredBlock_legacy;
-//import org.bitcoinj.core.*;
-//import org.bitcoinj.exception.VerificationException;
+//import io.bitcoinj.blockchain.AbstractBlockChain;
+//import io.bitcoinj.chain_legacy.StoredBlock_legacy;
+//import io.bitcoinj.core.*;
+//import io.bitcoinj.exception.VerificationException;
 //import org.bitcoinj.moved.wallet.Wallet;
 //import org.bitcoinj.moved.wallet.Wallet.BalanceType;
-//import org.bitcoinj.msg.bitcoin.Genesis;
-//import org.bitcoinj.msg.bitcoin.api.base.FullBlock;
-//import org.bitcoinj.msg.bitcoin.api.base.Header;
-//import org.bitcoinj.msg.bitcoin.api.base.Tx;
-//import org.bitcoinj.msg.bitcoin.bean.base.FullBlockBean;
-//import org.bitcoinj.msg.bitcoin.bean.base.HeaderBean;
-//import org.bitcoinj.msg.protocol.*;
-//import org.bitcoinj.params.*;
-//import org.bitcoinj.script.ScriptOpCodes;
+//import io.bitcoinj.bitcoin.Genesis;
+//import io.bitcoinj.bitcoin.api.base.FullBlock;
+//import io.bitcoinj.bitcoin.api.base.Header;
+//import io.bitcoinj.bitcoin.api.base.Tx;
+//import io.bitcoinj.bitcoin.bean.base.FullBlockBean;
+//import io.bitcoinj.bitcoin.bean.base.HeaderBean;
+//import io.bitcoinj.msg.protocol.*;
+//import io.bitcoinj.params.*;
+//import io.bitcoinj.script.ScriptOpCodes;
 //import org.junit.Before;
 //import org.junit.Test;
 //
@@ -41,7 +41,7 @@
 //import java.util.EnumSet;
 //import java.util.List;
 //
-//import static org.bitcoinj.core.Utils.HEX;
+//import static io.bitcoinj.core.Utils.HEX;
 //import static org.junit.Assert.*;
 //
 //public class BlockTest {

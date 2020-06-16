@@ -16,22 +16,22 @@
 
 package org.bitcoinj.moved.wallet;
 
-import org.bitcoinj.blockchain.AbstractBlockChain;
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.params.*;
+import io.bitcoinj.blockchain.AbstractBlockChain;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.p2p.PeerAddress;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.params.*;
 import org.bitcoinj.moved.testing.*;
-import org.bitcoinj.temp.CoinSelection;
+import io.bitcoinj.temp.CoinSelection;
 import org.junit.*;
 
 import java.net.*;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.*;
-import static org.bitcoinj.core.Coin.*;
+import static io.bitcoinj.core.Coin.*;
 import static org.junit.Assert.*;
 
 public class DefaultCoinSelectorTest extends TestWithWallet {

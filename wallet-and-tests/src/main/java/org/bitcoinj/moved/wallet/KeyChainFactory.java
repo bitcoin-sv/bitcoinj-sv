@@ -16,9 +16,9 @@
 
 package org.bitcoinj.moved.wallet;
 
-import org.bitcoinj.crypto.DeterministicKey;
-import org.bitcoinj.crypto.KeyCrypter;
-import org.bitcoinj.protos.Protos;
+import io.bitcoinj.crypto.DeterministicKey;
+import io.bitcoinj.crypto.KeyCrypter;
+import io.bitcoinj.protos.Protos;
 
 /**
  * Factory interface for creation keychains while de-serializing a wallet.

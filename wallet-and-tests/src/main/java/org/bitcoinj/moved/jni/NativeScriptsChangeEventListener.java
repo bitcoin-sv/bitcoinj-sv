@@ -16,9 +16,8 @@
 
 package org.bitcoinj.moved.jni;
 
-import org.bitcoinj.script.Script;
-import org.bitcoinj.moved.wallet.Wallet;
-import org.bitcoinj.temp.listener.ScriptsChangeEventListener;
+import io.bitcoinj.script.Script;
+import io.bitcoinj.temp.listener.ScriptsChangeEventListener;
 
 import java.util.List;
 

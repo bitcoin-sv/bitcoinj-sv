@@ -16,13 +16,13 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.blockchain.AbstractBlockChain;
-import org.bitcoinj.core.*;
-import org.bitcoinj.ecc.ECDSA;
-import org.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.blockchain.AbstractBlockChain;
+import io.bitcoinj.core.*;
+import io.bitcoinj.ecc.ECDSA;
+import io.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.moved.testing.TestWithWallet;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.utils.Threading;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.WalletExtension;
 import org.bitcoinj.moved.wallet.WalletFiles;
@@ -51,7 +51,7 @@ import java.util.Collection;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.bitcoinj.core.Coin.*;
+import static io.bitcoinj.core.Coin.*;
 import static org.bitcoinj.moved.protocols.channels.PaymentChannelCloseException.CloseReason;
 import static org.bitcoinj.moved.testing.FakeTxBuilder.createFakeBlock;
 import static org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
@@ -553,7 +553,7 @@ public class ChannelConnectionTest extends TestWithWallet {
     private static Wallet roundTripClientWallet(Wallet wallet) throws Exception {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         new WalletProtobufSerializer().writeWallet(wallet, bos);
-        org.bitcoinj.protos.Protos.Wallet proto = WalletProtobufSerializer.parseToProto(new ByteArrayInputStream(bos.toByteArray()));
+        io.bitcoinj.protos.Protos.Wallet proto = WalletProtobufSerializer.parseToProto(new ByteArrayInputStream(bos.toByteArray()));
         StoredPaymentChannelClientStates state = new StoredPaymentChannelClientStates(null, failBroadcaster);
         return new WalletProtobufSerializer().readWallet(wallet.getParams(), new WalletExtension[] { state }, proto);
     }
@@ -562,7 +562,7 @@ public class ChannelConnectionTest extends TestWithWallet {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         new WalletProtobufSerializer().writeWallet(wallet, bos);
         StoredPaymentChannelServerStates state = new StoredPaymentChannelServerStates(null, failBroadcaster);
-        org.bitcoinj.protos.Protos.Wallet proto = WalletProtobufSerializer.parseToProto(new ByteArrayInputStream(bos.toByteArray()));
+        io.bitcoinj.protos.Protos.Wallet proto = WalletProtobufSerializer.parseToProto(new ByteArrayInputStream(bos.toByteArray()));
         return new WalletProtobufSerializer().readWallet(wallet.getParams(), new WalletExtension[] { state }, proto);
     }
 

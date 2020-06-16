@@ -19,15 +19,15 @@ package org.bitcoinj.moved.msg.protocol;
 
 import com.google.common.io.ByteStreams;
 
-import org.bitcoinj.blockchain.AbstractBlockChain;
-import org.bitcoinj.chain_legacy.StoredBlock_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis_legacy;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.protocol.*;
-import org.bitcoinj.params.*;
-import org.bitcoinj.script.ScriptOpCodes;
+import io.bitcoinj.blockchain.AbstractBlockChain;
+import io.bitcoinj.chain_legacy.StoredBlock_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.Genesis_legacy;
+import io.bitcoinj.msg.Serializer;
+import io.bitcoinj.msg.protocol.*;
+import io.bitcoinj.params.*;
+import io.bitcoinj.script.ScriptOpCodes;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.Wallet.BalanceType;
 import org.junit.Before;
@@ -38,7 +38,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import static org.bitcoinj.core.Utils.HEX;
+import static io.bitcoinj.core.Utils.HEX;
 import static org.junit.Assert.*;
 
 public class BlockTest_legacy {

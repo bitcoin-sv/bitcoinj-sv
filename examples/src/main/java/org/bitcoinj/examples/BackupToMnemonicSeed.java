@@ -14,9 +14,9 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.core.Utils;
+import io.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.moved.wallet.DeterministicSeed;
 import org.bitcoinj.moved.wallet.Wallet;
 

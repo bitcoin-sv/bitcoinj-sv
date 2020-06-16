@@ -16,13 +16,13 @@
 
 package org.bitcoinj.moved.wallet;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutPoint;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.temp.CoinSelection;
-import org.bitcoinj.temp.CoinSelector;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionInput;
+import io.bitcoinj.msg.protocol.TransactionOutPoint;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.temp.CoinSelection;
+import io.bitcoinj.temp.CoinSelector;
 
 import java.util.HashSet;
 import java.util.Iterator;

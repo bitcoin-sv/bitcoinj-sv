@@ -16,9 +16,9 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.net.ProtobufConnection;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinj.net.ProtobufConnection;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
@@ -43,8 +43,8 @@ public abstract class ServerConnectionEventHandler {
      * <p>Note that this does <i>NOT</i> actually broadcast the most recent payment transaction, which will be triggered
      * automatically when the channel times out by the {@link StoredPaymentChannelServerStates}, or manually by calling
      * {@link StoredPaymentChannelServerStates#closeChannel(StoredServerChannel)} with the channel returned by
-     * {@link StoredPaymentChannelServerStates#getChannel(org.bitcoinj.core.Sha256Hash)} with the id provided in
-     * {@link ServerConnectionEventHandler#channelOpen(org.bitcoinj.core.Sha256Hash)}</p>
+     * {@link StoredPaymentChannelServerStates#getChannel(io.bitcoinj.core.Sha256Hash)} with the id provided in
+     * {@link ServerConnectionEventHandler#channelOpen(io.bitcoinj.core.Sha256Hash)}</p>
      */
     @SuppressWarnings("unchecked")
     // The warning 'unchecked call to write(MessageType)' being suppressed here comes from the build()

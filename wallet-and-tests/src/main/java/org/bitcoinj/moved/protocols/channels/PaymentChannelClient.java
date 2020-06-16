@@ -17,12 +17,12 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.core.*;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.Serializer;
+import io.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.moved.protocols.channels.PaymentChannelCloseException.CloseReason;
-import org.bitcoinj.utils.Threading;
+import io.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.annotations.VisibleForTesting;

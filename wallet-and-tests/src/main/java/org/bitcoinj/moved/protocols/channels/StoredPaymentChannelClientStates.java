@@ -18,12 +18,12 @@ package org.bitcoinj.moved.protocols.channels;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.utils.Threading;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.Serializer;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.WalletExtension;
 

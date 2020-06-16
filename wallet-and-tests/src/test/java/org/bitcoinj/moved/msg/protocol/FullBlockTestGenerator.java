@@ -16,20 +16,20 @@ package org.bitcoinj.moved.msg.protocol;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis_legacy;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.msg.p2p.InventoryItem;
-import org.bitcoinj.msg.p2p.UTXOsMessage;
-import org.bitcoinj.msg.protocol.*;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.script.*;
+import io.bitcoinj.core.*;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.Genesis_legacy;
+import io.bitcoinj.msg.Serializer;
+import io.bitcoinj.ecc.TransactionSignature;
+import io.bitcoinj.msg.p2p.InventoryItem;
+import io.bitcoinj.msg.p2p.UTXOsMessage;
+import io.bitcoinj.msg.protocol.*;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.script.*;
 import com.google.common.base.Preconditions;
-import org.bitcoinj.script.interpreter.Interpreter;
-import org.bitcoinj.script.interpreter.ScriptExecutionException;
+import io.bitcoinj.script.interpreter.Interpreter;
+import io.bitcoinj.script.interpreter.ScriptExecutionException;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -39,8 +39,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
-import static org.bitcoinj.core.Coin.*;
-import static org.bitcoinj.script.ScriptOpCodes.*;
+import static io.bitcoinj.core.Coin.*;
+import static io.bitcoinj.script.ScriptOpCodes.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 

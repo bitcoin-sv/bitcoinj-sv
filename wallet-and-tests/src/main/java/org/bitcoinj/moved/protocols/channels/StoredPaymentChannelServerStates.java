@@ -17,13 +17,13 @@
 package org.bitcoinj.moved.protocols.channels;
 
 import com.google.common.collect.ImmutableMap;
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.utils.Threading;
+import io.bitcoinj.core.*;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.Serializer;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.WalletExtension;
 

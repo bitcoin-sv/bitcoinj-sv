@@ -16,8 +16,8 @@
 
 package org.bitcoinj.moved.wallet.listeners;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.msg.protocol.Transaction;
 import org.bitcoinj.moved.wallet.Wallet;
 
 /**

@@ -17,17 +17,17 @@
 
 package org.bitcoinj.moved.testing;
 
-import org.bitcoinj.chain_legacy.StoredBlock_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.MessageSerializer;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.protocol.*;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.store_legacy.BlockStore_legacy;
+import io.bitcoinj.chain_legacy.StoredBlock_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.ecc.TransactionSignature;
+import io.bitcoinj.exception.BlockStoreException;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.MessageSerializer;
+import io.bitcoinj.msg.Serializer;
+import io.bitcoinj.msg.protocol.*;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.script.ScriptBuilder;
+import io.bitcoinj.store_legacy.BlockStore_legacy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,8 +35,8 @@ import java.nio.ByteBuffer;
 import java.util.Random;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.bitcoinj.core.Coin.COIN;
-import static org.bitcoinj.core.Coin.valueOf;
+import static io.bitcoinj.core.Coin.COIN;
+import static io.bitcoinj.core.Coin.valueOf;
 
 public class FakeTxBuilder {
     /** Create a fake transaction, without change. */

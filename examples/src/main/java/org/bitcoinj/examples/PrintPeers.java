@@ -16,17 +16,17 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.core.listeners.PeerConnectedEventListener;
-import org.bitcoinj.core.listeners.PeerDisconnectedEventListener;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.core.Peer;
-import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.msg.p2p.VersionMessage;
-import org.bitcoinj.net.discovery.DnsDiscovery;
-import org.bitcoinj.exception.PeerDiscoveryException;
-import org.bitcoinj.net.NioClientManager;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinj.core.listeners.PeerConnectedEventListener;
+import io.bitcoinj.core.listeners.PeerDisconnectedEventListener;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.core.Peer;
+import io.bitcoinj.msg.p2p.PeerAddress;
+import io.bitcoinj.msg.p2p.VersionMessage;
+import io.bitcoinj.net.discovery.DnsDiscovery;
+import io.bitcoinj.exception.PeerDiscoveryException;
+import io.bitcoinj.net.NioClientManager;
+import io.bitcoinj.params.MainNetParams;
+import io.bitcoinj.utils.BriefLogFormatter;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

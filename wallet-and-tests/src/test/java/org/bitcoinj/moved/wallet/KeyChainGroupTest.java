@@ -16,17 +16,17 @@
 
 package org.bitcoinj.moved.wallet;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.*;
-import org.bitcoinj.msg.p2p.BloomFilter;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.protos.Protos;
-import org.bitcoinj.temp.KeyPurpose;
-import org.bitcoinj.temp.RedeemData;
-import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.utils.Threading;
-import org.bitcoinj.temp.listener.KeyChainEventListener;
+import io.bitcoinj.core.*;
+import io.bitcoinj.crypto.*;
+import io.bitcoinj.msg.p2p.BloomFilter;
+import io.bitcoinj.params.MainNetParams;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.protos.Protos;
+import io.bitcoinj.temp.KeyPurpose;
+import io.bitcoinj.temp.RedeemData;
+import io.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinj.utils.Threading;
+import io.bitcoinj.temp.listener.KeyChainEventListener;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;

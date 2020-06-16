@@ -16,17 +16,17 @@
 
 package org.bitcoinj.moved.testing;
 
-import org.bitcoinj.blockchain.AbstractBlockChain;
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.store_legacy.BlockStore_legacy;
-import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
-import org.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinj.blockchain.AbstractBlockChain;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.UnitTestParams;
+import io.bitcoinj.store_legacy.BlockStore_legacy;
+import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import javax.annotation.Nullable;

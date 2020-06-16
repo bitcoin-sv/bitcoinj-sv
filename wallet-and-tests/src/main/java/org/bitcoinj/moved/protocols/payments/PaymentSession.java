@@ -14,16 +14,16 @@
 
 package org.bitcoinj.moved.protocols.payments;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TrustStoreLoader;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.uri.BitcoinURI;
-import org.bitcoinj.utils.Threading;
-import org.bitcoinj.temp.SendRequest;
+import io.bitcoinj.core.*;
+import io.bitcoinj.crypto.TrustStoreLoader;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.params.MainNetParams;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.uri.BitcoinURI;
+import io.bitcoinj.utils.Threading;
+import io.bitcoinj.temp.SendRequest;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;

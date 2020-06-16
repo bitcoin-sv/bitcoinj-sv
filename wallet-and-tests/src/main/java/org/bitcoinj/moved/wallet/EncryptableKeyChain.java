@@ -16,10 +16,10 @@
 
 package org.bitcoinj.moved.wallet;
 
-import org.bitcoinj.crypto.KeyCrypter;
-import org.bitcoinj.crypto.KeyCrypterException;
-import org.bitcoinj.temp.KeyChain;
-import org.bitcoinj.temp.SendRequest;
+import io.bitcoinj.crypto.KeyCrypter;
+import io.bitcoinj.crypto.KeyCrypterException;
+import io.bitcoinj.temp.KeyChain;
+import io.bitcoinj.temp.SendRequest;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;
@@ -30,8 +30,8 @@ import javax.annotation.Nullable;
 public interface EncryptableKeyChain extends KeyChain {
     /**
      * Takes the given password, which should be strong, derives a key from it and then invokes
-     * {@link #toEncrypted(org.bitcoinj.crypto.KeyCrypter, org.spongycastle.crypto.params.KeyParameter)} with
-     * {@link org.bitcoinj.crypto.KeyCrypterScrypt} as the crypter.
+     * {@link #toEncrypted(io.bitcoinj.crypto.KeyCrypter, org.spongycastle.crypto.params.KeyParameter)} with
+     * {@link io.bitcoinj.crypto.KeyCrypterScrypt} as the crypter.
      *
      * @return The derived key, in case you wish to cache it for future use.
      */

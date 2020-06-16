@@ -18,25 +18,25 @@
 package org.bitcoinj.moved.wallet;
 
 import com.google.common.collect.*;
-import org.bitcoinj.core.*;
-import org.bitcoinj.ecc.ECDSA;
-import org.bitcoinj.ecc.ECDSASignature;
-import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.msg.Genesis_legacy;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.params.*;
-import org.bitcoinj.script.*;
+import io.bitcoinj.core.*;
+import io.bitcoinj.ecc.ECDSA;
+import io.bitcoinj.ecc.ECDSASignature;
+import io.bitcoinj.ecc.TransactionSignature;
+import io.bitcoinj.msg.Genesis_legacy;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionInput;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.params.*;
+import io.bitcoinj.script.*;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.moved.wallet.DefaultRiskAnalysis.*;
 import org.junit.*;
 
 import java.util.*;
 
-import static org.bitcoinj.core.Coin.*;
-import static org.bitcoinj.script.ScriptOpCodes.*;
+import static io.bitcoinj.core.Coin.*;
+import static io.bitcoinj.script.ScriptOpCodes.*;
 import static org.junit.Assert.*;
 
 public class DefaultRiskAnalysisTest {

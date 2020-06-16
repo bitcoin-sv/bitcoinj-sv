@@ -17,28 +17,28 @@
 
 package org.bitcoinj.moved.msg.protocol;
 
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
-import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
-import org.bitcoinj.msg.Genesis_legacy;
-import org.bitcoinj.msg.Serializer;
-import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
-import org.bitcoinj.temp.TransactionBag;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.core.listeners.TransactionConfidenceEventListener;
+import io.bitcoinj.core.TransactionConfidence.ConfidenceType;
+import io.bitcoinj.msg.Genesis_legacy;
+import io.bitcoinj.msg.Serializer;
+import io.bitcoinj.msg.p2p.PeerAddress;
+import io.bitcoinj.msg.protocol.Block;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.UnitTestParams;
+import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
-import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.utils.Threading;
+import io.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
-import org.bitcoinj.temp.WalletTransaction;
+import io.bitcoinj.temp.WalletTransaction;
 import org.bitcoinj.moved.wallet.listeners.WalletChangeEventListener;
-import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
+import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 import org.bitcoinj.moved.wallet.listeners.WalletReorganizeEventListener;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.bitcoinj.core.Coin.*;
+import static io.bitcoinj.core.Coin.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 

@@ -14,9 +14,9 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.TransactionBroadcaster;
-import org.bitcoinj.core.Utils;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.TransactionBroadcaster;
+import io.bitcoinj.core.Utils;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoin.paymentchannel.Protos;
 import org.easymock.Capture;

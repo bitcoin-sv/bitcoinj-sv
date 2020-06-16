@@ -20,17 +20,17 @@ package org.bitcoinj.moved.wallet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.google.protobuf.*;
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.*;
-import org.bitcoinj.msg.p2p.BloomFilter;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.protos.Protos;
-import org.bitcoinj.script.*;
-import org.bitcoinj.temp.KeyBag;
-import org.bitcoinj.temp.KeyPurpose;
-import org.bitcoinj.temp.RedeemData;
-import org.bitcoinj.utils.*;
-import org.bitcoinj.temp.listener.KeyChainEventListener;
+import io.bitcoinj.core.*;
+import io.bitcoinj.crypto.*;
+import io.bitcoinj.msg.p2p.BloomFilter;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.protos.Protos;
+import io.bitcoinj.script.*;
+import io.bitcoinj.temp.KeyBag;
+import io.bitcoinj.temp.KeyPurpose;
+import io.bitcoinj.temp.RedeemData;
+import io.bitcoinj.utils.*;
+import io.bitcoinj.temp.listener.KeyChainEventListener;
 import org.slf4j.*;
 import org.spongycastle.crypto.params.*;
 
@@ -487,9 +487,9 @@ public class KeyChainGroup implements KeyBag {
 
     /**
      * Encrypt the keys in the group using the KeyCrypter and the AES key. A good default KeyCrypter to use is
-     * {@link org.bitcoinj.crypto.KeyCrypterScrypt}.
+     * {@link io.bitcoinj.crypto.KeyCrypterScrypt}.
      *
-     * @throws org.bitcoinj.crypto.KeyCrypterException Thrown if the wallet encryption fails for some reason,
+     * @throws io.bitcoinj.crypto.KeyCrypterException Thrown if the wallet encryption fails for some reason,
      *         leaving the group unchanged.
      * @throws DeterministicUpgradeRequiredException Thrown if there are random keys but no HD chain.
      */
@@ -514,9 +514,9 @@ public class KeyChainGroup implements KeyBag {
 
     /**
      * Decrypt the keys in the group using the previously given key crypter and the AES key. A good default
-     * KeyCrypter to use is {@link org.bitcoinj.crypto.KeyCrypterScrypt}.
+     * KeyCrypter to use is {@link io.bitcoinj.crypto.KeyCrypterScrypt}.
      *
-     * @throws org.bitcoinj.crypto.KeyCrypterException Thrown if the wallet decryption fails for some reason, leaving the group unchanged.
+     * @throws io.bitcoinj.crypto.KeyCrypterException Thrown if the wallet decryption fails for some reason, leaving the group unchanged.
      */
     public void decrypt(KeyParameter aesKey) {
         // This code must be exception safe.

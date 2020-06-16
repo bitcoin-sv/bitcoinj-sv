@@ -17,10 +17,10 @@
 package org.bitcoinj.moved.core;
 
 import org.bitcoinj.moved.msg.protocol.AbstractFullPrunedBlockChainIT;
-import org.bitcoinj.exception.BlockStoreException;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store_legacy.FullPrunedBlockStore;
-import org.bitcoinj.store_legacy.MySQLFullPrunedBlockStore;
+import io.bitcoinj.exception.BlockStoreException;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.store_legacy.FullPrunedBlockStore;
+import io.bitcoinj.store_legacy.MySQLFullPrunedBlockStore;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;

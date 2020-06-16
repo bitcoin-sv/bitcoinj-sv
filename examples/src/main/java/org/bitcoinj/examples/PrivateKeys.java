@@ -17,12 +17,12 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.p2p.PeerAddress;
+import io.bitcoinj.params.MainNetParams;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.store.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import java.math.BigInteger;

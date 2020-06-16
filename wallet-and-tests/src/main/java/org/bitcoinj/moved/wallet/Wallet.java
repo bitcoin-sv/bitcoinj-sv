@@ -24,37 +24,37 @@ import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.*;
 import net.jcip.annotations.*;
-import org.bitcoinj.blockchain.AbstractBlockChain;
-import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
-import org.bitcoinj.blockchain.ChainEventListener;
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.chain_legacy.StoredBlock_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.ecc.ECKeyBytes;
-import org.bitcoinj.exception.UTXOProviderException;
-import org.bitcoinj.msg.bitcoin.api.extended.ChainInfoReadOnly;
-import org.bitcoinj.msg.p2p.BloomFilter;
-import org.bitcoinj.msg.p2p.FilteredBlock;
-import org.bitcoinj.msg.Message;
-import org.bitcoinj.msg.protocol.*;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.core.TransactionConfidence.*;
-import org.bitcoinj.crypto.*;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.protos.Protos;
-import org.bitcoinj.script.*;
-import org.bitcoinj.script.interpreter.ScriptExecutionException;
-import org.bitcoinj.signers.*;
-import org.bitcoinj.temp.*;
-import org.bitcoinj.utils.*;
-import org.bitcoinj.protos.Protos.Wallet.*;
-import org.bitcoinj.temp.WalletTransaction.*;
-import org.bitcoinj.temp.listener.KeyChainEventListener;
-import org.bitcoinj.temp.listener.ScriptsChangeEventListener;
+import io.bitcoinj.blockchain.AbstractBlockChain;
+import io.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import io.bitcoinj.blockchain.ChainEventListener;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.chain_legacy.StoredBlock_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.core.listeners.*;
+import io.bitcoinj.ecc.ECKeyBytes;
+import io.bitcoinj.exception.UTXOProviderException;
+import io.bitcoinj.bitcoin.api.extended.ChainInfoReadOnly;
+import io.bitcoinj.msg.p2p.BloomFilter;
+import io.bitcoinj.msg.p2p.FilteredBlock;
+import io.bitcoinj.msg.Message;
+import io.bitcoinj.msg.protocol.*;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.core.TransactionConfidence.*;
+import io.bitcoinj.crypto.*;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.protos.Protos;
+import io.bitcoinj.script.*;
+import io.bitcoinj.script.interpreter.ScriptExecutionException;
+import io.bitcoinj.signers.*;
+import io.bitcoinj.temp.*;
+import io.bitcoinj.utils.*;
+import io.bitcoinj.protos.Protos.Wallet.*;
+import io.bitcoinj.temp.WalletTransaction.*;
+import io.bitcoinj.temp.listener.KeyChainEventListener;
+import io.bitcoinj.temp.listener.ScriptsChangeEventListener;
 import org.bitcoinj.moved.wallet.listeners.WalletChangeEventListener;
-import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
+import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 import org.bitcoinj.moved.wallet.listeners.WalletCoinsSentEventListener;
 import org.bitcoinj.moved.wallet.listeners.WalletEventListener;
 import org.bitcoinj.moved.wallet.listeners.WalletReorganizeEventListener;
@@ -1080,7 +1080,7 @@ public class Wallet extends BaseTaggableObject
 
     /**
      * Returns the immutable seed for the current active HD chain.
-     * @throws org.bitcoinj.core.ECKey.MissingPrivateKeyException if the seed is unavailable (watching wallet)
+     * @throws io.bitcoinj.core.ECKey.MissingPrivateKeyException if the seed is unavailable (watching wallet)
      */
     public DeterministicSeed getKeyChainSeed() {
         keyChainGroupLock.lock();
@@ -1109,7 +1109,7 @@ public class Wallet extends BaseTaggableObject
     }
 
     /**
-     * Convenience wrapper around {@link Wallet#encrypt(org.bitcoinj.crypto.KeyCrypter,
+     * Convenience wrapper around {@link Wallet#encrypt(io.bitcoinj.crypto.KeyCrypter,
      * org.spongycastle.crypto.params.KeyParameter)} which uses the default Scrypt key derivation algorithm and
      * parameters to derive a key from the given password.
      */
@@ -1126,7 +1126,7 @@ public class Wallet extends BaseTaggableObject
 
     /**
      * Encrypt the wallet using the KeyCrypter and the AES key. A good default KeyCrypter to use is
-     * {@link org.bitcoinj.crypto.KeyCrypterScrypt}.
+     * {@link io.bitcoinj.crypto.KeyCrypterScrypt}.
      *
      * @param keyCrypter The KeyCrypter that specifies how to encrypt/ decrypt a key
      * @param aesKey AES key to use (normally created using KeyCrypter#deriveKey and cached as it is time consuming to create from a password)
@@ -3290,7 +3290,7 @@ public class Wallet extends BaseTaggableObject
 
     /**
      * Returns the earliest creation time of keys or watched scripts in this wallet, in seconds since the epoch, ie the min
-     * of {@link org.bitcoinj.core.ECKey#getCreationTimeSeconds()}. This can return zero if at least one key does
+     * of {@link io.bitcoinj.core.ECKey#getCreationTimeSeconds()}. This can return zero if at least one key does
      * not have that data (was created before key timestamping was implemented). <p>
      *
      * This method is most often used in conjunction with {@link PeerGroup#setFastCatchupTimeSecs(long)} in order to
@@ -3547,7 +3547,7 @@ public class Wallet extends BaseTaggableObject
      * money to fail! Finally please be aware that any listeners on the future will run either on the calling thread
      * if it completes immediately, or eventually on a background thread if the balance is not yet at the right
      * level. If you do something that means you know the balance should be sufficient to trigger the future,
-     * you can use {@link org.bitcoinj.utils.Threading#waitForUserCode()} to block until the future had a
+     * you can use {@link io.bitcoinj.utils.Threading#waitForUserCode()} to block until the future had a
      * chance to be updated.</p>
      */
     public ListenableFuture<Coin> getBalanceFuture(final Coin value, final BalanceType type) {
@@ -5024,7 +5024,7 @@ public class Wallet extends BaseTaggableObject
      * re-organisation of the wallet contents on the block chain. For instance, in future the wallet may choose to
      * optimise itself to reduce fees or improve privacy.</p>
      */
-    public void setTransactionBroadcaster(@Nullable org.bitcoinj.core.TransactionBroadcaster broadcaster) {
+    public void setTransactionBroadcaster(@Nullable io.bitcoinj.core.TransactionBroadcaster broadcaster) {
         Transaction[] toBroadcast = {};
         lock.lock();
         try {

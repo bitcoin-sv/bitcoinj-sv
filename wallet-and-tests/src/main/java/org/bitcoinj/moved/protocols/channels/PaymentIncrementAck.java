@@ -14,7 +14,7 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.core.Coin;
+import io.bitcoinj.core.Coin;
 import com.google.protobuf.ByteString;
 
 import javax.annotation.Nullable;

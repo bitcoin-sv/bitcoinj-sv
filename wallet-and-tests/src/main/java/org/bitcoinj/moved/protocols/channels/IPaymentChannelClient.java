@@ -16,9 +16,9 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.InsufficientMoneyException;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.ECKey;
+import io.bitcoinj.core.InsufficientMoneyException;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import com.google.protobuf.ByteString;

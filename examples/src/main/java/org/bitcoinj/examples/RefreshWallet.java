@@ -17,16 +17,16 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStore_legacy;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
-import org.bitcoinj.temp.TransactionBag;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.store.BlockStore_legacy;
+import io.bitcoinj.store.MemoryBlockStore_legacy;
+import io.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.moved.wallet.Wallet;
-import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
+import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 
 import java.io.File;
 

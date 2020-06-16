@@ -16,12 +16,12 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.script.SigHash;
-import org.bitcoinj.temp.SendRequest;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.script.SigHash;
+import io.bitcoinj.temp.SendRequest;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.collect.ImmutableList;
@@ -30,9 +30,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import org.bitcoinj.core.*;
-import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.script.Script;
+import io.bitcoinj.core.*;
+import io.bitcoinj.ecc.TransactionSignature;
+import io.bitcoinj.script.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

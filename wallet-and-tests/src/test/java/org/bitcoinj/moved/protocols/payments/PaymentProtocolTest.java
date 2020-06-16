@@ -16,14 +16,14 @@
 
 package org.bitcoinj.moved.protocols.payments;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.X509Utils;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.params.UnitTestParams;
-import org.bitcoinj.script.ScriptBuilder;
+import io.bitcoinj.core.*;
+import io.bitcoinj.crypto.X509Utils;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.params.UnitTestParams;
+import io.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoin.protocols.payments.Protos;
 import org.bitcoin.protocols.payments.Protos.Payment;

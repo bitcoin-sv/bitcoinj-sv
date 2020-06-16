@@ -17,10 +17,10 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.MainNetParams;
+import io.bitcoinj.params.RegTestParams;
+import io.bitcoinj.params.TestNet3Params;
 
 public enum NetworkEnum {
     MAIN,

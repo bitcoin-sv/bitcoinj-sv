@@ -17,18 +17,15 @@
 
 package org.bitcoinj.moved.protocols.payments;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TrustStoreLoader;
-import org.bitcoinj.moved.protocols.payments.PaymentProtocol;
-import org.bitcoinj.moved.protocols.payments.PaymentProtocolException;
-import org.bitcoinj.moved.protocols.payments.PaymentSession;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.core.*;
+import io.bitcoinj.crypto.TrustStoreLoader;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionInput;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.params.MainNetParams;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
 import org.bitcoin.protocols.payments.Protos;
@@ -41,7 +38,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static org.bitcoinj.core.Coin.COIN;
+import static io.bitcoinj.core.Coin.COIN;
 import static org.junit.Assert.*;
 
 public class PaymentSessionTest {

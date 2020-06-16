@@ -24,26 +24,26 @@ import java.util.EnumSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.msg.protocol.TxHelper;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.script.interpreter.ScriptExecutionException;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.msg.protocol.TransactionInput;
-import org.bitcoinj.msg.protocol.TransactionOutput;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.ecc.TransactionSignature;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.Net;
-import org.bitcoinj.script.*;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.ECKey;
+import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.script.interpreter.ScriptExecutionException;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.TransactionInput;
+import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinj.core.Utils;
+import io.bitcoinj.ecc.TransactionSignature;
+import io.bitcoinj.params.MainNetParams;
+import io.bitcoinj.params.Net;
+import io.bitcoinj.script.*;
 
-import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
+import static io.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 
-import org.bitcoinj.signers.LocalTransactionSigner;
-import org.bitcoinj.signers.TransactionSigner.ProposedTransaction;
-import org.bitcoinj.temp.KeyBag;
-import org.bitcoinj.temp.RedeemData;
+import io.bitcoinj.signers.LocalTransactionSigner;
+import io.bitcoinj.signers.TransactionSigner.ProposedTransaction;
+import io.bitcoinj.temp.KeyBag;
+import io.bitcoinj.temp.RedeemData;
 
 /**
  * Test case generator for transactions with low-S and high-S signatures, to

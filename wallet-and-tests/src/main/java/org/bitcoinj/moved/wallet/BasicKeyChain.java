@@ -16,15 +16,15 @@
 
 package org.bitcoinj.moved.wallet;
 
-import org.bitcoinj.msg.p2p.BloomFilter;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.crypto.*;
-import org.bitcoinj.protos.Protos;
-import org.bitcoinj.temp.KeyChain;
-import org.bitcoinj.temp.KeyPurpose;
-import org.bitcoinj.utils.ListenerRegistration;
-import org.bitcoinj.utils.Threading;
-import org.bitcoinj.temp.listener.KeyChainEventListener;
+import io.bitcoinj.msg.p2p.BloomFilter;
+import io.bitcoinj.core.ECKey;
+import io.bitcoinj.crypto.*;
+import io.bitcoinj.protos.Protos;
+import io.bitcoinj.temp.KeyChain;
+import io.bitcoinj.temp.KeyPurpose;
+import io.bitcoinj.utils.ListenerRegistration;
+import io.bitcoinj.utils.Threading;
+import io.bitcoinj.temp.listener.KeyChainEventListener;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -437,7 +437,7 @@ public class BasicKeyChain implements EncryptableKeyChain {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Convenience wrapper around {@link #toEncrypted(org.bitcoinj.crypto.KeyCrypter,
+     * Convenience wrapper around {@link #toEncrypted(io.bitcoinj.crypto.KeyCrypter,
      * org.spongycastle.crypto.params.KeyParameter)} which uses the default Scrypt key derivation algorithm and
      * parameters, derives a key from the given password and returns the created key.
      */
@@ -452,7 +452,7 @@ public class BasicKeyChain implements EncryptableKeyChain {
 
     /**
      * Encrypt the wallet using the KeyCrypter and the AES key. A good default KeyCrypter to use is
-     * {@link org.bitcoinj.crypto.KeyCrypterScrypt}.
+     * {@link io.bitcoinj.crypto.KeyCrypterScrypt}.
      *
      * @param keyCrypter The KeyCrypter that specifies how to encrypt/ decrypt a key
      * @param aesKey AES key to use (normally created using KeyCrypter#deriveKey and cached as it is time consuming

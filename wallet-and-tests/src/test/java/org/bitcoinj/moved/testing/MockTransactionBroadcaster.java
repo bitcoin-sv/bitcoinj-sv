@@ -16,10 +16,10 @@
 
 package org.bitcoinj.moved.testing;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.utils.Threading;
+import io.bitcoinj.core.*;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.util.concurrent.FutureCallback;

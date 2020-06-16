@@ -17,15 +17,15 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.p2p.PeerAddress;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStore_legacy;
-import org.bitcoinj.store.MemoryBlockStore_legacy;
-import org.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.protocol.Block;
+import io.bitcoinj.msg.p2p.PeerAddress;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.store.BlockStore_legacy;
+import io.bitcoinj.store.MemoryBlockStore_legacy;
+import io.bitcoinj.utils.BriefLogFormatter;
 
 import java.net.InetAddress;
 import java.util.concurrent.Future;

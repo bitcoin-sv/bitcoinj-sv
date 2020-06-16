@@ -16,13 +16,13 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.InsufficientMoneyException;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.net.NioClient;
-import org.bitcoinj.net.ProtobufConnection;
+import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.ECKey;
+import io.bitcoinj.core.InsufficientMoneyException;
+import io.bitcoinj.core.Sha256Hash;
+import io.bitcoinj.core.Utils;
+import io.bitcoinj.net.NioClient;
+import io.bitcoinj.net.ProtobufConnection;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.util.concurrent.ListenableFuture;

@@ -16,8 +16,8 @@
 
 package org.bitcoinj.moved.testing;
 
-import org.bitcoinj.signers.TransactionSigner;
-import org.bitcoinj.temp.KeyBag;
+import io.bitcoinj.signers.TransactionSigner;
+import io.bitcoinj.temp.KeyBag;
 
 public class NopTransactionSigner implements TransactionSigner {
     private boolean isReady;

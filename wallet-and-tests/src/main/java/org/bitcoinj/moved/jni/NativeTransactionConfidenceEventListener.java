@@ -16,9 +16,8 @@
 
 package org.bitcoinj.moved.jni;
 
-import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
-import org.bitcoinj.moved.wallet.Wallet;
-import org.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.core.listeners.TransactionConfidenceEventListener;
+import io.bitcoinj.msg.protocol.Transaction;
 
 /**
  * An event listener that relays events to a native C++ object. A pointer to that object is stored in

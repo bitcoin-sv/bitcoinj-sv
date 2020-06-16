@@ -16,7 +16,7 @@
 
 package org.bitcoinj.moved.wallet;
 
-import org.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.msg.protocol.Transaction;
 
 import java.util.List;
 

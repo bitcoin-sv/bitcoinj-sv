@@ -17,20 +17,20 @@
 package org.bitcoinj.moved.core;
 
 import com.google.common.collect.*;
-import org.bitcoinj.core.*;
-import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.msg.*;
-import org.bitcoinj.msg.p2p.*;
-import org.bitcoinj.msg.protocol.*;
-import org.bitcoinj.params.NetworkParameters;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.temp.TransactionBag;
+import io.bitcoinj.core.*;
+import io.bitcoinj.core.listeners.*;
+import io.bitcoinj.msg.*;
+import io.bitcoinj.msg.p2p.*;
+import io.bitcoinj.msg.protocol.*;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.temp.TransactionBag;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.moved.testing.InboundMessageQueuer;
 import org.bitcoinj.moved.testing.TestWithNetworkConnections;
-import org.bitcoinj.utils.Threading;
+import io.bitcoinj.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
-import org.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
+import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -60,7 +60,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.bitcoinj.core.Coin.*;
+import static io.bitcoinj.core.Coin.*;
 import static org.junit.Assert.*;
 
 @RunWith(value = Parameterized.class)

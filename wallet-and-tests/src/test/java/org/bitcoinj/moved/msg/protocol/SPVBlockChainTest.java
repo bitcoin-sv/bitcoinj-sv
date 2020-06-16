@@ -17,21 +17,21 @@
 
 package org.bitcoinj.moved.msg.protocol;
 
-import org.bitcoinj.blockchain.AbstractBlockChain;
-import org.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
-import org.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import org.bitcoinj.chain_legacy.StoredBlock_legacy;
-import org.bitcoinj.core.*;
-import org.bitcoinj.exception.VerificationException;
-import org.bitcoinj.msg.Genesis_legacy;
-import org.bitcoinj.msg.protocol.Block;
-import org.bitcoinj.msg.protocol.DefaultMsgAccessors;
-import org.bitcoinj.msg.protocol.Transaction;
-import org.bitcoinj.params.*;
-import org.bitcoinj.store_legacy.BlockStore_legacy;
-import org.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinj.blockchain.AbstractBlockChain;
+import io.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.chain_legacy.StoredBlock_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.exception.VerificationException;
+import io.bitcoinj.msg.Genesis_legacy;
+import io.bitcoinj.msg.protocol.Block;
+import io.bitcoinj.msg.protocol.DefaultMsgAccessors;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.params.*;
+import io.bitcoinj.store_legacy.BlockStore_legacy;
+import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
-import org.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.Wallet.BalanceType;
 
@@ -47,7 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import static org.bitcoinj.core.Coin.*;
+import static io.bitcoinj.core.Coin.*;
 import static org.bitcoinj.moved.testing.FakeTxBuilder.createFakeBlock;
 import static org.bitcoinj.moved.testing.FakeTxBuilder.createFakeTx;
 import static org.junit.Assert.*;
