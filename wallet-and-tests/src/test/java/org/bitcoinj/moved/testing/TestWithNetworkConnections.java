@@ -150,8 +150,10 @@ public class TestWithNetworkConnections {
     }
 
     protected void stopPeerServer(int i) {
-        peerServers[i].stopAsync();
-        peerServers[i].awaitTerminated();
+        if (peerServers[i] != null) {
+            peerServers[i].stopAsync();
+            peerServers[i].awaitTerminated();
+        }
     }
 
     protected InboundMessageQueuer connect(Peer peer, VersionMessage versionMessage) throws Exception {

@@ -23,8 +23,8 @@ import io.bitcoinj.msg.protocol.Block;
 import io.bitcoinj.msg.p2p.PeerAddress;
 import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.params.TestNet3Params;
-import io.bitcoinj.store.BlockStore_legacy;
-import io.bitcoinj.store.MemoryBlockStore_legacy;
+import io.bitcoinj.store_legacy.BlockStore_legacy;
+import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
 import io.bitcoinj.utils.BriefLogFormatter;
 
 import java.net.InetAddress;

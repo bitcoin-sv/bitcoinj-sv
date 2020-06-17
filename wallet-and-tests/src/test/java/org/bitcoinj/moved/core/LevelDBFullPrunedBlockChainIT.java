@@ -22,12 +22,14 @@ import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.store_legacy.FullPrunedBlockStore;
 import io.bitcoinj.store_legacy.LevelDBFullPrunedBlockStore;
 import org.junit.After;
+import org.junit.Ignore;
 
 import java.io.File;
 
 /**
  * An H2 implementation of the FullPrunedBlockStoreTest
  */
+@Ignore
 public class LevelDBFullPrunedBlockChainIT extends
         AbstractFullPrunedBlockChainIT {
     @After

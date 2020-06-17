@@ -20,12 +20,14 @@ import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.store_legacy.FullPrunedBlockStore;
 import io.bitcoinj.store_legacy.H2FullPrunedBlockStore;
 import org.junit.After;
+import org.junit.Ignore;
 
 import java.io.File;
 
 /**
  * An H2 implementation of the FullPrunedBlockStoreTest
  */
+@Ignore
 public class H2FullPrunedBlockChainIT extends AbstractFullPrunedBlockChainIT {
     @After
     public void tearDown() throws Exception {

@@ -20,8 +20,8 @@ import java.net.InetAddress;
 import io.bitcoinj.chain_legacy.FullPrunedBlockChain_legacy;
 import io.bitcoinj.core.PeerGroup;
 import io.bitcoinj.params.MainNetParams;
-import io.bitcoinj.store.FullPrunedBlockStore;
-import io.bitcoinj.store.LevelDBFullPrunedBlockStore;
+import io.bitcoinj.store_legacy.FullPrunedBlockStore;
+import io.bitcoinj.store_legacy.LevelDBFullPrunedBlockStore;
 
 public class LevelDB {
     public static void main(String[] args) throws Exception {

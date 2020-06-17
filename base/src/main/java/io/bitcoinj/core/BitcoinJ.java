@@ -17,9 +17,9 @@ public class BitcoinJ {
     public static final String BITCOINJ_VERSION = "0.15-MUTANT";
 
     /** The value that is prepended to the subVer field of this application. */
-    public static final String LIBRARY_SUBVER = "/bitcoinj.cash:" + BITCOINJ_VERSION + "/";
+    public static final String LIBRARY_SUBVER = "/bitcoinj.io:" + BITCOINJ_VERSION + "/";
 
-    /**
+    /**`
      * If using this feePerKb, transactions will get confirmed within the next couple of blocks.
      * This should be adjusted from time to time. Last adjustment: March 2016.
      */
