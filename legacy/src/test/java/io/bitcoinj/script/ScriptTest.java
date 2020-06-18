@@ -100,6 +100,7 @@ public class ScriptTest {
     }
 
     @Test
+    @SuppressWarnings("TryFailThrowable")       // todo: fix? https://errorprone.info/bugpattern/TryFailThrowable
     public void testMultiSig() throws Exception {
         List<ECKey> keys = Lists.newArrayList(new ECKey(), new ECKey(), new ECKey());
         assertTrue(ScriptBuilder.createMultiSigOutputScript(2, keys).isSentToMultiSig());

@@ -3106,7 +3106,8 @@ public class WalletTest extends TestWithWallet {
         wallet.importKey(wallet.freshReceiveKey());
     }
 
-    //@Test   //- this test is slow, disable for now.
+    @Test   //- this test is slow, disable for now.
+    @Ignore
     public void fragmentedReKeying() throws Exception {
         // Send lots of small coins and check the fee is correct.
         ECKey key = wallet.freshReceiveKey();

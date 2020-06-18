@@ -58,6 +58,7 @@ import static org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType
 import static org.junit.Assert.*;
 
 @RunWith(Parameterized.class)
+@SuppressWarnings("GuardedBy")
 public class ChannelConnectionTest extends TestWithWallet {
     private static final int CLIENT_MAJOR_VERSION = 1;
     private Wallet serverWallet;

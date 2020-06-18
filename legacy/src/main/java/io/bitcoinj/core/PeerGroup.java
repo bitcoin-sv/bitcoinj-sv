@@ -23,7 +23,6 @@ import com.google.common.collect.*;
 import com.google.common.net.*;
 import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
-import net.jcip.annotations.*;
 import io.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
 import io.bitcoinj.core.listeners.*;
 import io.bitcoinj.exception.PeerDiscoveryException;
@@ -49,6 +48,7 @@ import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 import org.slf4j.*;
 
 import javax.annotation.*;
+import javax.annotation.concurrent.GuardedBy;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -78,6 +78,8 @@ import static com.google.common.base.Preconditions.*;
  * of PeerGroup are safe to call from a UI thread as some may do network IO, 
  * but starting and stopping the service should be fine.</p>
  */
+@Deprecated         // to be replaced
+@SuppressWarnings("GuardedBy")      // we're not going to fix this legacy class
 public class PeerGroup implements TransactionBroadcaster {
     private static final Logger log = LoggerFactory.getLogger(PeerGroup.class);
 

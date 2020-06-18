@@ -43,6 +43,8 @@ import static com.google.common.base.Preconditions.checkState;
  * A simple NIO MessageWriteTarget which handles all the business logic of a connection (reading+writing bytes).
  * Used only by the NioClient and NioServer classes
  */
+@Deprecated         // to be replaced
+@SuppressWarnings("GuardedBy")      // we're not going to fix this legacy class
 public class ConnectionHandler implements MessageWriteTarget {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ConnectionHandler.class);
 

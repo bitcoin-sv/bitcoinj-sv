@@ -295,6 +295,7 @@ public class TransactionTest {
     }
 
     @Test
+    @SuppressWarnings("SelfEquals")     // todo: consider using http://static.javadoc.io/com.google.guava/guava-testlib/19.0/com/google/common/testing/EqualsTester.html
     public void testTheTXByHeightComparator() {
         Transaction tx1 = FakeTxBuilder.createFakeTx(NET);
         TxHelper.getConfidence(tx1).setAppearedAtChainHeight(1);
@@ -391,6 +392,7 @@ public class TransactionTest {
      * Ensure that hashForSignature() doesn't modify a transaction's data, which could wreak multithreading havoc.
      */
     @Test
+    @SuppressWarnings("UnusedAnonymousClass")       // todo: check https://errorprone.info/bugpattern/UnusedAnonymousClass
     public void testHashForSignatureThreadSafety() {
         Block genesis = Genesis_legacy.getFor(Net.UNITTEST);
         Block block1 = genesis.createNextBlock(new ECKey().toAddress(UnitTestParams.get()),

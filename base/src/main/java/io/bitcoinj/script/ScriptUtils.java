@@ -218,7 +218,7 @@ public class ScriptUtils {
             }
         }
 
-        throw new IllegalStateException("Could not find matching key " + key.toString() + " in script " + script);
+        throw new IllegalStateException("Could not find matching key " + Arrays.toString(key) + " in script " + script);
     }
 
     private static int findSigInRedeem(List<ScriptChunk> chunks, byte[] signatureBytes, Sha256Hash hash) {
