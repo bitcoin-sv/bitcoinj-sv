@@ -5,14 +5,18 @@ import org.slf4j.*;
 
 import static com.google.common.base.Preconditions.*;
 
-// TODO: Finish adding Context c'tors to all the different objects so we can start deprecating the versions that take NetworkParameters.
-// TODO: Add a working directory notion to Context and make various subsystems that want to use files default to that directory (eg. block stores, wallet, etc).
-// TODO: Auto-register the block chain object here, and then use it in the (newly deprecated) TransactionConfidence.getDepthInBlocks() method: the new version should take an AbstractBlockChain specifically.
+/**
+ * The Context concept is being removed.
+ */
+
+// oldtodo: Finish adding Context c'tors to all the different objects so we can start deprecating the versions that take NetworkParameters.
+// oldtodo: Add a working directory notion to Context and make various subsystems that want to use files default to that directory (eg. block stores, wallet, etc).
+// oldtodo: Auto-register the block chain object here, and then use it in the (newly deprecated) TransactionConfidence.getDepthInBlocks() method: the new version should take an AbstractBlockChain specifically.
 //       Also use the block chain object reference from the context in PeerGroup and remove the other constructors, as it's easy to forget to wire things up.
-// TODO: Move Threading.USER_THREAD to here and leave behind just a source code stub. Allow different instantiations of the library to use different user threads.
-// TODO: Keep a URI to where library internal data files can be found, to abstract over the lack of JAR files on Android.
-// TODO: Stash anything else that resembles global library configuration in here and use it to clean up the rest of the API without breaking people.
-// TODO: Move the TorClient into Context, so different parts of the library can read data over Tor without having to request it directly. (or maybe a general socket factory??)
+// oldtodo: Move Threading.USER_THREAD to here and leave behind just a source code stub. Allow different instantiations of the library to use different user threads.
+// oldtodo: Keep a URI to where library internal data files can be found, to abstract over the lack of JAR files on Android.
+// oldtodo: Stash anything else that resembles global library configuration in here and use it to clean up the rest of the API without breaking people.
+// oldtodo: Move the TorClient into Context, so different parts of the library can read data over Tor without having to request it directly. (or maybe a general socket factory??)
 
 /**
  * <p>The Context object holds various objects and pieces of configuration that are scoped to a specific instantiation of
@@ -25,6 +29,7 @@ import static com.google.common.base.Preconditions.*;
  * will be removed to avoid confusing edge cases that could occur if the developer does not fully understand it e.g.
  * in the case where multiple instances of the library are in use simultaneously.</p>
  */
+@Deprecated
 public class Context {
     private static final Logger log = LoggerFactory.getLogger(Context.class);
 

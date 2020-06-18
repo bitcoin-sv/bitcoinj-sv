@@ -1,5 +1,7 @@
 # Design of API contexts
 
+The Context concept is deprecated and will be removed.
+
 This design doc describes the Context class that is new in 0.13.
 
 ## Goals
