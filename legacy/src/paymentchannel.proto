@@ -180,13 +180,13 @@ message ProvideContract {
     // The serialized bytes of the transaction in Satoshi format.
     // For version 1:
     // * It must be signed and completely valid and ready for broadcast (ie it includes the
-    //   necessary fees) TODO: tell the client how much fee it needs
+    //   necessary fees) IMPROVEMENT: tell the client how much fee it needs
     // * Its first output must be a 2-of-2 multisig output with the first pubkey being the
     //   primary's and the second being the secondary's (ie the script must be exactly "OP_2
     //   ProvideRefund.multisig_key Initiate.multisig_key OP_2 OP_CHECKMULTISIG")
     // For version 2:
     // * It must be signed and completely valid and ready for broadcast (ie it includes the
-    //   necessary fees) TODO: tell the client how much fee it needs
+    //   necessary fees) IMPROVEMENT: tell the client how much fee it needs
     // * Its first output must be a CHECKLOCKTIMEVERIFY output with the first pubkey being the
     //   primary's and the second being the secondary's.
     required bytes tx = 1;
