@@ -23,7 +23,6 @@ import com.google.common.collect.*;
 import com.google.common.net.*;
 import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
-import com.subgraph.orchid.*;
 import net.jcip.annotations.*;
 import io.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
 import io.bitcoinj.core.listeners.*;
@@ -124,7 +123,6 @@ public class PeerGroup implements TransactionBroadcaster {
     // Currently connecting peers.
     private final CopyOnWriteArrayList<Peer> pendingPeers;
     private final ClientConnectionManager channels;
-    @Nullable private final TorClient torClient;
 
     // The peer that has been selected for the purposes of downloading announced data.
     @GuardedBy("lock") private Peer downloadPeer;
@@ -328,7 +326,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     /** See {@link #PeerGroup(Context, AbstractBlockChain_legacy, ClientConnectionManager)} */
     public PeerGroup(NetworkParameters params, @Nullable AbstractBlockChain_legacy chain, ClientConnectionManager connectionManager) {
-        this(Context.getOrCreate(params), chain, connectionManager, null);
+        this(Context.getOrCreate(params), chain, connectionManager);
     }
 
     /**
@@ -336,14 +334,6 @@ public class PeerGroup implements TransactionBroadcaster {
      * connections and keep track of existing ones.
      */
     public PeerGroup(Context context, @Nullable AbstractBlockChain_legacy chain, ClientConnectionManager connectionManager) {
-        this(context, chain, connectionManager, null);
-    }
-
-    /**
-     * Creates a new PeerGroup allowing you to specify the {@link ClientConnectionManager} which is used to create new
-     * connections and keep track of existing ones.
-     */
-    private PeerGroup(Context context, @Nullable AbstractBlockChain_legacy chain, ClientConnectionManager connectionManager, @Nullable TorClient torClient) {
         checkNotNull(context);
         this.params = context.getParams();
         this.net = params.getNet();
@@ -351,7 +341,6 @@ public class PeerGroup implements TransactionBroadcaster {
         fastCatchupTimeSecs = Genesis_legacy.getFor(params).getTime();
         wallets = new CopyOnWriteArrayList<TxEventListener>();
         peerFilterProviders = new CopyOnWriteArrayList<PeerFilterProvider>();
-        this.torClient = torClient;
 
         executor = createPrivateExecutor();
 
@@ -1086,16 +1075,6 @@ public class PeerGroup implements TransactionBroadcaster {
             public void run() {
                 try {
                     log.info("Starting ...");
-                    if (torClient != null) {
-                        log.info("Starting Tor/Orchid ...");
-                        torClient.start();
-                        try {
-                            torClient.waitUntilReady(TOR_TIMEOUT_SECONDS * 1000);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                        log.info("Tor ready");
-                    }
                     channels.startAsync();
                     channels.awaitRunning();
                     triggerConnections();
@@ -1131,9 +1110,6 @@ public class PeerGroup implements TransactionBroadcaster {
                     channels.awaitTerminated();
                     for (PeerDiscovery peerDiscovery : peerDiscoverers) {
                         peerDiscovery.shutdown();
-                    }
-                    if (torClient != null) {
-                        torClient.stop();
                     }
                     vRunning = false;
                     log.info("Stopped.");
@@ -2274,14 +2250,6 @@ public class PeerGroup implements TransactionBroadcaster {
         } finally {
             lock.unlock();
         }
-    }
-
-    /**
-     * Returns the {@link com.subgraph.orchid.TorClient} object for this peer group, if Tor is in use, null otherwise.
-     */
-    @Nullable
-    public TorClient getTorClient() {
-        return torClient;
     }
 
     /**
