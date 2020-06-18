@@ -20,11 +20,13 @@ import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.store_legacy.FullPrunedBlockStore;
 import io.bitcoinj.store_legacy.PostgresFullPrunedBlockStore;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * A Postgres implementation of the {@link AbstractFullPrunedBlockChainIT}
  */
+@Ignore
 public class PostgresFullPrunedBlockChainIT extends AbstractFullPrunedBlockChainIT
 {
     // Replace these with your postgres location/credentials and remove @Ignore to test

@@ -20,7 +20,7 @@ import io.bitcoinj.core.*;
 import io.bitcoinj.net.discovery.DnsDiscovery;
 import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.params.TestNet3Params;
-import io.bitcoinj.store.SPVBlockStore_legacy;
+import io.bitcoinj.store_legacy.SPVBlockStore_legacy;
 import org.bitcoinj.moved.wallet.DeterministicSeed;
 import org.bitcoinj.moved.wallet.Wallet;
 

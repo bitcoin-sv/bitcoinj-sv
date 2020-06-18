@@ -19,10 +19,12 @@ import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.store_legacy.FullPrunedBlockStore;
 import io.bitcoinj.store_legacy.MemoryFullPrunedBlockStore;
+import org.junit.Ignore;
 
 /**
  * A MemoryStore implementation of the FullPrunedBlockStoreTest
  */
+@Ignore
 public class MemoryFullPrunedBlockChainIT extends AbstractFullPrunedBlockChainIT
 {
     @Override

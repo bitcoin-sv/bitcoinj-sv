@@ -28,6 +28,7 @@ import org.junit.Test;
 /**
  * A MySQL implementation of the {@link AbstractFullPrunedBlockChainIT}
  */
+@Ignore
 public class MySQLFullPrunedBlockChainIT extends AbstractFullPrunedBlockChainIT {
 
     @After
