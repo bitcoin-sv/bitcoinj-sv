@@ -6,10 +6,7 @@ import io.bitcoinj.ecc.ECDSA;
 import io.bitcoinj.ecc.ECKeyBytes;
 import io.bitcoinj.bitcoin.api.base.Tx;
 import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.script.interpreter.Interpreter;
-import io.bitcoinj.script.interpreter.ScriptExecutionException;
-import io.bitcoinj.script.interpreter.ScriptStack;
-import io.bitcoinj.script.interpreter.StackItem;
+import io.bitcoinj.script.interpreter.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -255,7 +252,7 @@ public class ScriptUtils {
         ScriptStack stack = new ScriptStack();
         ScriptStack p2shStack = null;
 
-        Interpreter.ScriptExecutionState state = new Interpreter.ScriptExecutionState();
+        ScriptExecutionState state = new ScriptExecutionState();
 
         Interpreter.executeScript(txContainingThis, scriptSigIndex, script, stack, value, verifyFlags);
         if (verifyFlags.contains(ScriptVerifyFlag.P2SH))

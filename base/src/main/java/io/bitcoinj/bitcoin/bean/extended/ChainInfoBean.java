@@ -4,6 +4,8 @@
  */
 package io.bitcoinj.bitcoin.bean.extended;
 
+import io.bitcoinj.bitcoin.api.extended.LiteBlock;
+import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.bitcoin.api.BitcoinObject;
 import io.bitcoinj.bitcoin.api.base.HeaderReadOnly;
@@ -25,6 +27,17 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
     private int height = -1;
     //total number of txs in chain including this block
     private long totalChainTxs = -1;
+    //this should ONLY be set for blocks in forked chain as it's constantly
+    //updating and would be a burden to update for every block.  If the block
+    //is part of the main chain is should be null and indicates the current
+    //chainhead is the tip for this block.
+    private LiteBlock longestChainTip;
+
+    private transient LiteBlock prevBlock;
+    private transient LiteBlock prev10Block;
+    private transient LiteBlock prev100Block;
+    private transient LiteBlock prev1000Block;
+
 
     private HeaderReadOnly header;
 

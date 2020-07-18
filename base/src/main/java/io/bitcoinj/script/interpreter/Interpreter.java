@@ -245,19 +245,19 @@ public class Interpreter {
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      */
-    public static void executeScript(@Nullable Tx txContainingThis, long index,
+    public static ScriptExecutionState executeScript(@Nullable Tx txContainingThis, long index,
                                      Script script, ScriptStack stack, Coin value, Set<ScriptVerifyFlag> verifyFlags) throws ScriptExecutionException {
-        executeScript(txContainingThis, index, new SimpleScriptStream(script), stack, value, verifyFlags, null);
+        return executeScript(txContainingThis, index, new SimpleScriptStream(script), stack, value, verifyFlags, null);
     }
 
     /**
      * Executes a script in debug mode with the provided ScriptStateListener.  Exceptions (which are thrown when a script fails) are caught
      * and passed to the listener before being rethrown.
      */
-    public static void executeDebugScript(@Nullable Tx txContainingThis, long index,
+    public static ScriptExecutionState executeDebugScript(@Nullable Tx txContainingThis, long index,
                                           ScriptStream script, ScriptStack stack, Coin value, Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptExecutionException {
         try {
-            executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener);
+            return executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener);
         } catch (ScriptExecutionException e) {
             scriptStateListener.onExceptionThrown(e);
             try {
@@ -270,10 +270,10 @@ public class Interpreter {
         }
     }
 
-    public static void executeScript(@Nullable Tx txContainingThis, long index,
+    public static ScriptExecutionState executeScript(@Nullable Tx txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
                                      Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptExecutionException {
-        executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener, false, 0L);
+        return executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener, false, 0L);
     }
 
     /**
@@ -282,7 +282,7 @@ public class Interpreter {
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      */
-    public static void executeScript(@Nullable Tx txContainingThis, long index,
+    public static ScriptExecutionState executeScript(@Nullable Tx txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
                                      Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
                                      boolean allowFakeChecksig, long fakeChecksigDelay) throws ScriptExecutionException {
@@ -344,6 +344,12 @@ public class Interpreter {
 
             boolean shouldExecute = !ifStack.contains(false);
 
+            if (shouldExecute && chunk.isDirective) {
+                //non script interpreter directive - printstack etc...
+                processDirective(state, chunk.directive, chunk.context);
+                continue;
+            }
+
             if (scriptStateListener != null) {
                 scriptStateListener._onBeforeOpCodeExecuted(chunk, shouldExecute);
             }
@@ -360,7 +366,8 @@ public class Interpreter {
                 if (!shouldExecute)
                     continue;
 
-                stack.add(chunk.data());
+                //stack.add(chunk.data());
+                stack.add(StackItem.forBytes(chunk.data, chunk.type));
             } else {
                 int opcode = chunk.opcode;
                 if (opcode > OP_16) {
@@ -447,6 +454,7 @@ public class Interpreter {
                         if (genesisActive) {
                             //will exit at end of loop so all checks are completed.
                             opReturnCalled = true;
+                            break;
                         } else {
                             throw new ScriptExecutionException(state, "Script called OP_RETURN");
                         }
@@ -1103,13 +1111,22 @@ public class Interpreter {
 
         }
 
-        if (!ifStack.isEmpty())
+        if (!ifStack.isEmpty() && !opReturnCalled)
             throw new ScriptExecutionException(state, "OP_IF/OP_NOTIF without OP_ENDIF");
 
         if (scriptStateListener != null) {
             scriptStateListener.onScriptComplete();
         }
+        return state;
+    }
 
+    private static void processDirective(ScriptExecutionState state, String directive, Object context) {
+        if (directive == null || directive.isEmpty()) {
+            //print stack
+            String last = state.lastOpCode == null ? "first_op_code" : ScriptOpCodes.getOpCodeName(state.lastOpCode.opcode);
+            System.out.print(last + " " + context + " : ");
+            System.out.println(state.stack.toLongString(false));
+        }
     }
 
     // This is more or less a direct translation of the code in Bitcoin Core
@@ -1312,18 +1329,4 @@ public class Interpreter {
         return opCount;
     }
 
-    public static class ScriptExecutionState {
-        public ScriptStack stack;
-        public List<StackItem> stackPopped;
-        public ScriptStack altStack;
-        public List<StackItem> altStackPopped;
-        public LinkedList<Boolean> ifStack;
-        public ScriptStream script;
-        public int opCount;
-        public ScriptChunk lastOpCode;
-        public ScriptChunk currentOpCode;
-        public int currentOpCodeIndex = 0;
-        public Set<ScriptVerifyFlag> verifyFlags;
-        public boolean initialStackStateKnown;
-    }
 }

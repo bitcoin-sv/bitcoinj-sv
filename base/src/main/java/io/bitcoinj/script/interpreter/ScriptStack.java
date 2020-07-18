@@ -219,6 +219,27 @@ public class ScriptStack extends LinkedList<StackItem> {
         return sb.toString();
     }
 
+    public String toLongString(boolean topAtLeft) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("stack[").append(size()).append("]");
+        if (topAtLeft)
+            sb.append(" top");
+        sb.append(" [");
+        Iterator<StackItem> it = topAtLeft ? descendingIterator() : iterator();
+        boolean first = true;
+        while (it.hasNext()) {
+            if (first)
+                first = false;
+            else
+                sb.append(", ");
+            sb.append(it.next());
+        }
+        sb.append("]");
+        if (!topAtLeft)
+            sb.append(" top");
+        return sb.toString();
+    }
+
     private class StackIterator implements ListIterator<StackItem> {
 
         private final Iterator<StackItem> delegate;
@@ -428,4 +449,5 @@ public class ScriptStack extends LinkedList<StackItem> {
     @Override
     public void forEach(Consumer<? super StackItem> action) {
     }
+
 }

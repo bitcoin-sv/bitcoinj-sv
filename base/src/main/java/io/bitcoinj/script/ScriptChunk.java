@@ -19,6 +19,7 @@ package io.bitcoinj.script;
 
 import io.bitcoinj.core.Utils;
 import com.google.common.base.Objects;
+import io.bitcoinj.script.interpreter.StackItem;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -40,7 +41,11 @@ public class ScriptChunk<C> {
      */
     @Nullable
     public final ScriptData data;
+    public final StackItem.Type type;
     private int startLocationInProgram;
+
+    public final boolean isDirective;
+    public final String directive;
 
     /**
      * user provided context object for attaching meta data to a ScriptChunk
@@ -64,10 +69,21 @@ public class ScriptChunk<C> {
     }
 
     public ScriptChunk(int opcode, ScriptData data, int startLocationInProgram, C context) {
+        this(opcode, data, StackItem.Type.BYTES, startLocationInProgram, context, false, null);
+    }
+
+    public ScriptChunk(int opcode, ScriptData data, StackItem.Type type, int startLocationInProgram, C context) {
+        this(opcode, data, type, startLocationInProgram, context, false, null);
+    }
+
+    public ScriptChunk(int opcode, ScriptData data, StackItem.Type type, int startLocationInProgram, C context, boolean isDirective, String directive) {
         this.opcode = opcode;
         this.data = data;
+        this.type = type;
         this.startLocationInProgram = startLocationInProgram;
         this.context = context;
+        this.isDirective = isDirective;
+        this.directive = directive;
     }
 
     /**

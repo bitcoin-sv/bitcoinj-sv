@@ -122,7 +122,7 @@ public class StackItem<C> {
      */
     public String getAsString() {
         try {
-            return new String(bytes.data(), "UTF-8");
+            return "\"" + new String(bytes.data(), "UTF-8") + "\"";
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
