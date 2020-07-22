@@ -10,10 +10,7 @@ import io.bitcoinj.script.ScriptChunk;
 import io.bitcoinj.script.ScriptVerifyFlag;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A ScriptStateListener can be passed during script execution to allow visibility into the internal state of the script at each stage of execution.
@@ -30,37 +27,42 @@ import java.util.Set;
  */
 public abstract class ScriptStateListener {
 
-    private Tx txContainingThis;
-    private long index;
-    private ScriptStream script;
-    private List<StackItem> stack;
-    private List<StackItem> altstack;
-    private List<Boolean> ifStack;
-    private Coin value;
-    private Set<ScriptVerifyFlag> verifyFlags;
+    protected ScriptExecutionState state;
 
-    private int chunkIndex;
-    private ScriptChunk currentChunk;
-    private List<ScriptChunk> scriptChunks;
+//    private Tx txContainingThis;
+//    private long index;
+//    private ScriptStream script;
+//    private List<StackItem> stack;
+//    private List<StackItem> altstack;
+//    private List<Boolean> ifStack;
+//    private Coin value;
+//    private Set<ScriptVerifyFlag> verifyFlags;
+//
+//    private int chunkIndex;
+//    private ScriptChunk currentChunk;
+//    private List<ScriptChunk> scriptChunks;
 
-
-    void setInitialState(@Nullable Tx txContainingThis, long index,
-                         ScriptStream script, List<StackItem> stack, List<StackItem> altstack, List<Boolean> ifStack, Coin value, Set<ScriptVerifyFlag> verifyFlags) {
-        this.chunkIndex = -1;
-        this.txContainingThis = txContainingThis;
-        this.index = index;
-        this.script = script.clone();
-        this.stack = stack;
-        this.altstack = altstack;
-        this.ifStack = ifStack;
-        this.value = value;
-        this.verifyFlags = verifyFlags;
-
+    void setInitialState(ScriptExecutionState state) {
+        this.state = state;
     }
 
+//    void setInitialState(@Nullable Tx txContainingThis, long index,
+//                         ScriptStream script, List<StackItem> stack, List<StackItem> altstack, List<Boolean> ifStack, Coin value, Set<ScriptVerifyFlag> verifyFlags) {
+//        this.chunkIndex = -1;
+//        this.txContainingThis = txContainingThis;
+//        this.index = index;
+//        this.script = script.clone();
+//        this.stack = stack;
+//        this.altstack = altstack;
+//        this.ifStack = ifStack;
+//        this.value = value;
+//        this.verifyFlags = verifyFlags;
+//
+//    }
+
     void _onBeforeOpCodeExecuted(ScriptChunk chunk, boolean willExecute) {
-        chunkIndex++;
-        currentChunk = chunk;
+//        chunkIndex++;
+//        currentChunk = chunk;
         onBeforeOpCodeExecuted(willExecute);
     }
 
@@ -87,62 +89,97 @@ public abstract class ScriptStateListener {
      */
     public abstract void onScriptComplete();
 
+    public ScriptExecutionState getState() {
+        return state;
+    }
+
+
+
+//    /**
+//     * @return The internally tracked index of the currently executing ScriptChunk.
+//     */
+//    public int getChunkIndex() {
+//        return chunkIndex;
+//    }
+
+//    /**
+//     *
+//     * @return the currently executing ScriptChunk
+//     */
+//    public ScriptChunk getCurrentChunk() {
+//        return currentChunk;
+//    }
+
+//    public List<ScriptChunk> getScriptChunks() {
+//        if (scriptChunks == null) {
+//            List<ScriptChunk> chunks = new ArrayList<ScriptChunk>();
+//            ScriptStream clone = script.clone();
+//            while (clone.hasNext()) {
+//                chunks.add(clone.next());
+//            }
+//            scriptChunks = Collections.unmodifiableList(chunks);
+//        }
+//        return scriptChunks;
+//    }
+
+
     public Tx getTxContainingThis() {
-        return txContainingThis;
-    }
-
-    public long getIndex() {
-        return index;
-    }
-
-    public ScriptStream getScript() {
-        return script;
-    }
-
-    public List<StackItem> getStack() {
-        return stack;
-    }
-
-    public List<StackItem> getAltstack() {
-        return altstack;
-    }
-
-    public List<Boolean> getIfStack() {
-        return ifStack;
+        return state.getTxContainingThis();
     }
 
     public Coin getValue() {
-        return value;
+        return state.getValue();
+    }
+
+    public ScriptStack getStack() {
+        return state.getStack();
+    }
+
+    public List<StackItem> getStackPopped() {
+        return state.getStackPopped();
+    }
+
+    public ScriptStack getAltStack() {
+        return state.getAltStack();
+    }
+
+    public List<StackItem> getAltStackPopped() {
+        return state.getAltStackPopped();
+    }
+
+    public LinkedList<Boolean> getIfStack() {
+        return state.getIfStack();
+    }
+
+    public ScriptStream getScript() {
+        return state.getScript();
+    }
+
+    public List<ScriptChunk> getExecutedOpCodes() {
+        return state.getExecutedOpCodes();
+    }
+
+    public int getOpCount() {
+        return state.getOpCount();
+    }
+
+    public ScriptChunk getLastOpCode() {
+        return state.getLastOpCode();
+    }
+
+    public ScriptChunk getCurrentOpCode() {
+        return state.getCurrentOpCode();
+    }
+
+    public int getCurrentOpCodeIndex() {
+        return state.getCurrentOpCodeIndex();
     }
 
     public Set<ScriptVerifyFlag> getVerifyFlags() {
-        return verifyFlags;
+        return state.getVerifyFlags();
     }
 
-    /**
-     * @return The internally tracked index of the currently executing ScriptChunk.
-     */
-    public int getChunkIndex() {
-        return chunkIndex;
-    }
-
-    /**
-     *
-     * @return the currently executing ScriptChunk
-     */
-    public ScriptChunk getCurrentChunk() {
-        return currentChunk;
-    }
-
-    public List<ScriptChunk> getScriptChunks() {
-        if (scriptChunks == null) {
-            List<ScriptChunk> chunks = new ArrayList<ScriptChunk>();
-            ScriptStream clone = script.clone();
-            while (clone.hasNext()) {
-                chunks.add(clone.next());
-            }
-            scriptChunks = Collections.unmodifiableList(chunks);
-        }
-        return scriptChunks;
+    public boolean isInitialStackStateKnown() {
+        return state.isInitialStackStateKnown();
     }
 }

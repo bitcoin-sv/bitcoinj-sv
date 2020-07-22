@@ -101,8 +101,8 @@ public class ScriptBuilder {
         return addChunk(index, new ScriptChunk(opcode, (ScriptData) null, context));
     }
 
-    public ScriptBuilder directive(String directive, Object context) {
-        return addChunk(chunks.size(), new ScriptChunk(OP_INVALIDOPCODE, null, null, -1, context, true, directive));
+    public ScriptBuilder directive(String directive, Object context, boolean isBreakpointSoft, boolean isBreakpointHard) {
+        return addChunk(chunks.size(), new ScriptChunk(OP_INVALIDOPCODE, null, null, -1, context, true, directive, isBreakpointSoft, isBreakpointHard));
     }
 
     /**

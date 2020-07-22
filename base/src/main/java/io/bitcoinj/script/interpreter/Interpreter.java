@@ -17,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static io.bitcoinj.script.ScriptOpCodes.*;
+import static io.bitcoinj.script.interpreter.StackItem.Type;
 
 /**
  * This is the actual script interpreter than runs Bitcoin Scripts.  It is completely stateless and contians
@@ -251,10 +252,29 @@ public class Interpreter {
     }
 
     /**
-     * Executes a script in debug mode with the provided ScriptStateListener.  Exceptions (which are thrown when a script fails) are caught
+     * Executes a script in debug mode with the provided ScriptStateListener and inital script state.  Exceptions (which are thrown when a script fails) are caught
      * and passed to the listener before being rethrown.
+     *
+     * This version can be used to execute a script incrementally, passing the script state from one invocation to another
+     * (e.g. for an interactive interpreter)
      */
     public static ScriptExecutionState executeDebugScript(@Nullable Tx txContainingThis, long index,
+                                                          ScriptStream script, ScriptExecutionState state,
+                                                          ScriptStateListener scriptStateListener) throws ScriptExecutionException {
+        try {
+            return executeScript(txContainingThis, index, script, null, state.value, state.verifyFlags, scriptStateListener, state, false, 0l);
+        } catch (ScriptExecutionException e) {
+            scriptStateListener.onExceptionThrown(e);
+            try {
+                //pause to hopefully give the System.out time to beat System.err
+                Thread.sleep(200);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+            throw e;
+        }
+    }
+        public static ScriptExecutionState executeDebugScript(@Nullable Tx txContainingThis, long index,
                                           ScriptStream script, ScriptStack stack, Coin value, Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptExecutionException {
         try {
             return executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener);
@@ -273,7 +293,8 @@ public class Interpreter {
     public static ScriptExecutionState executeScript(@Nullable Tx txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
                                      Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptExecutionException {
-        return executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener, false, 0L);
+        return executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener
+                , null, false, 0L);
     }
 
     /**
@@ -285,6 +306,7 @@ public class Interpreter {
     public static ScriptExecutionState executeScript(@Nullable Tx txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
                                      Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
+                                     ScriptExecutionState state,
                                      boolean allowFakeChecksig, long fakeChecksigDelay) throws ScriptExecutionException {
         int opCount = 0;
         int lastCodeSepLocation = 0;
@@ -292,10 +314,28 @@ public class Interpreter {
         //for scriptSig this can be set to true as the stack state is known to be empty
         boolean initialStackStateKnown = false;
 
+        //we enforce closing of IF statements UNLESS we are running in debug mode
+        //as the script may be run in multiple invocations
+        boolean allowUnclosedIf = false;
+
+        ScriptStack altstack;
+        LinkedList<Boolean> ifStack;
+
+        if (stack == null) {
+            //This is a debug invocation in a step debugger playing part of a script.
+            if (state == null)
+                throw new ScriptExecutionException("must provide either stack of ScriptExecutionState from previous invocation");
+            stack = state.stack;
+            altstack = state.altStack;
+            ifStack = state.ifStack;
+            allowUnclosedIf = true;
+        } else {
+            //this is a normal invocation where the entire script is executed in one call.
+            altstack = new ScriptStack();
+            ifStack = new LinkedList<Boolean>();
+        }
         //mark all stack items as derived if initial stack state is not known to this execution context
         stack.setDerivations(!initialStackStateKnown);
-        ScriptStack altstack = new ScriptStack();
-        LinkedList<Boolean> ifStack = new LinkedList<Boolean>();
         final boolean enforceMinimal = verifyFlags.contains(ScriptVerifyFlag.MINIMALDATA);
         final boolean genesisActive = verifyFlags.contains(ScriptVerifyFlag.GENESIS_OPCODES);
         final long maxScriptElementSize = genesisActive ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
@@ -305,33 +345,27 @@ public class Interpreter {
                 verifyFlags.contains(ScriptVerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
                         MAX_OPCOUNT_PRE_MAGNETIC;
 
-        if (scriptStateListener != null) {
-            scriptStateListener.setInitialState(
-                    txContainingThis,
-                    index,
-                    script,
-                    Collections.unmodifiableList(stack),
-                    Collections.unmodifiableList(altstack),
-                    Collections.unmodifiableList(ifStack),
-                    value,
-                    verifyFlags
-            );
-        }
-
         boolean opReturnCalled = false;
 
         //initialise script state tracker
-        ScriptExecutionState state = new ScriptExecutionState();
-        state.stack = stack;
-        state.stackPopped = stack.getPoppedItems();
-        state.altStack = altstack;
-        state.altStackPopped = altstack.getPoppedItems();
-        state.ifStack = ifStack;
-        state.opCount = 0;
-        state.verifyFlags = verifyFlags;
-        state.script = script;
-        state.initialStackStateKnown = initialStackStateKnown;
-        SCRIPT_STATE_THREADLOCAL.set(state);
+        if (state == null) {
+            state = new ScriptExecutionState();
+            state.txContainingThis = txContainingThis;
+            state.value = value;
+            state.stack = stack;
+            state.stackPopped = stack.getPoppedItems();
+            state.altStack = altstack;
+            state.altStackPopped = altstack.getPoppedItems();
+            state.ifStack = ifStack;
+            state.opCount = 0;
+            state.verifyFlags = verifyFlags;
+            state.script = script;
+            state.initialStackStateKnown = initialStackStateKnown;
+            SCRIPT_STATE_THREADLOCAL.set(state);
+        }
+        if (scriptStateListener != null) {
+            scriptStateListener.setInitialState(state);
+        }
 
         for (ScriptChunk chunk : script) {
             state.lastOpCode = state.currentOpCode;
@@ -344,21 +378,25 @@ public class Interpreter {
 
             boolean shouldExecute = !ifStack.contains(false);
 
-            if (shouldExecute && chunk.isDirective) {
-                //non script interpreter directive - printstack etc...
-                processDirective(state, chunk.directive, chunk.context);
-                continue;
+            if (shouldExecute) {
+                state.executedOpCodes.add(chunk);
             }
 
             if (scriptStateListener != null) {
                 scriptStateListener._onBeforeOpCodeExecuted(chunk, shouldExecute);
             }
 
+            if (shouldExecute && chunk.isDirective) {
+                //non script interpreter directiveFormat - printstack etc...
+                //processDirective(state, chunk.directiveFormat, chunk.context);
+                continue;
+            }
+
             if (chunk.opcode == OP_0) {
                 if (!shouldExecute)
                     continue;
 
-                stack.add(new byte[]{});
+                stack.add(Type.INT, new byte[]{});
             } else if (!chunk.isOpCode()) {
                 if (chunk.data.length() > maxScriptElementSize)
                     throw new ScriptExecutionException(state, "Attempted to push a data string larger than 520 bytes");
@@ -366,7 +404,6 @@ public class Interpreter {
                 if (!shouldExecute)
                     continue;
 
-                //stack.add(chunk.data());
                 stack.add(StackItem.forBytes(chunk.data, chunk.type));
             } else {
                 int opcode = chunk.opcode;
@@ -422,7 +459,7 @@ public class Interpreter {
                 switch (opcode) {
                     // OP_0 is no opcode
                     case OP_1NEGATE:
-                        stack.add(Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE.negate(), false)));
+                        stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE.negate(), false)));
                         break;
                     case OP_1:
                     case OP_2:
@@ -539,7 +576,7 @@ public class Interpreter {
                         break;
                     case OP_DEPTH:
                         //depth can't be known at runtime unless you already know the size of the initial stack.
-                        stack.add(StackItem.wrapDerived(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(stack.size()), false)), true));
+                        stack.add(StackItem.wrapDerived(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(stack.size()), false)), Type.INT, true));
                         break;
                     case OP_DROP:
                         if (stack.size() < 1)
@@ -612,6 +649,8 @@ public class Interpreter {
                             throw new ScriptExecutionException(state, "Invalid stack operation.");
                         StackItem catBytes2 = stack.pollLast();
                         StackItem catBytes1 = stack.pollLast();
+                        Type catType = catBytes1.getType() == Type.STRING || catBytes2.getType() == Type.STRING
+                                        ? Type.STRING : Type.BYTES;
 
                         int len = catBytes1.length() + catBytes2.length();
                         if (len > maxScriptElementSize)
@@ -620,7 +659,7 @@ public class Interpreter {
                         byte[] catOut = new byte[len];
                         System.arraycopy(catBytes1.bytes(), 0, catOut, 0, catBytes1.length());
                         System.arraycopy(catBytes2.bytes(), 0, catOut, catBytes1.length(), catBytes2.length());
-                        stack.add(catOut, catBytes1, catBytes2);
+                        stack.add(catType, catOut, catBytes1, catBytes2);
 
                         break;
 
@@ -651,8 +690,8 @@ public class Interpreter {
                         System.arraycopy(splitBytes, 0, splitOut1, 0, splitPos);
                         System.arraycopy(splitBytes, splitPos, splitOut2, 0, splitOut2.length);
 
-                        stack.add(splitOut1, splitBytesItem, biSplitPosItem);
-                        stack.add(splitOut2, splitBytesItem, biSplitPosItem);
+                        stack.add(splitBytesItem.getType(), splitOut1, splitBytesItem, biSplitPosItem);
+                        stack.add(splitBytesItem.getType(), splitOut2, splitBytesItem, biSplitPosItem);
                         break;
 
                     case OP_NUM2BIN:
@@ -677,9 +716,9 @@ public class Interpreter {
 
                         if (minimalNumBytes.length == numSize) {
                             //already the right size so just push it to stack
-                            stack.add(minimalNumBytes, numSizeItem, rawNumItem);
+                            stack.add(Type.BYTES, minimalNumBytes, numSizeItem, rawNumItem);
                         } else if (numSize == 0) {
-                            stack.add(Utils.EMPTY_BYTE_ARRAY, numSizeItem, rawNumItem);
+                            stack.add(Type.BYTES, Utils.EMPTY_BYTE_ARRAY, numSizeItem, rawNumItem);
                         } else {
                             int signBit = 0x00;
                             if (minimalNumBytes.length > 0) {
@@ -690,7 +729,7 @@ public class Interpreter {
                             byte[] expandedNumBytes = new byte[numSize]; //initialized to all zeroes
                             System.arraycopy(minimalNumBytes, 0, expandedNumBytes, 0, minimalBytesToCopy);
                             expandedNumBytes[expandedNumBytes.length - 1] = (byte) signBit;
-                            stack.add(expandedNumBytes, rawNumItem, numSizeItem);
+                            stack.add(Type.BYTES, expandedNumBytes, rawNumItem, numSizeItem);
                         }
                         break;
 
@@ -703,14 +742,14 @@ public class Interpreter {
                         if (!Utils.checkMinimallyEncodedLE(numBytes, maxNumElementSize))
                             throw new ScriptExecutionException(state, "Given operand is not a number within the valid range [-2^31...2^31]");
 
-                        stack.add(numBytes, binBytes);
+                        stack.add(Type.INT, numBytes, binBytes);
 
                         break;
                     case OP_SIZE:
                         if (stack.size() < 1)
                             throw new ScriptExecutionException(state, "Attempted OP_SIZE on an empty stack");
                         StackItem sizeItem = stack.getLast();
-                        stack.add(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(sizeItem.length()), false)), sizeItem);
+                        stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(sizeItem.length()), false)), sizeItem);
                         break;
                     case OP_INVERT:
                         // (x -- out)
@@ -795,7 +834,7 @@ public class Interpreter {
                             default:
                                 throw new ScriptExecutionException(state, "switched opcode at runtime"); //can't happen
                         }
-                        stack.add(shifted, shiftNItem, shiftData);
+                        stack.add(shiftData.getType(), shifted, shiftNItem, shiftData);
 
                         break;
                     case OP_EQUAL:
@@ -804,7 +843,7 @@ public class Interpreter {
                         StackItem eq2 = stack.pollLast();
                         StackItem eq1 = stack.pollLast();
                         byte[] eqResult = Objects.equals(eq2, eq1) ? new byte[]{1} : new byte[]{};
-                        stack.add(eqResult, eq1, eq2);
+                        stack.add(Type.BOOL, eqResult, eq1, eq2);
                         break;
                     case OP_EQUALVERIFY:
                         if (stack.size() < 2)
@@ -853,7 +892,7 @@ public class Interpreter {
                                 throw new AssertionError("Unreachable");
                         }
 
-                        stack.add(Utils.reverseBytes(Utils.encodeMPI(numericOPnum, false)), numericOpItem);
+                        stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(numericOPnum, false)), numericOpItem);
                         break;
                     case OP_2MUL:
                     case OP_2DIV:
@@ -881,6 +920,7 @@ public class Interpreter {
                         BigInteger numericOPnum1 = castToBigInteger(state, numericOpItem1, maxNumElementSize, enforceMinimal);
 
                         BigInteger numericOPresult;
+                        Type numericOPType = Type.INT;
                         switch (opcode) {
                             case OP_ADD:
                                 numericOPresult = numericOPnum1.add(numericOPnum2);
@@ -918,48 +958,56 @@ public class Interpreter {
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_BOOLOR:
                                 if (!numericOPnum1.equals(BigInteger.ZERO) || !numericOPnum2.equals(BigInteger.ZERO))
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_NUMEQUAL:
                                 if (numericOPnum1.equals(numericOPnum2))
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_NUMNOTEQUAL:
                                 if (!numericOPnum1.equals(numericOPnum2))
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_LESSTHAN:
                                 if (numericOPnum1.compareTo(numericOPnum2) < 0)
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_GREATERTHAN:
                                 if (numericOPnum1.compareTo(numericOPnum2) > 0)
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_LESSTHANOREQUAL:
                                 if (numericOPnum1.compareTo(numericOPnum2) <= 0)
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_GREATERTHANOREQUAL:
                                 if (numericOPnum1.compareTo(numericOPnum2) >= 0)
                                     numericOPresult = BigInteger.ONE;
                                 else
                                     numericOPresult = BigInteger.ZERO;
+                                numericOPType = Type.BOOL;
                                 break;
                             case OP_MIN:
                                 if (numericOPnum1.compareTo(numericOPnum2) < 0)
@@ -977,7 +1025,7 @@ public class Interpreter {
                                 throw new RuntimeException("Opcode switched at runtime?");
                         }
 
-                        stack.add(Utils.reverseBytes(Utils.encodeMPI(numericOPresult, false)), numericOpItem1, numericOpItem2);
+                        stack.add(numericOPType, Utils.reverseBytes(Utils.encodeMPI(numericOPresult, false)), numericOpItem1, numericOpItem2);
                         break;
                     case OP_NUMEQUALVERIFY:
                         if (stack.size() < 2)
@@ -1002,7 +1050,7 @@ public class Interpreter {
                             OPWITHINresult = Utils.encodeMPI(BigInteger.ONE, false);
                         else
                             OPWITHINresult = Utils.encodeMPI(BigInteger.ZERO, false);
-                        stack.add(Utils.reverseBytes(OPWITHINresult), OPWITHINitem1, OPWITHINitem2, OPWITHINitem3);
+                        stack.add(Type.BOOL, Utils.reverseBytes(OPWITHINresult), OPWITHINitem1, OPWITHINitem2, OPWITHINitem3);
                         break;
                     case OP_RIPEMD160:
                         if (stack.size() < 1)
@@ -1012,14 +1060,14 @@ public class Interpreter {
                         digest.update(r160data.bytes(), 0, r160data.length());
                         byte[] ripmemdHash = new byte[20];
                         digest.doFinal(ripmemdHash, 0);
-                        stack.add(ripmemdHash, r160data);
+                        stack.add(Type.BYTES, ripmemdHash, r160data);
                         break;
                     case OP_SHA1:
                         if (stack.size() < 1)
                             throw new ScriptExecutionException(state, "Attempted OP_SHA1 on an empty stack");
                         try {
                             StackItem sha1Data = stack.pollLast();
-                            stack.add(MessageDigest.getInstance("SHA-1").digest(sha1Data.bytes()), sha1Data);
+                            stack.add(Type.BOOL, MessageDigest.getInstance("SHA-1").digest(sha1Data.bytes()), sha1Data);
                         } catch (NoSuchAlgorithmException e) {
                             throw new RuntimeException(e);  // Cannot happen.
                         }
@@ -1028,19 +1076,19 @@ public class Interpreter {
                         if (stack.size() < 1)
                             throw new ScriptExecutionException(state, "Attempted OP_SHA256 on an empty stack");
                         StackItem sha256Data = stack.pollLast();
-                        stack.add(Sha256Hash.hash(sha256Data.bytes()), sha256Data);
+                        stack.add(Type.BYTES, Sha256Hash.hash(sha256Data.bytes()), sha256Data);
                         break;
                     case OP_HASH160:
                         if (stack.size() < 1)
                             throw new ScriptExecutionException(state, "Attempted OP_HASH160 on an empty stack");
                         StackItem hash160Data = stack.pollLast();
-                        stack.add(Utils.sha256hash160(hash160Data.bytes()), hash160Data);
+                        stack.add(Type.BYTES, Utils.sha256hash160(hash160Data.bytes()), hash160Data);
                         break;
                     case OP_HASH256:
                         if (stack.size() < 1)
                             throw new ScriptExecutionException(state, "Attempted OP_SHA256 on an empty stack");
                         StackItem hash256Data = stack.pollLast();
-                        stack.add(Sha256Hash.hashTwice(hash256Data.bytes()), hash256Data);
+                        stack.add(Type.BYTES, Sha256Hash.hashTwice(hash256Data.bytes()), hash256Data);
                         break;
                     case OP_CODESEPARATOR:
                         lastCodeSepLocation = chunk.getStartLocationInProgram() + 1;
@@ -1111,7 +1159,7 @@ public class Interpreter {
 
         }
 
-        if (!ifStack.isEmpty() && !opReturnCalled)
+        if (!ifStack.isEmpty() && !opReturnCalled && !allowUnclosedIf)
             throw new ScriptExecutionException(state, "OP_IF/OP_NOTIF without OP_ENDIF");
 
         if (scriptStateListener != null) {
@@ -1219,7 +1267,7 @@ public class Interpreter {
 
 
         if (opcode == OP_CHECKSIG)
-            stack.add(sigValid ? new byte[]{1} : new byte[]{}, pubKey, sigBytes);
+            stack.add(Type.BOOL, sigValid ? new byte[]{1} : new byte[]{}, pubKey, sigBytes);
         else if (opcode == OP_CHECKSIGVERIFY)
             if (!sigValid)
                 throw new ScriptExecutionException(state, "Script failed OP_CHECKSIGVERIFY");
@@ -1321,7 +1369,7 @@ public class Interpreter {
 
         if (opcode == OP_CHECKMULTISIG) {
             StackItem[] polledItems = polledStackItems.toArray(new StackItem[polledStackItems.size()]);
-            stack.add(valid ? new byte[]{1} : new byte[]{}, polledItems);
+            stack.add(Type.BOOL, valid ? new byte[]{1} : new byte[]{}, polledItems);
         } else if (opcode == OP_CHECKMULTISIGVERIFY) {
             if (!valid)
                 throw new ScriptExecutionException(state, "Script failed OP_CHECKMULTISIGVERIFY");

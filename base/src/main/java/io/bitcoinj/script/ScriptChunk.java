@@ -45,7 +45,10 @@ public class ScriptChunk<C> {
     private int startLocationInProgram;
 
     public final boolean isDirective;
-    public final String directive;
+    public final String directiveFormat;
+    public final boolean isBreakpointSoft;
+    public final boolean isBreakpointHard;
+
 
     /**
      * user provided context object for attaching meta data to a ScriptChunk
@@ -69,21 +72,23 @@ public class ScriptChunk<C> {
     }
 
     public ScriptChunk(int opcode, ScriptData data, int startLocationInProgram, C context) {
-        this(opcode, data, StackItem.Type.BYTES, startLocationInProgram, context, false, null);
+        this(opcode, data, StackItem.Type.BYTES, startLocationInProgram, context, false, null, false, false);
     }
 
     public ScriptChunk(int opcode, ScriptData data, StackItem.Type type, int startLocationInProgram, C context) {
-        this(opcode, data, type, startLocationInProgram, context, false, null);
+        this(opcode, data, type, startLocationInProgram, context, false, null, false, false);
     }
 
-    public ScriptChunk(int opcode, ScriptData data, StackItem.Type type, int startLocationInProgram, C context, boolean isDirective, String directive) {
+    public ScriptChunk(int opcode, ScriptData data, StackItem.Type type, int startLocationInProgram, C context, boolean isDirective, String directive, boolean isBreakpointSoft, boolean isBreakpointHard) {
         this.opcode = opcode;
         this.data = data;
         this.type = type;
         this.startLocationInProgram = startLocationInProgram;
         this.context = context;
         this.isDirective = isDirective;
-        this.directive = directive;
+        this.directiveFormat = directive;
+        this.isBreakpointSoft = isBreakpointSoft;
+        this.isBreakpointHard = isBreakpointHard;
     }
 
     /**
@@ -201,7 +206,9 @@ public class ScriptChunk<C> {
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        if (isOpCode()) {
+        if (isDirective) {
+            buf.append("!!BREAKPOINT");
+        } if (isOpCode()) {
             buf.append(getOpCodeName(opcode));
         } else if (data() != null) {
             // Data chunk

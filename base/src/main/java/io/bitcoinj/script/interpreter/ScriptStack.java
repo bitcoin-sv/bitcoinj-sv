@@ -13,6 +13,8 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
+import static io.bitcoinj.script.interpreter.StackItem.Type;
+
 public class ScriptStack extends LinkedList<StackItem> {
 
     private static final Logger log = LoggerFactory.getLogger(ScriptStack.class);
@@ -56,7 +58,8 @@ public class ScriptStack extends LinkedList<StackItem> {
      */
     public void setDerivations(boolean derived) {
         for (int i = 0; i < this.size(); i++) {
-            set(i, StackItem.wrapDerived(this.get(i).bytes(), derived));
+            StackItem old = this.get(i);
+            set(i, StackItem.wrapDerived(old.bytes(), old.getType(), derived));
         }
     }
 
@@ -132,17 +135,9 @@ public class ScriptStack extends LinkedList<StackItem> {
         return add(StackItem.from(from, derivedFrom));
     }
 
-    public boolean add(byte[] bytes, StackItem ... derivedFrom) {
-        return add(StackItem.forBytes(bytes, derivedFrom));
+    public boolean add(Type type, byte[] bytes, StackItem ... derivedFrom) {
+        return add(StackItem.forBytes(bytes, type, derivedFrom));
     }
-
-//    public void addLast(StackItem from, StackItem ... derivedFrom) {
-//        addLast(StackItem.from(from, derivedFrom));
-//    }
-//
-//    public void addLast(byte[] bytes, StackItem ... derivedFrom) {
-//        addLast(StackItem.from(bytes, derivedFrom));
-//    }
 
     @Override
     public void addLast(StackItem stackItem) {
@@ -220,6 +215,10 @@ public class ScriptStack extends LinkedList<StackItem> {
     }
 
     public String toLongString(boolean topAtLeft) {
+        return toLongString(topAtLeft, null);
+    }
+
+    public String toLongString(boolean topAtLeft, Type forceType) {
         StringBuilder sb = new StringBuilder();
         sb.append("stack[").append(size()).append("]");
         if (topAtLeft)
@@ -232,7 +231,7 @@ public class ScriptStack extends LinkedList<StackItem> {
                 first = false;
             else
                 sb.append(", ");
-            sb.append(it.next());
+            sb.append(it.next().toString(false, forceType));
         }
         sb.append("]");
         if (!topAtLeft)

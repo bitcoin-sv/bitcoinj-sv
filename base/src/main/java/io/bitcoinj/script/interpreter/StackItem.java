@@ -15,6 +15,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class StackItem<C> {
 
+    private static final byte[] NULL_BYTES = new byte[]{(byte) 0x80};
+
     private final ScriptData bytes;
     private final int length;
     private final Type type;
@@ -58,8 +60,8 @@ public class StackItem<C> {
         return new StackItem(ScriptData.of(bytes), Type.BYTES, false);
     }
 
-    public static StackItem wrapDerived(byte[] bytes, boolean derived) {
-        return new StackItem(ScriptData.of(bytes), Type.BYTES, true);
+    public static StackItem wrapDerived(byte[] bytes, Type type, boolean derived) {
+        return new StackItem(ScriptData.of(bytes), type, true);
     }
 
     public static StackItem from(StackItem from, StackItem ... derivedFrom) {
@@ -70,8 +72,11 @@ public class StackItem<C> {
         return new StackItem(ScriptData.of(bytes), type, derived);
     }
 
-    public static StackItem forBytes(byte[] bytes, StackItem ... derivedFrom) {
-        return new StackItem(ScriptData.of(bytes), Type.BYTES, false, derivedFrom);
+    public static StackItem forBytes(byte[] bytes, Type type, StackItem ... derivedFrom) {
+        return new StackItem(ScriptData.of(bytes), type, false, derivedFrom);
+    }
+    public static StackItem forBytes(byte[] bytes, Type type, boolean derived, StackItem ... derivedFrom) {
+        return new StackItem(ScriptData.of(bytes), Type.BYTES, derived, derivedFrom);
     }
 
     public static StackItem forBytes(ScriptData bytes, Type type, boolean derived) {
@@ -154,15 +159,24 @@ public class StackItem<C> {
     }
 
     public String toString() {
+        return toString(false, null);
+    }
+
+    public String toString(boolean withType, Type forceType) {
         String rendered = null;
+        Type type = forceType == Type.ANY || forceType == null ? this.type : forceType;
         if (type == StackItem.Type.STRING) {
             rendered = getAsString();
         } else if (type == StackItem.Type.INT) {
             rendered = getInteger().toString();
+        } else if (type == Type.BOOL) {
+            rendered = getInteger().equals(BigInteger.ZERO) ? "false" : "true";
+        } else if (Arrays.equals(bytes.data(), NULL_BYTES)) {
+            rendered = "null";
         } else {
             rendered = "0x" + Utils.HEX.encode(bytes.data());
         }
-        return type +": " + rendered;
+        return withType ? type +": " + rendered : rendered;
     }
 
     public enum Type {
