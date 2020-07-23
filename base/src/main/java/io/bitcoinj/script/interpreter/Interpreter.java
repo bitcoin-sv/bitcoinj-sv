@@ -48,6 +48,73 @@ public class Interpreter {
     private static final int[] LSHIFT_MASKS = new int[]{0xFF, 0x7F, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01};
 
 
+    /**
+     * Interpreter state
+     */
+
+    //initial state
+    @Nullable Tx txContainingThis;
+    long index;
+    ScriptStream script;
+    ScriptStack stack;
+    Coin value;
+    Set<ScriptVerifyFlag> verifyFlags;
+    ScriptStateListener scriptStateListener;
+    ScriptExecutionState state;
+    boolean allowFakeChecksig;
+    long fakeChecksigDelay;
+
+
+    int opCount = 0;
+    int lastCodeSepLocation = 0;
+
+    //for scriptSig this can be set to true as the stack state is known to be empty
+    final boolean initialStackStateKnown = false;
+
+    //we enforce closing of IF statements UNLESS we are running in debug mode
+    //as the script may be run in multiple invocations
+    boolean allowUnclosedIf = false;
+
+    ScriptStack altstack;
+    LinkedList<Boolean> ifStack;
+
+    boolean opReturnCalled = false;
+
+    //flag based limits
+    final boolean enforceMinimal;
+    final boolean genesisActive;
+    final long maxScriptElementSize;
+    final int maxNumElementSize;
+    final int maxMultisigKeys;
+    final int maxOpCount;
+
+    public Interpreter(@Nullable Tx txContainingThis, long index,
+                       ScriptStream script, ScriptStack stack, Coin value,
+                       Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
+                       ScriptExecutionState state,
+                       boolean allowFakeChecksig, long fakeChecksigDelay) {
+        this.txContainingThis = txContainingThis;
+        this.index = index;
+        this.script = script;
+        this.stack = stack;
+        this.value = value;
+        this.verifyFlags = verifyFlags;
+        this.scriptStateListener = scriptStateListener;
+        this.state = state;
+        this.allowFakeChecksig = allowFakeChecksig;
+        this.fakeChecksigDelay = fakeChecksigDelay;
+
+        //init flag based limits
+        enforceMinimal = verifyFlags.contains(ScriptVerifyFlag.MINIMALDATA);
+        genesisActive = verifyFlags.contains(ScriptVerifyFlag.GENESIS_OPCODES);
+        maxScriptElementSize = genesisActive ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
+        maxNumElementSize = genesisActive ? MAX_NUM_ELEMENT_SIZE_POST_GENESIS : MAX_NUM_ELEMENT_SIZE_PRE_GENESIS;
+        maxMultisigKeys = genesisActive ? MAX_MULTISIG_PUBKEYS_POST_GENESIS : MAX_MULTISIG_PUBKEYS_PRE_GENESIS;
+        maxOpCount = genesisActive ? Integer.MAX_VALUE :
+                verifyFlags.contains(ScriptVerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
+                        MAX_OPCOUNT_PRE_MAGNETIC;
+    }
+
     ////////////////////// Script verification and helpers ////////////////////////////////
 
     public static boolean castToBool(StackItem data) {
@@ -72,9 +139,9 @@ public class Interpreter {
      */
     private static BigInteger castToBigInteger(ScriptExecutionState state, StackItem chunk, boolean enforceMinimal) throws ScriptExecutionException {
         if (chunk.length() > MAX_NUM_ELEMENT_SIZE_PRE_GENESIS)
-            throw new ScriptExecutionException(state, "Script attempted to use an integer larger than 4 bytes");
+            throw new ScriptExecutionException(state, "Script attempted to use an integer larger than 4 bytes: " + chunk.length());
         if (enforceMinimal && !Utils.checkMinimallyEncodedLE(chunk.bytes(), MAX_NUM_ELEMENT_SIZE_PRE_GENESIS))
-            throw new ScriptExecutionException(state, "Number is not minimally encoded");
+            throw new ScriptExecutionException(state, "Number is not minimally encoded: " + chunk);
         //numbers on the stack or stored LE so convert as MPI requires BE.
         byte[] bytesBE = Utils.reverseBytes(chunk.bytes());
         return Utils.decodeMPI(bytesBE, false);
@@ -94,13 +161,13 @@ public class Interpreter {
      * @param maxLength the maximum length in bytes.
      * @throws ScriptExecutionException if the chunk is longer than the specified maximum.
      */
-    static BigInteger castToBigInteger(ScriptExecutionState state, final StackItem chunk, final int maxLength, boolean enforceMinimal) throws ScriptExecutionException {
-        if (chunk.length() > maxLength)
+    static BigInteger castToBigInteger(ScriptExecutionState state, final StackItem stackItem, final int maxLength, boolean enforceMinimal) throws ScriptExecutionException {
+        if (stackItem.length() > maxLength)
             throw new ScriptExecutionException(state, "Script attempted to use an integer larger than "
-                    + maxLength + " bytes");
-        if (enforceMinimal && !Utils.checkMinimallyEncodedLE(chunk.bytes(), maxLength))
-            throw new ScriptExecutionException(state, "Number is not minimally encoded");
-        return Utils.decodeMPI(Utils.reverseBytes(chunk.bytes()), false);
+                    + maxLength + " bytes: " + stackItem.length());
+        if (enforceMinimal && !Utils.checkMinimallyEncodedLE(stackItem.bytes(), maxLength))
+            throw new ScriptExecutionException(state, "Number is not minimally encoded: " + stackItem);
+        return Utils.decodeMPI(Utils.reverseBytes(stackItem.bytes()), false);
     }
 
     /**
@@ -184,6 +251,8 @@ public class Interpreter {
      *
      * @deprecated Use {@link #executeScript(Tx, long, Script, ScriptStack, Set)}
      * instead.
+     *
+     * Used by Unit tests
      */
     @Deprecated
     public static void executeScript(@Nullable Tx txContainingThis, long index,
@@ -195,7 +264,7 @@ public class Interpreter {
         executeScript(txContainingThis, index, script, stack, Coin.ZERO, flags);
     }
 
-    @Deprecated
+    @Deprecated //used by unit tests
     public static void executeScript(@Nullable Tx txContainingThis, long index,
                                      Script script, ScriptStack stack, Set<ScriptVerifyFlag> verifyFlags) throws ScriptExecutionException {
         executeScript(txContainingThis, index, script, stack, Coin.ZERO, verifyFlags);
@@ -262,7 +331,8 @@ public class Interpreter {
                                                           ScriptStream script, ScriptExecutionState state,
                                                           ScriptStateListener scriptStateListener) throws ScriptExecutionException {
         try {
-            return executeScript(txContainingThis, index, script, null, state.value, state.verifyFlags, scriptStateListener, state, false, 0l);
+            return new Interpreter(txContainingThis, index, script, null, state.value, state.verifyFlags, scriptStateListener, state, false, 0l)
+                    .executeScript();
         } catch (ScriptExecutionException e) {
             scriptStateListener.onExceptionThrown(e);
             try {
@@ -293,34 +363,12 @@ public class Interpreter {
     public static ScriptExecutionState executeScript(@Nullable Tx txContainingThis, long index,
                                      ScriptStream script, ScriptStack stack, Coin value,
                                      Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener) throws ScriptExecutionException {
-        return executeScript(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener
-                , null, false, 0L);
+        return new Interpreter(txContainingThis, index, script, stack, value, verifyFlags, scriptStateListener
+                , null, false, 0L)
+                .executeScript();
     }
 
-    /**
-     * Exposes the script interpreter. Normally you should not use this directly, instead use
-     * { Script#correctlySpends(Tx, long, Script)}. This method
-     * is useful if you need more precise control or access to the final state of the stack. This interface is very
-     * likely to change in future.
-     */
-    public static ScriptExecutionState executeScript(@Nullable Tx txContainingThis, long index,
-                                     ScriptStream script, ScriptStack stack, Coin value,
-                                     Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
-                                     ScriptExecutionState state,
-                                     boolean allowFakeChecksig, long fakeChecksigDelay) throws ScriptExecutionException {
-        int opCount = 0;
-        int lastCodeSepLocation = 0;
-
-        //for scriptSig this can be set to true as the stack state is known to be empty
-        boolean initialStackStateKnown = false;
-
-        //we enforce closing of IF statements UNLESS we are running in debug mode
-        //as the script may be run in multiple invocations
-        boolean allowUnclosedIf = false;
-
-        ScriptStack altstack;
-        LinkedList<Boolean> ifStack;
-
+    private void initScript() {
         if (stack == null) {
             //This is a debug invocation in a step debugger playing part of a script.
             if (state == null)
@@ -336,16 +384,7 @@ public class Interpreter {
         }
         //mark all stack items as derived if initial stack state is not known to this execution context
         stack.setDerivations(!initialStackStateKnown);
-        final boolean enforceMinimal = verifyFlags.contains(ScriptVerifyFlag.MINIMALDATA);
-        final boolean genesisActive = verifyFlags.contains(ScriptVerifyFlag.GENESIS_OPCODES);
-        final long maxScriptElementSize = genesisActive ? Long.MAX_VALUE : MAX_SCRIPT_ELEMENT_SIZE;
-        final int maxNumElementSize = genesisActive ? MAX_NUM_ELEMENT_SIZE_POST_GENESIS : MAX_NUM_ELEMENT_SIZE_PRE_GENESIS;
-        final int maxMultisigKeys = genesisActive ? MAX_MULTISIG_PUBKEYS_POST_GENESIS : MAX_MULTISIG_PUBKEYS_PRE_GENESIS;
-        final int maxOpCount = genesisActive ? Integer.MAX_VALUE :
-                verifyFlags.contains(ScriptVerifyFlag.MAGNETIC_OPCODES) ? MAX_OPCOUNT_PRE_GENESIS :
-                        MAX_OPCOUNT_PRE_MAGNETIC;
 
-        boolean opReturnCalled = false;
 
         //initialise script state tracker
         if (state == null) {
@@ -366,797 +405,834 @@ public class Interpreter {
         if (scriptStateListener != null) {
             scriptStateListener.setInitialState(state);
         }
+    }
 
-        for (ScriptChunk chunk : script) {
-            state.lastOpCode = state.currentOpCode;
-            state.currentOpCode = chunk;
-            state.currentOpCodeIndex++;
+    /**
+     * return the top stack item
+     * @return
+     */
+    public StackItem stackTop() {
+        return stack.isEmpty() ? null : stack.getLast();
+    }
 
-            //clear tracked popped items from stack
-            stack.clearPoppedItems();
-            altstack.clearPoppedItems();
+    public StackItem stackTop(int index) {
+        if (index >= 0)
+            throw new IndexOutOfBoundsException("stacktop indexes must be negative");
+        //-1 is stacktop
+        return stack.get(stack.size() + index);
+    }
 
-            boolean shouldExecute = !ifStack.contains(false);
+    /**
+     * Execute the opcode in the given script chunk
+     * @param chunk
+     * @return true if the op code was executed
+     */
+    private boolean execOpcode(ScriptChunk chunk) {
+        state.lastOpCode = state.currentOpCode;
+        state.currentOpCode = chunk;
+        state.currentOpCodeIndex++;
 
-            if (shouldExecute) {
-                state.executedOpCodes.add(chunk);
+        //clear tracked popped items from stack
+        stack.clearPoppedItems();
+        altstack.clearPoppedItems();
+
+        boolean shouldExecute = !ifStack.contains(false);
+
+        if (shouldExecute) {
+            state.executedOpCodes.add(chunk);
+        }
+
+        if (scriptStateListener != null) {
+            scriptStateListener._onBeforeOpCodeExecuted(chunk, shouldExecute);
+        }
+
+        if (shouldExecute && chunk.isDirective) {
+            //non script interpreter directiveFormat - printstack etc...
+            //processDirective(state, chunk.directiveFormat, chunk.context);
+            return true;
+        }
+
+        if (chunk.opcode == OP_0) {
+            if (!shouldExecute)
+                return false;
+
+            stack.add(Type.INT, new byte[]{});
+        } else if (!chunk.isOpCode()) {
+            if (chunk.data.length() > maxScriptElementSize)
+                throw new ScriptExecutionException(state, "Attempted to push a data string larger than 520 bytes");
+
+            if (!shouldExecute)
+                return false;
+
+            stack.add(StackItem.forBytes(chunk.data, chunk.type));
+        } else {
+            int opcode = chunk.opcode;
+            if (opcode > OP_16) {
+                opCount++;
+                state.opCount = opCount;
+                if (opCount > maxOpCount)
+                    throw new ScriptExecutionException(state, "More script operations than is allowed");
             }
 
-            if (scriptStateListener != null) {
-                scriptStateListener._onBeforeOpCodeExecuted(chunk, shouldExecute);
+            if (opcode == OP_VERIF || opcode == OP_VERNOTIF)
+                throw new ScriptExecutionException(state, "Script included OP_VERIF or OP_VERNOTIF");
+
+            // Some opcodes are disabled.
+            if (isOpcodeDisabled(opcode, verifyFlags)) {
+                throw new ScriptExecutionException(state, "Script included a disabled Script Op.");
             }
 
-            if (shouldExecute && chunk.isDirective) {
-                //non script interpreter directiveFormat - printstack etc...
-                //processDirective(state, chunk.directiveFormat, chunk.context);
-                continue;
+            switch (opcode) {
+                case OP_IF:
+                    if (!shouldExecute) {
+                        ifStack.add(false);
+                        return false;
+                    }
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_IF on an empty stack");
+                    ifStack.add(castToBool(stack.pollLast().bytes()));
+                    return true;
+                case OP_NOTIF:
+                    if (!shouldExecute) {
+                        ifStack.add(false);
+                        return false;
+                    }
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_NOTIF on an empty stack");
+                    ifStack.add(!castToBool(stack.pollLast().bytes()));
+                    return true;
+                case OP_ELSE:
+                    if (ifStack.isEmpty())
+                        throw new ScriptExecutionException(state, "Attempted OP_ELSE without OP_IF/NOTIF");
+                    ifStack.add(!ifStack.pollLast());
+                    return true;
+                case OP_ENDIF:
+                    if (ifStack.isEmpty())
+                        throw new ScriptExecutionException(state, "Attempted OP_ENDIF without OP_IF/NOTIF");
+                    ifStack.pollLast();
+                    return true;
             }
 
-            if (chunk.opcode == OP_0) {
-                if (!shouldExecute)
-                    continue;
+            if (!shouldExecute)
+                return false;
 
-                stack.add(Type.INT, new byte[]{});
-            } else if (!chunk.isOpCode()) {
-                if (chunk.data.length() > maxScriptElementSize)
-                    throw new ScriptExecutionException(state, "Attempted to push a data string larger than 520 bytes");
+            switch (opcode) {
+                // OP_0 is no opcode
+                case OP_1NEGATE:
+                    stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE.negate(), false)));
+                    break;
+                case OP_1:
+                case OP_2:
+                case OP_3:
+                case OP_4:
+                case OP_5:
+                case OP_6:
+                case OP_7:
+                case OP_8:
+                case OP_9:
+                case OP_10:
+                case OP_11:
+                case OP_12:
+                case OP_13:
+                case OP_14:
+                case OP_15:
+                case OP_16:
+                    stack.add(StackItem.forSmallNum(decodeFromOpN(opcode)));
+                    break;
+                case OP_NOP:
+                    break;
+                case OP_VERIFY:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_VERIFY on an empty stack");
+                    if (!castToBool(stack.pollLast().bytes()))
+                        throw new ScriptExecutionException(state, "OP_VERIFY failed");
+                    break;
+                case OP_RETURN:
+                    if (genesisActive) {
+                        //will exit at end of loop so all checks are completed.
+                        opReturnCalled = true;
+                        break;
+                    } else {
+                        throw new ScriptExecutionException(state, "Script called OP_RETURN");
+                    }
+                case OP_TOALTSTACK:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_TOALTSTACK on an empty stack");
+                    altstack.add(stack.pollLast());
+                    break;
+                case OP_FROMALTSTACK:
+                    if (altstack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_FROMALTSTACK on an empty altstack");
+                    stack.add(altstack.pollLast());
+                    break;
+                case OP_2DROP:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_2DROP on a stack with size < 2");
+                    stack.pollLast();
+                    stack.pollLast();
+                    break;
+                case OP_2DUP:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_2DUP on a stack with size < 2");
+                    Iterator<StackItem> it2DUP = stack.descendingIterator();
+                    StackItem OP2DUPtmpChunk2 = it2DUP.next();
+                    stack.add(it2DUP.next());
+                    stack.add(OP2DUPtmpChunk2);
+                    break;
+                case OP_3DUP:
+                    if (stack.size() < 3)
+                        throw new ScriptExecutionException(state, "Attempted OP_3DUP on a stack with size < 3");
+                    Iterator<StackItem> it3DUP = stack.descendingIterator();
+                    StackItem OP3DUPtmpChunk3 = it3DUP.next();
+                    StackItem OP3DUPtmpChunk2 = it3DUP.next();
+                    stack.add(it3DUP.next());
+                    stack.add(OP3DUPtmpChunk2);
+                    stack.add(OP3DUPtmpChunk3);
+                    break;
+                case OP_2OVER:
+                    if (stack.size() < 4)
+                        throw new ScriptExecutionException(state, "Attempted OP_2OVER on a stack with size < 4");
+                    Iterator<StackItem> it2OVER = stack.descendingIterator();
+                    it2OVER.next();
+                    it2OVER.next();
+                    StackItem OP2OVERtmpChunk2 = it2OVER.next();
+                    stack.add(it2OVER.next());
+                    stack.add(OP2OVERtmpChunk2);
+                    break;
+                case OP_2ROT:
+                    if (stack.size() < 6)
+                        throw new ScriptExecutionException(state, "Attempted OP_2ROT on a stack with size < 6");
+                    StackItem OP2ROTtmpChunk6 = stack.pollLast();
+                    StackItem OP2ROTtmpChunk5 = stack.pollLast();
+                    StackItem OP2ROTtmpChunk4 = stack.pollLast();
+                    StackItem OP2ROTtmpChunk3 = stack.pollLast();
+                    StackItem OP2ROTtmpChunk2 = stack.pollLast();
+                    StackItem OP2ROTtmpChunk1 = stack.pollLast();
+                    stack.add(OP2ROTtmpChunk3);
+                    stack.add(OP2ROTtmpChunk4);
+                    stack.add(OP2ROTtmpChunk5);
+                    stack.add(OP2ROTtmpChunk6);
+                    stack.add(OP2ROTtmpChunk1);
+                    stack.add(OP2ROTtmpChunk2);
+                    break;
+                case OP_2SWAP:
+                    if (stack.size() < 4)
+                        throw new ScriptExecutionException(state, "Attempted OP_2SWAP on a stack with size < 4");
+                    StackItem OP2SWAPtmpChunk4 = stack.pollLast();
+                    StackItem OP2SWAPtmpChunk3 = stack.pollLast();
+                    StackItem OP2SWAPtmpChunk2 = stack.pollLast();
+                    StackItem OP2SWAPtmpChunk1 = stack.pollLast();
+                    stack.add(OP2SWAPtmpChunk3);
+                    stack.add(OP2SWAPtmpChunk4);
+                    stack.add(OP2SWAPtmpChunk1);
+                    stack.add(OP2SWAPtmpChunk2);
+                    break;
+                case OP_IFDUP:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_IFDUP on an empty stack");
+                    StackItem ifdupBool = stack.getLast();
+                    if (castToBool(ifdupBool.bytes()))
+                        stack.add(stack.getLast(), ifdupBool);
+                    break;
+                case OP_DEPTH:
+                    //depth can't be known at runtime unless you already know the size of the initial stack.
+                    stack.add(StackItem.wrapDerived(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(stack.size()), false)), Type.INT, true));
+                    break;
+                case OP_DROP:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_DROP on an empty stack");
+                    stack.pollLast();
+                    break;
+                case OP_DUP:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_DUP on an empty stack");
+                    stack.add(stack.getLast());
+                    break;
+                case OP_NIP:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_NIP on a stack with size < 2");
+                    StackItem OPNIPtmpChunk = stack.pollLast();
+                    stack.pollLast();
+                    stack.add(OPNIPtmpChunk);
+                    break;
+                case OP_OVER:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_OVER on a stack with size < 2");
+                    Iterator<StackItem> itOVER = stack.descendingIterator();
+                    itOVER.next();
+                    stack.add(itOVER.next());
+                    break;
+                case OP_PICK:
+                case OP_ROLL:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_PICK/OP_ROLL on an empty stack");
 
-                if (!shouldExecute)
-                    continue;
+                    StackItem rollVal = stack.pollLast();
 
-                stack.add(StackItem.forBytes(chunk.data, chunk.type));
-            } else {
-                int opcode = chunk.opcode;
-                if (opcode > OP_16) {
-                    opCount++;
-                    state.opCount = opCount;
-                    if (opCount > maxOpCount)
-                        throw new ScriptExecutionException(state, "More script operations than is allowed");
-                }
-
-                if (opcode == OP_VERIF || opcode == OP_VERNOTIF)
-                    throw new ScriptExecutionException(state, "Script included OP_VERIF or OP_VERNOTIF");
-
-                // Some opcodes are disabled.
-                if (isOpcodeDisabled(opcode, verifyFlags)) {
-                    throw new ScriptExecutionException(state, "Script included a disabled Script Op.");
-                }
-
-                switch (opcode) {
-                    case OP_IF:
-                        if (!shouldExecute) {
-                            ifStack.add(false);
-                            continue;
-                        }
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_IF on an empty stack");
-                        ifStack.add(castToBool(stack.pollLast().bytes()));
-                        continue;
-                    case OP_NOTIF:
-                        if (!shouldExecute) {
-                            ifStack.add(false);
-                            continue;
-                        }
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_NOTIF on an empty stack");
-                        ifStack.add(!castToBool(stack.pollLast().bytes()));
-                        continue;
-                    case OP_ELSE:
-                        if (ifStack.isEmpty())
-                            throw new ScriptExecutionException(state, "Attempted OP_ELSE without OP_IF/NOTIF");
-                        ifStack.add(!ifStack.pollLast());
-                        continue;
-                    case OP_ENDIF:
-                        if (ifStack.isEmpty())
-                            throw new ScriptExecutionException(state, "Attempted OP_ENDIF without OP_IF/NOTIF");
-                        ifStack.pollLast();
-                        continue;
-                }
-
-                if (!shouldExecute)
-                    continue;
-
-                switch (opcode) {
-                    // OP_0 is no opcode
-                    case OP_1NEGATE:
-                        stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE.negate(), false)));
-                        break;
-                    case OP_1:
-                    case OP_2:
-                    case OP_3:
-                    case OP_4:
-                    case OP_5:
-                    case OP_6:
-                    case OP_7:
-                    case OP_8:
-                    case OP_9:
-                    case OP_10:
-                    case OP_11:
-                    case OP_12:
-                    case OP_13:
-                    case OP_14:
-                    case OP_15:
-                    case OP_16:
-                        stack.add(StackItem.forSmallNum(decodeFromOpN(opcode)));
-                        break;
-                    case OP_NOP:
-                        break;
-                    case OP_VERIFY:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_VERIFY on an empty stack");
-                        if (!castToBool(stack.pollLast().bytes()))
-                            throw new ScriptExecutionException(state, "OP_VERIFY failed");
-                        break;
-                    case OP_RETURN:
-                        if (genesisActive) {
-                            //will exit at end of loop so all checks are completed.
-                            opReturnCalled = true;
-                            break;
-                        } else {
-                            throw new ScriptExecutionException(state, "Script called OP_RETURN");
-                        }
-                    case OP_TOALTSTACK:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_TOALTSTACK on an empty stack");
-                        altstack.add(stack.pollLast());
-                        break;
-                    case OP_FROMALTSTACK:
-                        if (altstack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_FROMALTSTACK on an empty altstack");
-                        stack.add(altstack.pollLast());
-                        break;
-                    case OP_2DROP:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_2DROP on a stack with size < 2");
-                        stack.pollLast();
-                        stack.pollLast();
-                        break;
-                    case OP_2DUP:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_2DUP on a stack with size < 2");
-                        Iterator<StackItem> it2DUP = stack.descendingIterator();
-                        StackItem OP2DUPtmpChunk2 = it2DUP.next();
-                        stack.add(it2DUP.next());
-                        stack.add(OP2DUPtmpChunk2);
-                        break;
-                    case OP_3DUP:
-                        if (stack.size() < 3)
-                            throw new ScriptExecutionException(state, "Attempted OP_3DUP on a stack with size < 3");
-                        Iterator<StackItem> it3DUP = stack.descendingIterator();
-                        StackItem OP3DUPtmpChunk3 = it3DUP.next();
-                        StackItem OP3DUPtmpChunk2 = it3DUP.next();
-                        stack.add(it3DUP.next());
-                        stack.add(OP3DUPtmpChunk2);
-                        stack.add(OP3DUPtmpChunk3);
-                        break;
-                    case OP_2OVER:
-                        if (stack.size() < 4)
-                            throw new ScriptExecutionException(state, "Attempted OP_2OVER on a stack with size < 4");
-                        Iterator<StackItem> it2OVER = stack.descendingIterator();
-                        it2OVER.next();
-                        it2OVER.next();
-                        StackItem OP2OVERtmpChunk2 = it2OVER.next();
-                        stack.add(it2OVER.next());
-                        stack.add(OP2OVERtmpChunk2);
-                        break;
-                    case OP_2ROT:
-                        if (stack.size() < 6)
-                            throw new ScriptExecutionException(state, "Attempted OP_2ROT on a stack with size < 6");
-                        StackItem OP2ROTtmpChunk6 = stack.pollLast();
-                        StackItem OP2ROTtmpChunk5 = stack.pollLast();
-                        StackItem OP2ROTtmpChunk4 = stack.pollLast();
-                        StackItem OP2ROTtmpChunk3 = stack.pollLast();
-                        StackItem OP2ROTtmpChunk2 = stack.pollLast();
-                        StackItem OP2ROTtmpChunk1 = stack.pollLast();
-                        stack.add(OP2ROTtmpChunk3);
-                        stack.add(OP2ROTtmpChunk4);
-                        stack.add(OP2ROTtmpChunk5);
-                        stack.add(OP2ROTtmpChunk6);
-                        stack.add(OP2ROTtmpChunk1);
-                        stack.add(OP2ROTtmpChunk2);
-                        break;
-                    case OP_2SWAP:
-                        if (stack.size() < 4)
-                            throw new ScriptExecutionException(state, "Attempted OP_2SWAP on a stack with size < 4");
-                        StackItem OP2SWAPtmpChunk4 = stack.pollLast();
-                        StackItem OP2SWAPtmpChunk3 = stack.pollLast();
-                        StackItem OP2SWAPtmpChunk2 = stack.pollLast();
-                        StackItem OP2SWAPtmpChunk1 = stack.pollLast();
-                        stack.add(OP2SWAPtmpChunk3);
-                        stack.add(OP2SWAPtmpChunk4);
-                        stack.add(OP2SWAPtmpChunk1);
-                        stack.add(OP2SWAPtmpChunk2);
-                        break;
-                    case OP_IFDUP:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_IFDUP on an empty stack");
-                        StackItem ifdupBool = stack.getLast();
-                        if (castToBool(ifdupBool.bytes()))
-                            stack.add(stack.getLast(), ifdupBool);
-                        break;
-                    case OP_DEPTH:
-                        //depth can't be known at runtime unless you already know the size of the initial stack.
-                        stack.add(StackItem.wrapDerived(Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(stack.size()), false)), Type.INT, true));
-                        break;
-                    case OP_DROP:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_DROP on an empty stack");
-                        stack.pollLast();
-                        break;
-                    case OP_DUP:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_DUP on an empty stack");
-                        stack.add(stack.getLast());
-                        break;
-                    case OP_NIP:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_NIP on a stack with size < 2");
-                        StackItem OPNIPtmpChunk = stack.pollLast();
-                        stack.pollLast();
-                        stack.add(OPNIPtmpChunk);
-                        break;
-                    case OP_OVER:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_OVER on a stack with size < 2");
-                        Iterator<StackItem> itOVER = stack.descendingIterator();
-                        itOVER.next();
-                        stack.add(itOVER.next());
-                        break;
-                    case OP_PICK:
-                    case OP_ROLL:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_PICK/OP_ROLL on an empty stack");
-
-                        StackItem rollVal = stack.pollLast();
-
-                        long val = castToBigInteger(state, rollVal, maxNumElementSize, enforceMinimal).longValue();
-                        if (val < 0 || val >= stack.size())
-                            throw new ScriptExecutionException(state, "OP_PICK/OP_ROLL attempted to get data deeper than stack size");
-                        Iterator<StackItem> itPICK = stack.descendingIterator();
-                        for (long i = 0; i < val; i++)
-                            itPICK.next();
-                        StackItem OPROLLtmpChunk = itPICK.next();
-                        if (opcode == OP_ROLL)
-                            itPICK.remove();
-                        //whether the value is derived doesn't depend on where in the stack
-                        //it's picked from so just add the original StackItem
-                        stack.add(OPROLLtmpChunk);
-                        break;
-                    case OP_ROT:
-                        if (stack.size() < 3)
-                            throw new ScriptExecutionException(state, "Attempted OP_ROT on a stack with size < 3");
-                        StackItem OPROTtmpChunk3 = stack.pollLast();
-                        StackItem OPROTtmpChunk2 = stack.pollLast();
-                        StackItem OPROTtmpChunk1 = stack.pollLast();
-                        stack.add(OPROTtmpChunk2);
-                        stack.add(OPROTtmpChunk3);
-                        stack.add(OPROTtmpChunk1);
-                        break;
-                    case OP_SWAP:
-                    case OP_TUCK:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_SWAP on a stack with size < 2");
-                        StackItem OPSWAPtmpChunk2 = stack.pollLast();
-                        StackItem OPSWAPtmpChunk1 = stack.pollLast();
+                    long val = castToBigInteger(state, rollVal, maxNumElementSize, enforceMinimal).longValue();
+                    if (val < 0 || val >= stack.size())
+                        throw new ScriptExecutionException(state, "OP_PICK/OP_ROLL attempted to get data deeper than stack size");
+                    Iterator<StackItem> itPICK = stack.descendingIterator();
+                    for (long i = 0; i < val; i++)
+                        itPICK.next();
+                    StackItem OPROLLtmpChunk = itPICK.next();
+                    if (opcode == OP_ROLL)
+                        itPICK.remove();
+                    //whether the value is derived doesn't depend on where in the stack
+                    //it's picked from so just add the original StackItem
+                    stack.add(OPROLLtmpChunk);
+                    break;
+                case OP_ROT:
+                    if (stack.size() < 3)
+                        throw new ScriptExecutionException(state, "Attempted OP_ROT on a stack with size < 3");
+                    StackItem OPROTtmpChunk3 = stack.pollLast();
+                    StackItem OPROTtmpChunk2 = stack.pollLast();
+                    StackItem OPROTtmpChunk1 = stack.pollLast();
+                    stack.add(OPROTtmpChunk2);
+                    stack.add(OPROTtmpChunk3);
+                    stack.add(OPROTtmpChunk1);
+                    break;
+                case OP_SWAP:
+                case OP_TUCK:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_SWAP on a stack with size < 2");
+                    StackItem OPSWAPtmpChunk2 = stack.pollLast();
+                    StackItem OPSWAPtmpChunk1 = stack.pollLast();
+                    stack.add(OPSWAPtmpChunk2);
+                    stack.add(OPSWAPtmpChunk1);
+                    if (opcode == OP_TUCK)
                         stack.add(OPSWAPtmpChunk2);
-                        stack.add(OPSWAPtmpChunk1);
-                        if (opcode == OP_TUCK)
-                            stack.add(OPSWAPtmpChunk2);
-                        break;
-                    //byte string operations
-                    case OP_CAT:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Invalid stack operation.");
-                        StackItem catBytes2 = stack.pollLast();
-                        StackItem catBytes1 = stack.pollLast();
-                        Type catType = catBytes1.getType() == Type.STRING || catBytes2.getType() == Type.STRING
-                                        ? Type.STRING : Type.BYTES;
+                    break;
+                //byte string operations
+                case OP_CAT:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Invalid stack operation.");
+                    StackItem catBytes2 = stack.pollLast();
+                    StackItem catBytes1 = stack.pollLast();
+                    Type catType = catBytes1.getType() == Type.STRING || catBytes2.getType() == Type.STRING
+                            ? Type.STRING : Type.BYTES;
 
-                        int len = catBytes1.length() + catBytes2.length();
-                        if (len > maxScriptElementSize)
-                            throw new ScriptExecutionException(state, "Push value size limit exceeded.");
+                    int len = catBytes1.length() + catBytes2.length();
+                    if (len > maxScriptElementSize)
+                        throw new ScriptExecutionException(state, "Push value size limit exceeded.");
 
-                        byte[] catOut = new byte[len];
-                        System.arraycopy(catBytes1.bytes(), 0, catOut, 0, catBytes1.length());
-                        System.arraycopy(catBytes2.bytes(), 0, catOut, catBytes1.length(), catBytes2.length());
-                        stack.add(catType, catOut, catBytes1, catBytes2);
+                    byte[] catOut = new byte[len];
+                    System.arraycopy(catBytes1.bytes(), 0, catOut, 0, catBytes1.length());
+                    System.arraycopy(catBytes2.bytes(), 0, catOut, catBytes1.length(), catBytes2.length());
+                    stack.add(catType, catOut, catBytes1, catBytes2);
 
-                        break;
+                    break;
 
-                    case OP_SPLIT:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Invalid stack operation.");
-                        StackItem biSplitPosItem = stack.pollLast();
-                        StackItem splitBytesItem = stack.pollLast();
-                        BigInteger biSplitPos = castToBigInteger(state, biSplitPosItem, maxNumElementSize, enforceMinimal);
+                case OP_SPLIT:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Invalid stack operation.");
+                    StackItem biSplitPosItem = stack.pollLast();
+                    StackItem splitBytesItem = stack.pollLast();
+                    BigInteger biSplitPos = castToBigInteger(state, biSplitPosItem, maxNumElementSize, enforceMinimal);
 
-                        //sanity check in case we aren't enforcing minimal number encoding
-                        //we will check that the biSplitPos value can be safely held in an int
-                        //before we cast it as BigInteger will behave similar to casting if the value
-                        //is greater than the target type can hold.
-                        BigInteger biMaxInt = BigInteger.valueOf((long) Integer.MAX_VALUE);
-                        if (biSplitPos.compareTo(biMaxInt) >= 0)
-                            throw new ScriptExecutionException(state, "Invalid OP_SPLIT range.");
+                    //sanity check in case we aren't enforcing minimal number encoding
+                    //we will check that the biSplitPos value can be safely held in an int
+                    //before we cast it as BigInteger will behave similar to casting if the value
+                    //is greater than the target type can hold.
+                    BigInteger biMaxInt = BigInteger.valueOf((long) Integer.MAX_VALUE);
+                    if (biSplitPos.compareTo(biMaxInt) >= 0)
+                        throw new ScriptExecutionException(state, "Invalid OP_SPLIT range.");
 
-                        int splitPos = biSplitPos.intValue();
-                        byte[] splitBytes = splitBytesItem.bytes();
+                    int splitPos = biSplitPos.intValue();
+                    byte[] splitBytes = splitBytesItem.bytes();
 
-                        if (splitPos > splitBytes.length || splitPos < 0)
-                            throw new ScriptExecutionException(state, "Invalid OP_SPLIT range.");
+                    if (splitPos > splitBytes.length || splitPos < 0)
+                        throw new ScriptExecutionException(state, "Invalid OP_SPLIT range.");
 
-                        byte[] splitOut1 = new byte[splitPos];
-                        byte[] splitOut2 = new byte[splitBytes.length - splitPos];
+                    byte[] splitOut1 = new byte[splitPos];
+                    byte[] splitOut2 = new byte[splitBytes.length - splitPos];
 
-                        System.arraycopy(splitBytes, 0, splitOut1, 0, splitPos);
-                        System.arraycopy(splitBytes, splitPos, splitOut2, 0, splitOut2.length);
+                    System.arraycopy(splitBytes, 0, splitOut1, 0, splitPos);
+                    System.arraycopy(splitBytes, splitPos, splitOut2, 0, splitOut2.length);
 
-                        stack.add(splitBytesItem.getType(), splitOut1, splitBytesItem, biSplitPosItem);
-                        stack.add(splitBytesItem.getType(), splitOut2, splitBytesItem, biSplitPosItem);
-                        break;
+                    stack.add(splitBytesItem.getType(), splitOut1, splitBytesItem, biSplitPosItem);
+                    stack.add(splitBytesItem.getType(), splitOut2, splitBytesItem, biSplitPosItem);
+                    break;
 
-                    case OP_NUM2BIN:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Invalid stack operation.");
+                case OP_NUM2BIN:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Invalid stack operation.");
 
-                        StackItem numSizeItem = stack.pollLast();
-                        int numSize = castToBigInteger(state, numSizeItem, maxNumElementSize, enforceMinimal).intValue();
+                    StackItem numSizeItem = stack.pollLast();
+                    int numSize = castToBigInteger(state, numSizeItem, maxNumElementSize, enforceMinimal).intValue();
 
-                        if (numSize > maxScriptElementSize)
-                            throw new ScriptExecutionException(state, "Push value size limit exceeded.");
+                    if (numSize > maxScriptElementSize)
+                        throw new ScriptExecutionException(state, "Push value size limit exceeded.");
 
-                        StackItem rawNumItem = stack.pollLast();
+                    StackItem rawNumItem = stack.pollLast();
 
-                        // Try to see if we can fit that number in the number of
-                        // byte requested.
-                        byte[] minimalNumBytes = Utils.minimallyEncodeLE(rawNumItem.bytes());
-                        if (minimalNumBytes.length > numSize) {
-                            //we can't
-                            throw new ScriptExecutionException(state, "The requested encoding is impossible to satisfy.");
+                    // Try to see if we can fit that number in the number of
+                    // byte requested.
+                    byte[] minimalNumBytes = Utils.minimallyEncodeLE(rawNumItem.bytes());
+                    if (minimalNumBytes.length > numSize) {
+                        //we can't
+                        throw new ScriptExecutionException(state, "The requested encoding is impossible to satisfy.");
+                    }
+
+                    if (minimalNumBytes.length == numSize) {
+                        //already the right size so just push it to stack
+                        stack.add(Type.BYTES, minimalNumBytes, numSizeItem, rawNumItem);
+                    } else if (numSize == 0) {
+                        stack.add(Type.BYTES, Utils.EMPTY_BYTE_ARRAY, numSizeItem, rawNumItem);
+                    } else {
+                        int signBit = 0x00;
+                        if (minimalNumBytes.length > 0) {
+                            signBit = minimalNumBytes[minimalNumBytes.length - 1] & 0x80;
+                            minimalNumBytes[minimalNumBytes.length - 1] &= 0x7f;
                         }
+                        int minimalBytesToCopy = minimalNumBytes.length > numSize ? numSize : minimalNumBytes.length;
+                        byte[] expandedNumBytes = new byte[numSize]; //initialized to all zeroes
+                        System.arraycopy(minimalNumBytes, 0, expandedNumBytes, 0, minimalBytesToCopy);
+                        expandedNumBytes[expandedNumBytes.length - 1] = (byte) signBit;
+                        stack.add(Type.BYTES, expandedNumBytes, rawNumItem, numSizeItem);
+                    }
+                    break;
 
-                        if (minimalNumBytes.length == numSize) {
-                            //already the right size so just push it to stack
-                            stack.add(Type.BYTES, minimalNumBytes, numSizeItem, rawNumItem);
-                        } else if (numSize == 0) {
-                            stack.add(Type.BYTES, Utils.EMPTY_BYTE_ARRAY, numSizeItem, rawNumItem);
-                        } else {
-                            int signBit = 0x00;
-                            if (minimalNumBytes.length > 0) {
-                                signBit = minimalNumBytes[minimalNumBytes.length - 1] & 0x80;
-                                minimalNumBytes[minimalNumBytes.length - 1] &= 0x7f;
-                            }
-                            int minimalBytesToCopy = minimalNumBytes.length > numSize ? numSize : minimalNumBytes.length;
-                            byte[] expandedNumBytes = new byte[numSize]; //initialized to all zeroes
-                            System.arraycopy(minimalNumBytes, 0, expandedNumBytes, 0, minimalBytesToCopy);
-                            expandedNumBytes[expandedNumBytes.length - 1] = (byte) signBit;
-                            stack.add(Type.BYTES, expandedNumBytes, rawNumItem, numSizeItem);
-                        }
-                        break;
+                case OP_BIN2NUM:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Invalid stack operation.");
+                    StackItem binBytes = stack.pollLast();
+                    byte[] numBytes = Utils.minimallyEncodeLE(binBytes.bytes());
 
-                    case OP_BIN2NUM:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Invalid stack operation.");
-                        StackItem binBytes = stack.pollLast();
-                        byte[] numBytes = Utils.minimallyEncodeLE(binBytes.bytes());
+                    if (!Utils.checkMinimallyEncodedLE(numBytes, maxNumElementSize))
+                        throw new ScriptExecutionException(state, "Given operand is not a number within the valid range [-2^31...2^31]");
 
-                        if (!Utils.checkMinimallyEncodedLE(numBytes, maxNumElementSize))
-                            throw new ScriptExecutionException(state, "Given operand is not a number within the valid range [-2^31...2^31]");
+                    stack.add(Type.INT, numBytes, binBytes);
 
-                        stack.add(Type.INT, numBytes, binBytes);
+                    break;
+                case OP_SIZE:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_SIZE on an empty stack");
+                    StackItem sizeItem = stack.getLast();
+                    stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(sizeItem.length()), false)), sizeItem);
+                    break;
+                case OP_INVERT:
+                    // (x -- out)
+                    if (stack.size() < 1) {
+                        throw new ScriptExecutionException(state, "Invalid stack operation.");
+                    }
+                    StackItem invertItem = stack.pollLast();
+                    ScriptData invertBytes = invertItem.wrappedBytes().copy();
+                    for (int i = 0; i < invertItem.length(); i++) {
+                        invertBytes.data()[i] = (byte) ~invertItem.bytes()[i];
+                    }
+                    stack.add(StackItem.forBytes(invertBytes, invertItem.getType(), invertItem));
+                    break;
 
-                        break;
-                    case OP_SIZE:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_SIZE on an empty stack");
-                        StackItem sizeItem = stack.getLast();
-                        stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(sizeItem.length()), false)), sizeItem);
-                        break;
-                    case OP_INVERT:
-                        // (x -- out)
-                        if (stack.size() < 1) {
-                            throw new ScriptExecutionException(state, "Invalid stack operation.");
-                        }
-                        StackItem invertItem = stack.pollLast();
-                        ScriptData invertBytes = invertItem.wrappedBytes().copy();
-                        for (int i = 0; i < invertItem.length(); i++) {
-                            invertBytes.data()[i] = (byte) ~invertItem.bytes()[i];
-                        }
-                        stack.add(StackItem.forBytes(invertBytes, invertItem.getType(), invertItem));
-                        break;
+                case OP_AND:
+                case OP_OR:
+                case OP_XOR:
+                    // (x1 x2 - out)
+                    if (stack.size() < 2) {
+                        throw new ScriptExecutionException(state, "Invalid stack operation.");
+                    }
 
-                    case OP_AND:
-                    case OP_OR:
-                    case OP_XOR:
-                        // (x1 x2 - out)
-                        if (stack.size() < 2) {
-                            throw new ScriptExecutionException(state, "Invalid stack operation.");
-                        }
+                    //valtype &vch1 = stacktop(-2);
+                    //valtype &vch2 = stacktop(-1);
+                    StackItem vch2Item = stack.pollLast();
+                    StackItem vch1Item = stack.pollLast();
+                    byte[] vch2 = vch2Item.bytes();
+                    //we will operate directly on vch1 bytes so ensure
+                    //it's a copy so the original stack item isn't modified.
+                    ScriptData vch1Bytes = vch1Item.wrappedBytes().copy();
+                    byte[] vch1 = vch1Bytes.data();
 
-                        //valtype &vch1 = stacktop(-2);
-                        //valtype &vch2 = stacktop(-1);
-                        StackItem vch2Item = stack.pollLast();
-                        StackItem vch1Item = stack.pollLast();
-                        byte[] vch2 = vch2Item.bytes();
-                        //we will operate directly on vch1 bytes so ensure
-                        //it's a copy so the original stack item isn't modified.
-                        ScriptData vch1Bytes = vch1Item.wrappedBytes().copy();
-                        byte[] vch1 = vch1Bytes.data();
+                    // Inputs must be the same size
+                    if (vch1.length != vch2.length) {
+                        throw new ScriptExecutionException(state, "Invalid operand size.");
+                    }
 
-                        // Inputs must be the same size
-                        if (vch1.length != vch2.length) {
-                            throw new ScriptExecutionException(state, "Invalid operand size.");
-                        }
-
-                        // To avoid allocating, we modify vch1 in place.
-                        switch (opcode) {
-                            case OP_AND:
-                                for (int i = 0; i < vch1.length; i++) {
-                                    vch1[i] &= vch2[i];
-                                }
-                                break;
-                            case OP_OR:
-                                for (int i = 0; i < vch1.length; i++) {
-                                    vch1[i] |= vch2[i];
-                                }
-                                break;
-                            case OP_XOR:
-                                for (int i = 0; i < vch1.length; i++) {
-                                    vch1[i] ^= vch2[i];
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-
-                        //put modified copy of vch1 back on stack
-                        stack.add(StackItem.forBytes(vch1Bytes, vch1Item.getType(), vch1Item, vch2Item));
-
-                        break;
-                    case OP_LSHIFT:
-                    case OP_RSHIFT:
-                        // (x n -- out)
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Invalid stack operation.");
-                        StackItem shiftNItem = stack.pollLast();
-                        StackItem shiftData = stack.pollLast();
-                        int shiftN = castToBigInteger(state, shiftNItem, maxNumElementSize, enforceMinimal).intValueExact();
-                        if (shiftN < 0)
-                            throw new ScriptExecutionException(state, "Invalid numer range.");
-
-                        byte[] shifted;
-                        switch (opcode) {
-                            case OP_LSHIFT:
-                                shifted = lShift(shiftData, shiftN);
-                                break;
-                            case OP_RSHIFT:
-                                shifted = rShift(shiftData, shiftN);
-                                break;
-                            default:
-                                throw new ScriptExecutionException(state, "switched opcode at runtime"); //can't happen
-                        }
-                        stack.add(shiftData.getType(), shifted, shiftNItem, shiftData);
-
-                        break;
-                    case OP_EQUAL:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_EQUAL on a stack with size < 2");
-                        StackItem eq2 = stack.pollLast();
-                        StackItem eq1 = stack.pollLast();
-                        byte[] eqResult = Objects.equals(eq2, eq1) ? new byte[]{1} : new byte[]{};
-                        stack.add(Type.BOOL, eqResult, eq1, eq2);
-                        break;
-                    case OP_EQUALVERIFY:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_EQUALVERIFY on a stack with size < 2");
-                        if (!Objects.equals(stack.pollLast(), stack.pollLast()))
-                            throw new ScriptExecutionException(state, "OP_EQUALVERIFY: non-equal data");
-                        break;
-                    case OP_1ADD:
-                    case OP_1SUB:
-                    case OP_NEGATE:
-                    case OP_ABS:
-                    case OP_NOT:
-                    case OP_0NOTEQUAL:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted a numeric op on an empty stack");
-                        StackItem numericOpItem = stack.pollLast();
-                        BigInteger numericOPnum = castToBigInteger(state, numericOpItem, maxNumElementSize, enforceMinimal);
-
-                        switch (opcode) {
-                            case OP_1ADD:
-                                numericOPnum = numericOPnum.add(BigInteger.ONE);
-                                break;
-                            case OP_1SUB:
-                                numericOPnum = numericOPnum.subtract(BigInteger.ONE);
-                                break;
-                            case OP_NEGATE:
-                                numericOPnum = numericOPnum.negate();
-                                break;
-                            case OP_ABS:
-                                if (numericOPnum.signum() < 0)
-                                    numericOPnum = numericOPnum.negate();
-                                break;
-                            case OP_NOT:
-                                if (numericOPnum.equals(BigInteger.ZERO))
-                                    numericOPnum = BigInteger.ONE;
-                                else
-                                    numericOPnum = BigInteger.ZERO;
-                                break;
-                            case OP_0NOTEQUAL:
-                                if (numericOPnum.equals(BigInteger.ZERO))
-                                    numericOPnum = BigInteger.ZERO;
-                                else
-                                    numericOPnum = BigInteger.ONE;
-                                break;
-                            default:
-                                throw new AssertionError("Unreachable");
-                        }
-
-                        stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(numericOPnum, false)), numericOpItem);
-                        break;
-                    case OP_2MUL:
-                    case OP_2DIV:
-                        throw new ScriptExecutionException(state, "Attempted to use disabled Script Op.");
-                    case OP_ADD:
-                    case OP_SUB:
-                    case OP_DIV:
-                    case OP_MUL:
-                    case OP_MOD:
-                    case OP_BOOLAND:
-                    case OP_BOOLOR:
-                    case OP_NUMEQUAL:
-                    case OP_NUMNOTEQUAL:
-                    case OP_LESSTHAN:
-                    case OP_GREATERTHAN:
-                    case OP_LESSTHANOREQUAL:
-                    case OP_GREATERTHANOREQUAL:
-                    case OP_MIN:
-                    case OP_MAX:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted a numeric op on a stack with size < 2");
-                        StackItem numericOpItem2 = stack.pollLast();
-                        StackItem numericOpItem1 = stack.pollLast();
-                        BigInteger numericOPnum2 = castToBigInteger(state, numericOpItem2, maxNumElementSize, enforceMinimal);
-                        BigInteger numericOPnum1 = castToBigInteger(state, numericOpItem1, maxNumElementSize, enforceMinimal);
-
-                        BigInteger numericOPresult;
-                        Type numericOPType = Type.INT;
-                        switch (opcode) {
-                            case OP_ADD:
-                                numericOPresult = numericOPnum1.add(numericOPnum2);
-                                break;
-                            case OP_SUB:
-                                numericOPresult = numericOPnum1.subtract(numericOPnum2);
-                                break;
-
-                            case OP_MUL:
-                                numericOPresult = numericOPnum1.multiply(numericOPnum2);
-                                break;
-
-                            case OP_DIV:
-                                if (numericOPnum2.intValue() == 0)
-                                    throw new ScriptExecutionException(state, "Division by zero error");
-                                numericOPresult = numericOPnum1.divide(numericOPnum2);
-                                break;
-
-                            case OP_MOD:
-                                if (numericOPnum2.intValue() == 0)
-                                    throw new ScriptExecutionException(state, "Modulo by zero error");
-
-                                /**
-                                 * FIXME BigInteger doesn't behave the way we want for modulo operations.  Firstly it's
-                                 * always garunteed to return a +ve result.  Secondly it will throw an exception
-                                 * if the 2nd operand is negative.
-                                 * The remainder method behaves as we expect
-                                 */
-                                numericOPresult = numericOPnum1.remainder(numericOPnum2);
-
-                                break;
-
-                            case OP_BOOLAND:
-                                if (!numericOPnum1.equals(BigInteger.ZERO) && !numericOPnum2.equals(BigInteger.ZERO))
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_BOOLOR:
-                                if (!numericOPnum1.equals(BigInteger.ZERO) || !numericOPnum2.equals(BigInteger.ZERO))
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_NUMEQUAL:
-                                if (numericOPnum1.equals(numericOPnum2))
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_NUMNOTEQUAL:
-                                if (!numericOPnum1.equals(numericOPnum2))
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_LESSTHAN:
-                                if (numericOPnum1.compareTo(numericOPnum2) < 0)
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_GREATERTHAN:
-                                if (numericOPnum1.compareTo(numericOPnum2) > 0)
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_LESSTHANOREQUAL:
-                                if (numericOPnum1.compareTo(numericOPnum2) <= 0)
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_GREATERTHANOREQUAL:
-                                if (numericOPnum1.compareTo(numericOPnum2) >= 0)
-                                    numericOPresult = BigInteger.ONE;
-                                else
-                                    numericOPresult = BigInteger.ZERO;
-                                numericOPType = Type.BOOL;
-                                break;
-                            case OP_MIN:
-                                if (numericOPnum1.compareTo(numericOPnum2) < 0)
-                                    numericOPresult = numericOPnum1;
-                                else
-                                    numericOPresult = numericOPnum2;
-                                break;
-                            case OP_MAX:
-                                if (numericOPnum1.compareTo(numericOPnum2) > 0)
-                                    numericOPresult = numericOPnum1;
-                                else
-                                    numericOPresult = numericOPnum2;
-                                break;
-                            default:
-                                throw new RuntimeException("Opcode switched at runtime?");
-                        }
-
-                        stack.add(numericOPType, Utils.reverseBytes(Utils.encodeMPI(numericOPresult, false)), numericOpItem1, numericOpItem2);
-                        break;
-                    case OP_NUMEQUALVERIFY:
-                        if (stack.size() < 2)
-                            throw new ScriptExecutionException(state, "Attempted OP_NUMEQUALVERIFY on a stack with size < 2");
-                        BigInteger OPNUMEQUALVERIFYnum2 = castToBigInteger(state, stack.pollLast(), maxNumElementSize, enforceMinimal);
-                        BigInteger OPNUMEQUALVERIFYnum1 = castToBigInteger(state, stack.pollLast(), maxNumElementSize, enforceMinimal);
-
-                        if (!OPNUMEQUALVERIFYnum1.equals(OPNUMEQUALVERIFYnum2))
-                            throw new ScriptExecutionException(state, "OP_NUMEQUALVERIFY failed");
-                        break;
-                    case OP_WITHIN:
-                        if (stack.size() < 3)
-                            throw new ScriptExecutionException(state, "Attempted OP_WITHIN on a stack with size < 3");
-                        StackItem OPWITHINitem3 = stack.pollLast();
-                        StackItem OPWITHINitem2 = stack.pollLast();
-                        StackItem OPWITHINitem1 = stack.pollLast();
-                        BigInteger OPWITHINnum3 = castToBigInteger(state, OPWITHINitem3, maxNumElementSize, enforceMinimal);
-                        BigInteger OPWITHINnum2 = castToBigInteger(state, OPWITHINitem2, maxNumElementSize, enforceMinimal);
-                        BigInteger OPWITHINnum1 = castToBigInteger(state, OPWITHINitem1, maxNumElementSize, enforceMinimal);
-                        byte[] OPWITHINresult;
-                        if (OPWITHINnum2.compareTo(OPWITHINnum1) <= 0 && OPWITHINnum1.compareTo(OPWITHINnum3) < 0)
-                            OPWITHINresult = Utils.encodeMPI(BigInteger.ONE, false);
-                        else
-                            OPWITHINresult = Utils.encodeMPI(BigInteger.ZERO, false);
-                        stack.add(Type.BOOL, Utils.reverseBytes(OPWITHINresult), OPWITHINitem1, OPWITHINitem2, OPWITHINitem3);
-                        break;
-                    case OP_RIPEMD160:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_RIPEMD160 on an empty stack");
-                        RIPEMD160Digest digest = new RIPEMD160Digest();
-                        StackItem r160data = stack.pollLast();
-                        digest.update(r160data.bytes(), 0, r160data.length());
-                        byte[] ripmemdHash = new byte[20];
-                        digest.doFinal(ripmemdHash, 0);
-                        stack.add(Type.BYTES, ripmemdHash, r160data);
-                        break;
-                    case OP_SHA1:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_SHA1 on an empty stack");
-                        try {
-                            StackItem sha1Data = stack.pollLast();
-                            stack.add(Type.BOOL, MessageDigest.getInstance("SHA-1").digest(sha1Data.bytes()), sha1Data);
-                        } catch (NoSuchAlgorithmException e) {
-                            throw new RuntimeException(e);  // Cannot happen.
-                        }
-                        break;
-                    case OP_SHA256:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_SHA256 on an empty stack");
-                        StackItem sha256Data = stack.pollLast();
-                        stack.add(Type.BYTES, Sha256Hash.hash(sha256Data.bytes()), sha256Data);
-                        break;
-                    case OP_HASH160:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_HASH160 on an empty stack");
-                        StackItem hash160Data = stack.pollLast();
-                        stack.add(Type.BYTES, Utils.sha256hash160(hash160Data.bytes()), hash160Data);
-                        break;
-                    case OP_HASH256:
-                        if (stack.size() < 1)
-                            throw new ScriptExecutionException(state, "Attempted OP_SHA256 on an empty stack");
-                        StackItem hash256Data = stack.pollLast();
-                        stack.add(Type.BYTES, Sha256Hash.hashTwice(hash256Data.bytes()), hash256Data);
-                        break;
-                    case OP_CODESEPARATOR:
-                        lastCodeSepLocation = chunk.getStartLocationInProgram() + 1;
-                        break;
-                    case OP_CHECKSIG:
-                    case OP_CHECKSIGVERIFY:
-                        if (txContainingThis == null)
-                            throw new IllegalStateException("Script attempted signature check but no tx was provided");
-                        if (allowFakeChecksig) {
-
-                        } else {
-                            executeCheckSig(state, txContainingThis, (int) index, script, stack, lastCodeSepLocation, opcode, value, verifyFlags, allowFakeChecksig);
-                        }
-                        break;
-                    case OP_CHECKMULTISIG:
-                    case OP_CHECKMULTISIGVERIFY:
-                        if (txContainingThis == null)
-                            throw new IllegalStateException("Script attempted signature check but no tx was provided");
-                        opCount = executeMultiSig(state, txContainingThis, (int) index, script, stack, opCount, maxOpCount, maxMultisigKeys, lastCodeSepLocation, opcode, value, verifyFlags, allowFakeChecksig);
-                        state.opCount = opCount;
-                        break;
-                    case OP_CHECKLOCKTIMEVERIFY:
-                        if (genesisActive || !verifyFlags.contains(ScriptVerifyFlag.CHECKLOCKTIMEVERIFY)) {
-                            // not enabled; treat as a NOP2
-                            if (verifyFlags.contains(ScriptVerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
-                                throw new ScriptExecutionException(state, "Script used a reserved opcode " + opcode);
+                    switch (opcode) {
+                        case OP_AND:
+                            for (int i = 0; i < vch1.length; i++) {
+                                vch1[i] &= vch2[i];
                             }
                             break;
-                        }
-                        executeCheckLockTimeVerify(state, txContainingThis, (int) index, stack, lastCodeSepLocation, opcode, verifyFlags);
-                        break;
-                    case OP_NOP1:
-                    case OP_NOP3:
-                    case OP_NOP4:
-                    case OP_NOP5:
-                    case OP_NOP6:
-                    case OP_NOP7:
-                    case OP_NOP8:
-                    case OP_NOP9:
-                    case OP_NOP10:
+                        case OP_OR:
+                            for (int i = 0; i < vch1.length; i++) {
+                                vch1[i] |= vch2[i];
+                            }
+                            break;
+                        case OP_XOR:
+                            for (int i = 0; i < vch1.length; i++) {
+                                vch1[i] ^= vch2[i];
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    //put modified copy of vch1 back on stack
+                    stack.add(StackItem.forBytes(vch1Bytes, vch1Item.getType(), vch1Item, vch2Item));
+
+                    break;
+                case OP_LSHIFT:
+                case OP_RSHIFT:
+                    // (x n -- out)
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Invalid stack operation.");
+                    StackItem shiftNItem = stack.pollLast();
+                    StackItem shiftData = stack.pollLast();
+                    int shiftN = castToBigInteger(state, shiftNItem, maxNumElementSize, enforceMinimal).intValueExact();
+                    if (shiftN < 0)
+                        throw new ScriptExecutionException(state, "Invalid numer range.");
+
+                    byte[] shifted;
+                    switch (opcode) {
+                        case OP_LSHIFT:
+                            shifted = lShift(shiftData, shiftN);
+                            break;
+                        case OP_RSHIFT:
+                            shifted = rShift(shiftData, shiftN);
+                            break;
+                        default:
+                            throw new ScriptExecutionException(state, "switched opcode at runtime"); //can't happen
+                    }
+                    stack.add(shiftData.getType(), shifted, shiftNItem, shiftData);
+
+                    break;
+                case OP_EQUAL:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_EQUAL on a stack with size < 2");
+                    StackItem eq2 = stack.pollLast();
+                    StackItem eq1 = stack.pollLast();
+                    byte[] eqResult = Objects.equals(eq2, eq1) ? new byte[]{1} : new byte[]{};
+                    stack.add(Type.BOOL, eqResult, eq1, eq2);
+                    break;
+                case OP_EQUALVERIFY:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_EQUALVERIFY on a stack with size < 2");
+                    if (!Objects.equals(stack.pollLast(), stack.pollLast()))
+                        throw new ScriptExecutionException(state, "OP_EQUALVERIFY: non-equal data");
+                    break;
+                case OP_1ADD:
+                case OP_1SUB:
+                case OP_NEGATE:
+                case OP_ABS:
+                case OP_NOT:
+                case OP_0NOTEQUAL:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted a numeric op on an empty stack");
+                    StackItem numericOpItem = stack.pollLast();
+                    BigInteger numericOPnum = castToBigInteger(state, numericOpItem, maxNumElementSize, enforceMinimal);
+
+                    switch (opcode) {
+                        case OP_1ADD:
+                            numericOPnum = numericOPnum.add(BigInteger.ONE);
+                            break;
+                        case OP_1SUB:
+                            numericOPnum = numericOPnum.subtract(BigInteger.ONE);
+                            break;
+                        case OP_NEGATE:
+                            numericOPnum = numericOPnum.negate();
+                            break;
+                        case OP_ABS:
+                            if (numericOPnum.signum() < 0)
+                                numericOPnum = numericOPnum.negate();
+                            break;
+                        case OP_NOT:
+                            if (numericOPnum.equals(BigInteger.ZERO))
+                                numericOPnum = BigInteger.ONE;
+                            else
+                                numericOPnum = BigInteger.ZERO;
+                            break;
+                        case OP_0NOTEQUAL:
+                            if (numericOPnum.equals(BigInteger.ZERO))
+                                numericOPnum = BigInteger.ZERO;
+                            else
+                                numericOPnum = BigInteger.ONE;
+                            break;
+                        default:
+                            throw new AssertionError("Unreachable");
+                    }
+
+                    stack.add(Type.INT, Utils.reverseBytes(Utils.encodeMPI(numericOPnum, false)), numericOpItem);
+                    break;
+                case OP_2MUL:
+                case OP_2DIV:
+                    throw new ScriptExecutionException(state, "Attempted to use disabled Script Op.");
+                case OP_ADD:
+                case OP_SUB:
+                case OP_DIV:
+                case OP_MUL:
+                case OP_MOD:
+                case OP_BOOLAND:
+                case OP_BOOLOR:
+                case OP_NUMEQUAL:
+                case OP_NUMNOTEQUAL:
+                case OP_LESSTHAN:
+                case OP_GREATERTHAN:
+                case OP_LESSTHANOREQUAL:
+                case OP_GREATERTHANOREQUAL:
+                case OP_MIN:
+                case OP_MAX:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted a numeric op on a stack with size < 2");
+                    StackItem numericOpItem2 = stack.pollLast();
+                    StackItem numericOpItem1 = stack.pollLast();
+                    BigInteger numericOPnum2 = castToBigInteger(state, numericOpItem2, maxNumElementSize, enforceMinimal);
+                    BigInteger numericOPnum1 = castToBigInteger(state, numericOpItem1, maxNumElementSize, enforceMinimal);
+
+                    BigInteger numericOPresult;
+                    Type numericOPType = Type.INT;
+                    switch (opcode) {
+                        case OP_ADD:
+                            numericOPresult = numericOPnum1.add(numericOPnum2);
+                            break;
+                        case OP_SUB:
+                            numericOPresult = numericOPnum1.subtract(numericOPnum2);
+                            break;
+
+                        case OP_MUL:
+                            numericOPresult = numericOPnum1.multiply(numericOPnum2);
+                            break;
+
+                        case OP_DIV:
+                            if (numericOPnum2.intValue() == 0)
+                                throw new ScriptExecutionException(state, "Division by zero error");
+                            numericOPresult = numericOPnum1.divide(numericOPnum2);
+                            break;
+
+                        case OP_MOD:
+                            if (numericOPnum2.intValue() == 0)
+                                throw new ScriptExecutionException(state, "Modulo by zero error");
+
+                            /**
+                             * FIXME BigInteger doesn't behave the way we want for modulo operations.  Firstly it's
+                             * always garunteed to return a +ve result.  Secondly it will throw an exception
+                             * if the 2nd operand is negative.
+                             * The remainder method behaves as we expect
+                             */
+                            numericOPresult = numericOPnum1.remainder(numericOPnum2);
+
+                            break;
+
+                        case OP_BOOLAND:
+                            if (!numericOPnum1.equals(BigInteger.ZERO) && !numericOPnum2.equals(BigInteger.ZERO))
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_BOOLOR:
+                            if (!numericOPnum1.equals(BigInteger.ZERO) || !numericOPnum2.equals(BigInteger.ZERO))
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_NUMEQUAL:
+                            if (numericOPnum1.equals(numericOPnum2))
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_NUMNOTEQUAL:
+                            if (!numericOPnum1.equals(numericOPnum2))
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_LESSTHAN:
+                            if (numericOPnum1.compareTo(numericOPnum2) < 0)
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_GREATERTHAN:
+                            if (numericOPnum1.compareTo(numericOPnum2) > 0)
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_LESSTHANOREQUAL:
+                            if (numericOPnum1.compareTo(numericOPnum2) <= 0)
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_GREATERTHANOREQUAL:
+                            if (numericOPnum1.compareTo(numericOPnum2) >= 0)
+                                numericOPresult = BigInteger.ONE;
+                            else
+                                numericOPresult = BigInteger.ZERO;
+                            numericOPType = Type.BOOL;
+                            break;
+                        case OP_MIN:
+                            if (numericOPnum1.compareTo(numericOPnum2) < 0)
+                                numericOPresult = numericOPnum1;
+                            else
+                                numericOPresult = numericOPnum2;
+                            break;
+                        case OP_MAX:
+                            if (numericOPnum1.compareTo(numericOPnum2) > 0)
+                                numericOPresult = numericOPnum1;
+                            else
+                                numericOPresult = numericOPnum2;
+                            break;
+                        default:
+                            throw new RuntimeException("Opcode switched at runtime?");
+                    }
+
+                    stack.add(numericOPType, Utils.reverseBytes(Utils.encodeMPI(numericOPresult, false)), numericOpItem1, numericOpItem2);
+                    break;
+                case OP_NUMEQUALVERIFY:
+                    if (stack.size() < 2)
+                        throw new ScriptExecutionException(state, "Attempted OP_NUMEQUALVERIFY on a stack with size < 2");
+                    BigInteger OPNUMEQUALVERIFYnum2 = castToBigInteger(state, stack.pollLast(), maxNumElementSize, enforceMinimal);
+                    BigInteger OPNUMEQUALVERIFYnum1 = castToBigInteger(state, stack.pollLast(), maxNumElementSize, enforceMinimal);
+
+                    if (!OPNUMEQUALVERIFYnum1.equals(OPNUMEQUALVERIFYnum2))
+                        throw new ScriptExecutionException(state, "OP_NUMEQUALVERIFY failed");
+                    break;
+                case OP_WITHIN:
+                    if (stack.size() < 3)
+                        throw new ScriptExecutionException(state, "Attempted OP_WITHIN on a stack with size < 3");
+                    StackItem OPWITHINitem3 = stack.pollLast();
+                    StackItem OPWITHINitem2 = stack.pollLast();
+                    StackItem OPWITHINitem1 = stack.pollLast();
+                    BigInteger OPWITHINnum3 = castToBigInteger(state, OPWITHINitem3, maxNumElementSize, enforceMinimal);
+                    BigInteger OPWITHINnum2 = castToBigInteger(state, OPWITHINitem2, maxNumElementSize, enforceMinimal);
+                    BigInteger OPWITHINnum1 = castToBigInteger(state, OPWITHINitem1, maxNumElementSize, enforceMinimal);
+                    byte[] OPWITHINresult;
+                    if (OPWITHINnum2.compareTo(OPWITHINnum1) <= 0 && OPWITHINnum1.compareTo(OPWITHINnum3) < 0)
+                        OPWITHINresult = Utils.encodeMPI(BigInteger.ONE, false);
+                    else
+                        OPWITHINresult = Utils.encodeMPI(BigInteger.ZERO, false);
+                    stack.add(Type.BOOL, Utils.reverseBytes(OPWITHINresult), OPWITHINitem1, OPWITHINitem2, OPWITHINitem3);
+                    break;
+                case OP_RIPEMD160:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_RIPEMD160 on an empty stack");
+                    RIPEMD160Digest digest = new RIPEMD160Digest();
+                    StackItem r160data = stack.pollLast();
+                    digest.update(r160data.bytes(), 0, r160data.length());
+                    byte[] ripmemdHash = new byte[20];
+                    digest.doFinal(ripmemdHash, 0);
+                    stack.add(Type.BYTES, ripmemdHash, r160data);
+                    break;
+                case OP_SHA1:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_SHA1 on an empty stack");
+                    try {
+                        StackItem sha1Data = stack.pollLast();
+                        stack.add(Type.BOOL, MessageDigest.getInstance("SHA-1").digest(sha1Data.bytes()), sha1Data);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new RuntimeException(e);  // Cannot happen.
+                    }
+                    break;
+                case OP_SHA256:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_SHA256 on an empty stack");
+                    StackItem sha256Data = stack.pollLast();
+                    stack.add(Type.BYTES, Sha256Hash.hash(sha256Data.bytes()), sha256Data);
+                    break;
+                case OP_HASH160:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_HASH160 on an empty stack");
+                    StackItem hash160Data = stack.pollLast();
+                    stack.add(Type.BYTES, Utils.sha256hash160(hash160Data.bytes()), hash160Data);
+                    break;
+                case OP_HASH256:
+                    if (stack.size() < 1)
+                        throw new ScriptExecutionException(state, "Attempted OP_SHA256 on an empty stack");
+                    StackItem hash256Data = stack.pollLast();
+                    stack.add(Type.BYTES, Sha256Hash.hashTwice(hash256Data.bytes()), hash256Data);
+                    break;
+                case OP_CODESEPARATOR:
+                    lastCodeSepLocation = chunk.getStartLocationInProgram() + 1;
+                    break;
+                case OP_CHECKSIG:
+                case OP_CHECKSIGVERIFY:
+                    if (txContainingThis == null)
+                        throw new IllegalStateException("Script attempted signature check but no tx was provided");
+                    if (allowFakeChecksig) {
+
+                    } else {
+                        executeCheckSig(state, txContainingThis, (int) index, script, stack, lastCodeSepLocation, opcode, value, verifyFlags, allowFakeChecksig);
+                    }
+                    break;
+                case OP_CHECKMULTISIG:
+                case OP_CHECKMULTISIGVERIFY:
+                    if (txContainingThis == null)
+                        throw new IllegalStateException("Script attempted signature check but no tx was provided");
+                    opCount = executeMultiSig(state, txContainingThis, (int) index, script, stack, opCount, maxOpCount, maxMultisigKeys, lastCodeSepLocation, opcode, value, verifyFlags, allowFakeChecksig);
+                    state.opCount = opCount;
+                    break;
+                case OP_CHECKLOCKTIMEVERIFY:
+                    if (genesisActive || !verifyFlags.contains(ScriptVerifyFlag.CHECKLOCKTIMEVERIFY)) {
+                        // not enabled; treat as a NOP2
                         if (verifyFlags.contains(ScriptVerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
                             throw new ScriptExecutionException(state, "Script used a reserved opcode " + opcode);
                         }
                         break;
-
-                    default:
+                    }
+                    executeCheckLockTimeVerify(state, txContainingThis, (int) index, stack, lastCodeSepLocation, opcode, verifyFlags);
+                    break;
+                case OP_NOP1:
+                case OP_NOP3:
+                case OP_NOP4:
+                case OP_NOP5:
+                case OP_NOP6:
+                case OP_NOP7:
+                case OP_NOP8:
+                case OP_NOP9:
+                case OP_NOP10:
+                    if (verifyFlags.contains(ScriptVerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
                         throw new ScriptExecutionException(state, "Script used a reserved opcode " + opcode);
-                }
+                    }
+                    break;
+
+                default:
+                    throw new ScriptExecutionException(state, "Script used a reserved opcode " + opcode);
             }
+        }
 
-            if (genesisActive) {
-                long stackBytes = stack.getStackMemoryUsage() + altstack.getStackMemoryUsage();
-                if (stackBytes > MAX_STACK_MEMORY_USAGE_CONSENSUS)
-                    throw new ScriptExecutionException(state, "Stack memory usage consensus exceeded");
-            } else {
-                if (stack.size() + altstack.size() > 1000 || stack.size() + altstack.size() < 0)
-                    throw new ScriptExecutionException(state, "Stack size exceeded range");
-            }
+        if (genesisActive) {
+            long stackBytes = stack.getStackMemoryUsage() + altstack.getStackMemoryUsage();
+            if (stackBytes > MAX_STACK_MEMORY_USAGE_CONSENSUS)
+                throw new ScriptExecutionException(state, "Stack memory usage consensus exceeded");
+        } else {
+            if (stack.size() + altstack.size() > 1000 || stack.size() + altstack.size() < 0)
+                throw new ScriptExecutionException(state, "Stack size exceeded range");
+        }
 
 
-            if (scriptStateListener != null) {
-                scriptStateListener.onAfterOpCodeExectuted();
-            }
+        if (scriptStateListener != null) {
+            scriptStateListener.onAfterOpCodeExectuted();
+        }
 
+        return true;
+    }
+
+    /**
+     * Exposes the script interpreter. Normally you should not use this directly, instead use
+     * { Script#correctlySpends(Tx, long, Script)}. This method
+     * is useful if you need more precise control or access to the final state of the stack. This interface is very
+     * likely to change in future.
+     */
+    public ScriptExecutionState executeScript(/*@Nullable Tx txContainingThis, long index,
+                                              ScriptStream script, ScriptStack stack, Coin value,
+                                              Set<ScriptVerifyFlag> verifyFlags, ScriptStateListener scriptStateListener,
+                                              ScriptExecutionState state,
+                                              boolean allowFakeChecksig, long fakeChecksigDelay*/) throws ScriptExecutionException {
+        initScript();
+
+        for (ScriptChunk chunk : script) {
+            execOpcode(chunk);
             if (opReturnCalled) {
                 break;
             }
-
         }
 
         if (!ifStack.isEmpty() && !opReturnCalled && !allowUnclosedIf)
@@ -1235,6 +1311,8 @@ public class Interpreter {
 
         boolean sigValid = false;
 
+        //FIXME this won't work for a step-by-step debug script. Need to write the script we are
+        //playing to a builder as we go and retrieve from that.
         byte[] connectedScript = script.getProgramFrom(script.getLastCodeSepIndex());
 
         UnsafeByteArrayOutputStream outStream = new UnsafeByteArrayOutputStream(sigBytes.length() + 1);

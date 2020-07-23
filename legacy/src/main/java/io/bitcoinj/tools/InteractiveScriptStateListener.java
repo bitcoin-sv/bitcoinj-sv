@@ -79,30 +79,30 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
     @Override
     public void onBeforeOpCodeExecuted(boolean willExecute) {
 
-        if (getChunkIndex() == 0) {
+        if (getCurrentOpCodeIndex() == 0) {
             fullScriptString = truncateData(String.valueOf(getScript()));
             System.out.println(fullScriptString);
         }
 
-        System.out.println(String.format("\nExecuting %s operation: [%s]", getCurrentChunk().isOpCode() ? "OP_CODE" : "PUSHDATA", ScriptOpCodes.getOpCodeName(getCurrentChunk().opcode)));
+        System.out.println(String.format("\nExecuting %s operation: [%s]", getCurrentOpCode().isOpCode() ? "OP_CODE" : "PUSHDATA", ScriptOpCodes.getOpCodeName(getCurrentOpCode().opcode)));
     }
 
     @Override
     public void onAfterOpCodeExectuted() {
 
-        ScriptBuilder builder = new ScriptBuilder();
-
-        for (ScriptChunk chunk: getScriptChunks().subList(getChunkIndex(), getScriptChunks().size())) {
-            builder.addChunk(chunk);
-        }
-
-        Script remainScript = builder.build();
-        String remainingString = truncateData(remainScript.toString());
-        int startIndex = fullScriptString.indexOf(remainingString);
-        String markedScriptString = fullScriptString.substring(0, startIndex) + "^" + fullScriptString.substring(startIndex);
-        //System.out.println("Remaining code: " + remainingString);
-        System.out.println("Execution point (^): " + markedScriptString);
-        System.out.println();
+//        ScriptBuilder builder = new ScriptBuilder();
+//
+//        for (ScriptChunk chunk: getScriptChunks().subList(getCurrentOpCodeIndex(), getScript()..size())) {
+//            builder.addChunk(chunk);
+//        }
+//
+//        Script remainScript = builder.build();
+//        String remainingString = truncateData(remainScript.toString());
+//        int startIndex = fullScriptString.indexOf(remainingString);
+//        String markedScriptString = fullScriptString.substring(0, startIndex) + "^" + fullScriptString.substring(startIndex);
+//        //System.out.println("Remaining code: " + remainingString);
+//        System.out.println("Execution point (^): " + markedScriptString);
+//        System.out.println();
 
         //dump stacks
         List<StackItem> reverseStack = new ArrayList<>(getStack());
@@ -121,8 +121,8 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
         }
         System.out.println();
 
-        if (!getAltstack().isEmpty()) {
-            reverseStack = new ArrayList<StackItem>(getAltstack());
+        if (!getAltStack().isEmpty()) {
+            reverseStack = new ArrayList<StackItem>(getAltStack());
             Collections.reverse(reverseStack);
             System.out.println("Alt Stack:");
 
