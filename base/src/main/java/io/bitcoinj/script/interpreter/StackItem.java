@@ -106,7 +106,7 @@ public class StackItem<C> {
      * @return the value as an integer if possible.
      */
     public BigInteger getInteger() {
-        return Utils.decodeMPI(bytes.data(), false);
+        return Utils.decodeMPI(Utils.reverseBytes(bytes.data()), false);
     }
 
     public Type getType() {

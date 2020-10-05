@@ -166,7 +166,7 @@ public class Interpreter {
             throw new ScriptExecutionException(state, "Script attempted to use an integer larger than "
                     + maxLength + " bytes: " + stackItem.length());
         if (enforceMinimal && !Utils.checkMinimallyEncodedLE(stackItem.bytes(), maxLength))
-            throw new ScriptExecutionException(state, "Number is not minimally encoded: " + stackItem);
+            throw new ScriptExecutionException(state, "Number is not minimally encoded: " + stackItem + " - [" + stackItem.toString(true, Type.BYTES) + "]");
         return Utils.decodeMPI(Utils.reverseBytes(stackItem.bytes()), false);
     }
 
