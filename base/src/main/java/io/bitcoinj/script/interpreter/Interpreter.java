@@ -1106,6 +1106,7 @@ public class Interpreter {
                     BigInteger OPWITHINnum1 = castToBigInteger(state, OPWITHINitem1, maxNumElementSize, enforceMinimal);
                     byte[] OPWITHINresult;
                     if (OPWITHINnum2.compareTo(OPWITHINnum1) <= 0 && OPWITHINnum1.compareTo(OPWITHINnum3) < 0)
+                        //normally we'd reverse bytes on output of encodeMPI but we are skipping because it's just one byte
                         OPWITHINresult = Utils.encodeMPI(BigInteger.ONE, false);
                     else
                         OPWITHINresult = Utils.encodeMPI(BigInteger.ZERO, false);
