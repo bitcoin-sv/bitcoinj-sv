@@ -6,7 +6,7 @@ var params = bcj.params.MainNetParams.get();
 var context = new bcj.core.Context(params);
 bcj.utils.BriefLogFormatter.init();
 
-var PeerAddress = Java.type("org.bitcoinj.core.PeerAddress");
+var PeerAddress = Java.type("io.bitcoinj.core.PeerAddress");
 var pg = bcj.core.PeerGroup.newWithTor(context, null, new com.subgraph.orchid.TorClient(), false);
 pg.addAddress(new PeerAddress("nkf5e6b7pl4jfd4a.onion", params.port));
 pg.start();

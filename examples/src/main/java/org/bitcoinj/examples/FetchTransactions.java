@@ -17,11 +17,15 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
-import org.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.p2p.PeerAddress;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.store_legacy.BlockStore_legacy;
+import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinj.utils.BriefLogFormatter;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.net.InetAddress;
@@ -36,8 +40,8 @@ public class FetchTransactions {
         System.out.println("Connecting to node");
         final NetworkParameters params = TestNet3Params.get();
 
-        BlockStore blockStore = new MemoryBlockStore(params);
-        BlockChain chain = new BlockChain(params, blockStore);
+        BlockStore_legacy blockStore = new MemoryBlockStore_legacy(params);
+        SPVBlockChain_legacy chain = new SPVBlockChain_legacy(params, blockStore);
         PeerGroup peerGroup = new PeerGroup(params, chain);
         peerGroup.start();
         peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost(), params.getPort()));

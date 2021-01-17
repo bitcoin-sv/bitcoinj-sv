@@ -17,12 +17,16 @@
 
 package org.bitcoinj.examples;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinj.core.*;
+import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinj.params.TestNet3Params;
+import io.bitcoinj.store_legacy.BlockStore_legacy;
+import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinj.temp.TransactionBag;
+import org.bitcoinj.moved.wallet.Wallet;
+import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
 
 import java.io.File;
 
@@ -38,15 +42,15 @@ public class RefreshWallet {
 
         // Set up the components and link them together.
         final NetworkParameters params = TestNet3Params.get();
-        BlockStore blockStore = new MemoryBlockStore(params);
-        BlockChain chain = new BlockChain(params, wallet, blockStore);
+        BlockStore_legacy blockStore = new MemoryBlockStore_legacy(params);
+        SPVBlockChain_legacy chain = new SPVBlockChain_legacy(params, wallet, blockStore);
 
         final PeerGroup peerGroup = new PeerGroup(params, chain);
         peerGroup.startAsync();
 
         wallet.addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
-            public synchronized void onCoinsReceived(Wallet w, Transaction tx, Coin prevBalance, Coin newBalance) {
+            public synchronized void onCoinsReceived(TransactionBag w, Transaction tx, Coin prevBalance, Coin newBalance) {
                 System.out.println("\nReceived tx " + tx.getHashAsString());
                 System.out.println(tx.toString());
             }
