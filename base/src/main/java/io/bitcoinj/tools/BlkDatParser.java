@@ -53,6 +53,8 @@ public class BlkDatParser {
 
     private List<BlockParsedListener> listeners;
 
+    private boolean shutdown = false;
+
 
 
     public BlkDatParser(NetworkParameters params, String dbLocation, boolean buffered) throws FileNotFoundException {
@@ -179,7 +181,7 @@ public class BlkDatParser {
         long start, end, len, cum = 0;
         float mb, rate;
         long startTime = System.currentTimeMillis();
-        while (true) {
+        while (!shutdown) {
             try {
                 // start = file.getFilePointer();
                 start = pos.getPosition();
@@ -352,6 +354,10 @@ public class BlkDatParser {
             }
         }
         return result;
+    }
+
+    public void shutdown() {
+        shutdown = true;
     }
 
     private interface PosInputStream {
