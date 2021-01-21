@@ -53,6 +53,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <p>2) Using the AES Key generated above, you then can encrypt and decrypt any bytes using
  * the AES symmetric cipher. Eight bytes of salt is used to prevent dictionary attacks.</p>
  */
+@SuppressWarnings("ProtoFieldNullComparison")       // todo: if we're going to keep this, then fix: https://errorprone.info/bugpattern/ProtoFieldNullComparison
 public class KeyCrypterScrypt implements KeyCrypter {
 
     private static final Logger log = LoggerFactory.getLogger(KeyCrypterScrypt.class);

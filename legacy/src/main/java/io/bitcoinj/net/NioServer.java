@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
  * Creates a simple server listener which listens for incoming client connections and uses a {@link StreamConnection} to
  * process data.
  */
+@Deprecated     // to be replaced
+@SuppressWarnings("GuardedBy")      // we're not going to fix this legacy class
 public class NioServer extends AbstractExecutionThreadService {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(NioServer.class);
 

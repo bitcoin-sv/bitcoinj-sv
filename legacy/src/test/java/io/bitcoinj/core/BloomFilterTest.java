@@ -70,7 +70,7 @@ public class BloomFilterTest {
     @Test
     public void walletTest() throws Exception {
         NetworkParameters params = MainNetParams.get();
-        Net net = Net.MAINNET;
+//        Net net = Net.MAINNET;
         Context.propagate(new Context(params));
 
         DumpedPrivateKey privKey = DumpedPrivateKey.fromBase58(params, "5Kg1gnAjaLfKiwhhPpGS3QfRg2m6awQvaj98JCZBZQ5SuS2F15C");

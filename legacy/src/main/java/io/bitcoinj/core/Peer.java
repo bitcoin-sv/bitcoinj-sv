@@ -40,11 +40,11 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import net.jcip.annotations.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -64,6 +64,8 @@ import static com.google.common.base.Preconditions.checkState;
  * {@link io.bitcoinj.net.AbstractTimeoutHandler#setTimeoutEnabled(boolean)}) once the version
  * handshake completes.</p>
  */
+@Deprecated                     // to be replaced
+@SuppressWarnings("GuardedBy")  // we're not going to fix this legacy class
 public class Peer extends PeerSocketHandler {
     private static final Logger log = LoggerFactory.getLogger(Peer.class);
 

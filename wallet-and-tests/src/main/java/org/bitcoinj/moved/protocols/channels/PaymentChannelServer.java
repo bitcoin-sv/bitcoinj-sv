@@ -29,11 +29,11 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
-import net.jcip.annotations.GuardedBy;
 import org.bitcoin.paymentchannel.Protos;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -49,6 +49,7 @@ import static com.google.common.base.Preconditions.checkState;
  * {@link StoredPaymentChannelServerStates} so that they are automatically closed when necessary and payment
  * transactions are not lost if the application crashes before it unlocks.</p>
  */
+@SuppressWarnings("GuardedBy")
 public class PaymentChannelServer {
     //TODO: Update JavaDocs with notes for communication over stateless protocols
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PaymentChannelServer.class);
@@ -223,6 +224,7 @@ public class PaymentChannelServer {
     }
 
     @GuardedBy("lock")
+    @SuppressWarnings("ProtoFieldNullComparison")
     private void receiveVersionMessage(Protos.TwoWayChannelMessage msg) throws VerificationException {
         checkState(step == InitStep.WAITING_ON_CLIENT_VERSION && msg.hasClientVersion());
         final Protos.ClientVersion clientVersion = msg.getClientVersion();

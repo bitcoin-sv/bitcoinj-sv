@@ -46,6 +46,8 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * StoredBlocks are put inside a {@link BlockStore_legacy} which saves them to memory or disk.
  */
+@Deprecated
+@SuppressWarnings("MutablePublicArray")     // we're not going to fix this legacy class
 public class StoredBlock_legacy implements ChainInfoReadOnly {
 
     // A BigInteger representing the total amount of work done so far on this chain. As of May 2011 it takes 8
@@ -63,9 +65,9 @@ public class StoredBlock_legacy implements ChainInfoReadOnly {
     private long coinbaseOffsetInFile = -1;
     private ObjectGetter<Transaction> coinbase;
     //TODO implement this
-    private Object coinbaseSPVProof;
+//    private Object coinbaseSPVProof;
     //TODO implement this
-    private Object txCountProof;
+//    private Object txCountProof;
 
     private int txidFileNum = -1;
     private long txidFileOffset = -1;

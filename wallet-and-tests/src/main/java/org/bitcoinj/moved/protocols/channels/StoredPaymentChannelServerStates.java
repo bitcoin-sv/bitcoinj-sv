@@ -30,10 +30,10 @@ import org.bitcoinj.moved.wallet.WalletExtension;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
-import net.jcip.annotations.GuardedBy;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;

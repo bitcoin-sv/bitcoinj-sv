@@ -23,7 +23,6 @@ import com.google.common.collect.*;
 import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.*;
-import net.jcip.annotations.*;
 import io.bitcoinj.blockchain.AbstractBlockChain;
 import io.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
 import io.bitcoinj.blockchain.ChainEventListener;
@@ -62,6 +61,7 @@ import org.slf4j.*;
 import org.spongycastle.crypto.params.*;
 
 import javax.annotation.*;
+import javax.annotation.concurrent.GuardedBy;
 import java.io.*;
 import java.math.BigInteger;
 import java.util.*;
@@ -109,6 +109,7 @@ import static com.google.common.base.Preconditions.*;
  * {@link Wallet#autosaveToFile(java.io.File, long, java.util.concurrent.TimeUnit, WalletFiles.Listener)}
  * for more information about this.</p>
  */
+@SuppressWarnings("GuardedBy")
 public class Wallet extends BaseTaggableObject
     implements PeerFilterProvider, KeyBag, TransactionBag, ChainEventListener, TransactionReceivedInBlockListener, TxEventListener {
     private static final Logger log = LoggerFactory.getLogger(Wallet.class);
