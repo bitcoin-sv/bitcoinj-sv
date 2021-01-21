@@ -139,7 +139,7 @@ public enum OpCodeEnum {
     OP_NOP10(0xb9, "--")
     ;
 
-    private static Map<String, List<OpCodeEnum>> categories = new LinkedHashMap<>();
+    private static Map<Category, List<OpCodeEnum>> categories = new LinkedHashMap<>();
     private static Map<String, Integer> aliasToOpcode = new LinkedHashMap<>();
     private static OpCodeEnum[] byOpCode = new OpCodeEnum[255];
     private static Map<String, OpCodeEnum> byName = new LinkedHashMap<>();
