@@ -79,6 +79,7 @@ public class BlkDatParser {
             listener = new StdOutBlockParsedListener();
         if (listener != null)
             registerBlockParsedListener(listener);
+        net = params.getNet();
         init();
     }
 
