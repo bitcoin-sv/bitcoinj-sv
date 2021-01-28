@@ -16,10 +16,7 @@
 
 package io.bitcoinj.core;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 
 /**
@@ -101,6 +98,28 @@ public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
 
     public void writeTo(ByteBuffer buffer) throws IOException {
         buffer.put(buf, 0, count);
+    }
+
+    /**
+     * Write all available bytes from the inputstream
+     * @param in
+     * @throws IOException
+     */
+    public void writeFrom(InputStream in) throws IOException {
+        int available;
+        while ((available = in.available()) > 0) {
+            if (count + available > buf.length) {
+                buf = copyOf(buf, Math.max(buf.length << 1, count + available));
+            }
+            int read = in.read(buf, count, buf.length - count);
+            count += read;
+        }
+    }
+
+    static byte[] copyOf(byte[] in, int length) {
+        byte[] out = new byte[length];
+        System.arraycopy(in, 0, out, 0, Math.min(length, in.length));
+        return out;
     }
 
     /**

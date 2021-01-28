@@ -60,7 +60,6 @@ public class Utils {
     private static BlockingQueue<Boolean> mockSleepQueue;
 
     public static InputStream bufferAsInputStream(ByteBuffer buffer) {
-        new ByteArrayInputStream(null).read();
         return new BufferBackedInputStream(buffer);
     }
 
