@@ -4,20 +4,20 @@
  */
 package io.bitcoinj.bitcoin.bean.base;
 
+import io.bitcoinj.bitcoin.api.base.*;
+import io.bitcoinj.core.Coin;
 import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.core.VarInt;
 import io.bitcoinj.bitcoin.api.BitcoinObject;
-import io.bitcoinj.bitcoin.api.base.FullBlock;
-import io.bitcoinj.bitcoin.api.base.TxInput;
-import io.bitcoinj.bitcoin.api.base.TxOutput;
-import io.bitcoinj.bitcoin.api.base.Tx;
+import io.bitcoinj.exception.VerificationException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import static io.bitcoinj.core.Utils.uint32ToByteStreamLE;
@@ -222,4 +222,16 @@ public class TxBean extends HashableImpl<Tx> implements Tx {
                 out.makeSelfMutable();
         }
     }
+
+    /**
+     * A coinbase transaction is one that creates a new coin. They are the first transaction in each block and their
+     * value is determined by a formula that all implementations of Bitcoin share. In 2011 the value of a coinbase
+     * transaction is 50 coins, but in future it will be less. A coinbase transaction is defined not only by its
+     * position in a block but by the data in the inputs.
+     */
+    @Override
+    public boolean isCoinBase() {
+        return inputs.size() == 1 && inputs.get(0).isCoinBase();
+    }
+
 }

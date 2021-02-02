@@ -39,5 +39,6 @@ public interface TxInput extends BitcoinObject<TxInput> {
     @Nullable
     Coin getValue();
 
+    boolean isCoinBase();
 
 }

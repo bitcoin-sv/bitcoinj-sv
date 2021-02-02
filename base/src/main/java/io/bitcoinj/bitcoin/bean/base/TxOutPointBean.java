@@ -13,6 +13,7 @@ import io.bitcoinj.bitcoin.bean.BitcoinObjectImpl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 
 public class TxOutPointBean extends BitcoinObjectImpl<TxOutPoint> implements TxOutPoint {
 
@@ -79,5 +80,19 @@ public class TxOutPointBean extends BitcoinObjectImpl<TxOutPoint> implements TxO
     @Override
     public TxOutPoint makeNew(byte[] serialized) {
         return new TxOutPointBean(serialized);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TxOutPointBean that = (TxOutPointBean) o;
+        return index == that.index &&
+                Objects.equals(hash, that.hash);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(hash, index);
     }
 }
