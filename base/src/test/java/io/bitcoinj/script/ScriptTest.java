@@ -20,31 +20,30 @@ package io.bitcoinj.script;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.bitcoinj.bitcoin.api.base.Tx;
+import io.bitcoinj.bitcoin.api.base.TxInput;
+import io.bitcoinj.bitcoin.api.base.TxOutPoint;
+import io.bitcoinj.bitcoin.api.base.TxOutput;
+import io.bitcoinj.bitcoin.bean.base.*;
+import io.bitcoinj.bitcoin.bean.validator.TxBeanValidator;
 import io.bitcoinj.core.*;
 import io.bitcoinj.ecc.ECDSASignature;
-import io.bitcoinj.ecc.ECKeyLiteBytes;
+import io.bitcoinj.ecc.ECKeyBytes;
 import io.bitcoinj.exception.VerificationException;
-import io.bitcoinj.msg.Serializer;
-import io.bitcoinj.msg.Translate;
-import io.bitcoinj.msg.protocol.Transaction;
 import io.bitcoinj.ecc.TransactionSignature;
-import io.bitcoinj.msg.protocol.TransactionInput;
-import io.bitcoinj.msg.protocol.TransactionOutPoint;
-import io.bitcoinj.msg.protocol.TransactionOutput;
 import io.bitcoinj.params.MainNetParams;
-import io.bitcoinj.params.Net;
 import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.params.TestNet3Params;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import io.bitcoinj.protos.Protos;
 import io.bitcoinj.script.interpreter.Interpreter;
 import io.bitcoinj.script.interpreter.ScriptExecutionException;
 import io.bitcoinj.script.interpreter.ScriptStack;
-import org.hamcrest.core.IsNot;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +56,7 @@ import java.util.*;
 import static io.bitcoinj.core.Utils.HEX;
 import static io.bitcoinj.script.ScriptOpCodes.OP_0;
 import static io.bitcoinj.script.ScriptOpCodes.OP_INVALIDOPCODE;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.*;
-import org.junit.Before;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ScriptTest {
     // From tx 05e04c26c12fe408a3c1b71aa7996403f6acad1045252b1c62e055496f4d2cb1 on the testnet.
@@ -69,13 +66,10 @@ public class ScriptTest {
     static final String pubkeyProg = "76a91433e81a941e64cda12c6a299ed322ddbdd03f8d0e88ac";
 
     private static final NetworkParameters PARAMS = TestNet3Params.get();
-    private static final Net NET = Net.TESTNET3;
-
     private static final Logger log = LoggerFactory.getLogger(ScriptTest.class);
 
-    @Before
-    public void setUp() throws Exception {
-        Context context = new Context(PARAMS);
+    @BeforeAll
+    public static void setUp() throws Exception {
         ScriptStack.VERIFY_STACK_MEMEORY_USAGE = true;
     }
 
@@ -83,7 +77,7 @@ public class ScriptTest {
     public void testScriptSig() throws Exception {
         byte[] sigProgBytes = HEX.decode(sigProg);
         Script script = new Script(sigProgBytes);
-        // Test we can extract the from AddressLite.
+        // Test we can extract the from address.
         byte[] hash160 = Utils.sha256hash160(script.getPubKey());
         AddressLite a = new AddressLite(PARAMS, hash160);
         assertEquals("mkFQohBpy2HDXrCwyMrYL5RtfrmeiuuPY2", a.toString());
@@ -91,7 +85,7 @@ public class ScriptTest {
 
     @Test
     public void testScriptPubKey() throws Exception {
-        // Check we can extract the to AddressLite
+        // Check we can extract the to address
         byte[] pubkeyBytes = HEX.decode(pubkeyProg);
         Script pubkey = new Script(pubkeyBytes);
         assertEquals("DUP HASH160 PUSHDATA(20)[33e81a941e64cda12c6a299ed322ddbdd03f8d0e] EQUALVERIFY CHECKSIG", pubkey.toString());
@@ -106,9 +100,9 @@ public class ScriptTest {
         assertTrue(ScriptBuilder.createMultiSigOutputScript(2, keys).isSentToMultiSig());
         Script script = ScriptBuilder.createMultiSigOutputScript(3, keys);
         assertTrue(script.isSentToMultiSig());
-        List<ECKeyLiteBytes> pubkeys = new ArrayList<>(3);
+        List<ECKeyBytes> pubkeys = new ArrayList<>(3);
         for (ECKeyLite key : keys) {
-            pubkeys.add(new BasicECKeyLiteBytes(ECKeyLite.fromPublicOnly(key.getPubKeyPoint()).getPubKey()));
+            pubkeys.add(new BasicECKeyBytes(ECKeyLite.fromPublicOnly(key.getPubKeyPoint()).getPubKey()));
         }
         assertEquals(ScriptUtils.getPubKeys(script), pubkeys);
         assertFalse(ScriptBuilder.createOutputScript(new ECKeyLite()).isSentToMultiSig());
@@ -130,8 +124,8 @@ public class ScriptTest {
 
     @Test
     public void testP2SHOutputScript() throws Exception {
-        AddressLite p2shAddressLite = AddressLite.fromBase58(MainNetParams.get(), "35b9vsyH1KoFT5a5KtrKusaCcPLkiSo1tU");
-        assertTrue(ScriptBuilder.createOutputScript(p2shAddressLite).isPayToScriptHash());
+        AddressLite p2shAddress = AddressLite.fromBase58(MainNetParams.get(), "35b9vsyH1KoFT5a5KtrKusaCcPLkiSo1tU");
+        assertTrue(ScriptBuilder.createOutputScript(p2shAddress).isPayToScriptHash());
     }
 
     @Test
@@ -144,19 +138,33 @@ public class ScriptTest {
     @Test
     public void testCreateMultiSigInputScript() {
         // Setup transaction and signatures
-        ECKeyLite key1 = DumpedPrivateKey.fromBase58(PARAMS, "cVLwRLTvz3BxDAWkvS3yzT9pUcTCup7kQnfT2smRjvmmm1wAP6QT").getKey();
-        ECKeyLite key2 = DumpedPrivateKey.fromBase58(PARAMS, "cTine92s8GLpVqvebi8rYce3FrUYq78ZGQffBYCS1HmDPJdSTxUo").getKey();
-        ECKeyLite key3 = DumpedPrivateKey.fromBase58(PARAMS, "cVHwXSPRZmL9adctwBwmn4oTZdZMbaCsR5XF6VznqMgcvt1FDDxg").getKey();
+        ECKeyLite key1 = DumpedPrivateKeyLite.fromBase58(PARAMS, "cVLwRLTvz3BxDAWkvS3yzT9pUcTCup7kQnfT2smRjvmmm1wAP6QT").getKey();
+        ECKeyLite key2 = DumpedPrivateKeyLite.fromBase58(PARAMS, "cTine92s8GLpVqvebi8rYce3FrUYq78ZGQffBYCS1HmDPJdSTxUo").getKey();
+        ECKeyLite key3 = DumpedPrivateKeyLite.fromBase58(PARAMS, "cVHwXSPRZmL9adctwBwmn4oTZdZMbaCsR5XF6VznqMgcvt1FDDxg").getKey();
         Script multisigScript = ScriptBuilder.createMultiSigOutputScript(2, Arrays.asList(key1, key2, key3));
         byte[] bytes = HEX.decode("01000000013df681ff83b43b6585fa32dd0e12b0b502e6481e04ee52ff0fdaf55a16a4ef61000000006b483045022100a84acca7906c13c5895a1314c165d33621cdcf8696145080895cbf301119b7cf0220730ff511106aa0e0a8570ff00ee57d7a6f24e30f592a10cae1deffac9e13b990012102b8d567bcd6328fd48a429f9cf4b315b859a58fd28c5088ef3cb1d98125fc4e8dffffffff02364f1c00000000001976a91439a02793b418de8ec748dd75382656453dc99bcb88ac40420f000000000017a9145780b80be32e117f675d6e0ada13ba799bf248e98700000000");
-        Transaction transaction = Serializer.defaultFor(NET).makeTransaction(bytes);
-        TransactionOutput output = transaction.getOutput(1);
-        Transaction spendTx = new Transaction(NET);
-        AddressLite AddressLite = AddressLite.fromBase58(PARAMS, "n3CFiCmBXVt5d3HXKQ15EFZyhPz4yj5F3H");
-        Script outputScript = ScriptBuilder.createOutputScript(AddressLite);
-        spendTx.addOutput(output.getValue(), outputScript);
-        spendTx.addInput(output);
-        Sha256Hash sighash = Transaction.hashForLegacySignature(spendTx, 0, multisigScript, SigHash.Flags.ALL, false);
+        Tx transaction = new TxBean(bytes);
+        TxOutput output = transaction.getOutputs().get(1);
+
+        Tx spendTx = new TxBean(new FullBlockBean());
+        AddressLite address = AddressLite.fromBase58(PARAMS, "n3CFiCmBXVt5d3HXKQ15EFZyhPz4yj5F3H");
+        Script outputScript = ScriptBuilder.createOutputScript(address);
+
+        TxOutput txOutput = new TxOutputBean(spendTx);
+        txOutput.setValue(output.getValue());
+        txOutput.setScriptPubKey(outputScript);
+
+        TxInput txInput = new TxInputBean(spendTx);
+        TxOutPoint txOutPoint = new TxOutPointBean(txInput);
+        txOutPoint.setIndex(1);
+        txOutPoint.setHash(transaction.getHash());
+
+        txInput.setOutpoint(txOutPoint);
+
+        spendTx.setOutputs(Arrays.asList(txOutput));
+        spendTx.setInputs(Arrays.asList(txInput));
+
+        Sha256Hash sighash = SigHash.hashForLegacySignature(spendTx, 0, multisigScript.getProgram(), SigHash.Flags.ALL.byteValue());
         ECDSASignature party1Signature = key1.sign(sighash);
         ECDSASignature party2Signature = key2.sign(sighash);
         TransactionSignature party1TransactionSignature = new TransactionSignature(party1Signature, SigHash.Flags.ALL, false);
@@ -171,7 +179,7 @@ public class ScriptTest {
         // Assert that the input script created contains the original multisig
         // script as the last chunk
         ScriptChunk scriptChunk = inputScript.getChunks().get(inputScript.getChunks().size() - 1);
-        Assert.assertArrayEquals(scriptChunk.data(), multisigScript.getProgram());
+        assertArrayEquals(scriptChunk.data(), multisigScript.getProgram());
 
         // Create regular multisig input script
         inputScript = ScriptBuilder.createMultiSigInputScript(ImmutableList.of(party1TransactionSignature, party2TransactionSignature));
@@ -182,7 +190,7 @@ public class ScriptTest {
         // Assert that the input script created does not end with the original
         // multisig script
         scriptChunk = inputScript.getChunks().get(inputScript.getChunks().size() - 1);
-        Assert.assertThat(scriptChunk.data, IsNot.not(equalTo(multisigScript.getProgram())));
+        assertNotEquals(scriptChunk.data.data(), multisigScript.getProgram());
     }
 
     @Test
@@ -192,43 +200,43 @@ public class ScriptTest {
 
         // pay-to-pubkey
         Script inputScript = ScriptBuilder.createInputScript(dummySig);
-        assertThat(inputScript.getChunks().get(0).data(), equalTo(dummySig.encodeToBitcoin()));
+        assertArrayEquals(inputScript.getChunks().get(0).data(), dummySig.encodeToBitcoin());
         inputScript = ScriptBuilder.createInputScript(null);
-        assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
+        assertEquals(inputScript.getChunks().get(0).opcode, OP_0);
 
-        // pay-to-AddressLite
+        // pay-to-address
         inputScript = ScriptBuilder.createInputScript(dummySig, key);
-        assertThat(inputScript.getChunks().get(0).data(), equalTo(dummySig.encodeToBitcoin()));
+        assertArrayEquals(inputScript.getChunks().get(0).data(), dummySig.encodeToBitcoin());
         inputScript = ScriptBuilder.createInputScript(null, key);
-        assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(1).data(), equalTo(key.getPubKey()));
+        assertEquals(inputScript.getChunks().get(0).opcode, OP_0);
+        assertArrayEquals(inputScript.getChunks().get(1).data(), key.getPubKey());
 
         // pay-to-script-hash
         ECKeyLite key2 = new ECKeyLite();
         Script multisigScript = ScriptBuilder.createMultiSigOutputScript(2, Arrays.asList(key, key2));
         inputScript = ScriptBuilder.createP2SHMultiSigInputScript(Arrays.asList(dummySig, dummySig), multisigScript);
-        assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(1).data(), equalTo(dummySig.encodeToBitcoin()));
-        assertThat(inputScript.getChunks().get(2).data(), equalTo(dummySig.encodeToBitcoin()));
-        assertThat(inputScript.getChunks().get(3).data(), equalTo(multisigScript.getProgram()));
+        assertEquals(inputScript.getChunks().get(0).opcode, OP_0);
+        assertArrayEquals(inputScript.getChunks().get(1).data(), dummySig.encodeToBitcoin());
+        assertArrayEquals(inputScript.getChunks().get(2).data(), dummySig.encodeToBitcoin());
+        assertArrayEquals(inputScript.getChunks().get(3).data(), multisigScript.getProgram());
 
         inputScript = ScriptBuilder.createP2SHMultiSigInputScript(null, multisigScript);
-        assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(1).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(2).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(3).data(), equalTo(multisigScript.getProgram()));
+        assertEquals(inputScript.getChunks().get(0).opcode, OP_0);
+        assertEquals(inputScript.getChunks().get(1).opcode, OP_0);
+        assertEquals(inputScript.getChunks().get(2).opcode, OP_0);
+        assertArrayEquals(inputScript.getChunks().get(3).data(), multisigScript.getProgram());
 
         inputScript = ScriptBuilder.updateScriptWithSignature(inputScript, dummySig.encodeToBitcoin(), 0, 1, 1);
-        assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(1).data(), equalTo(dummySig.encodeToBitcoin()));
-        assertThat(inputScript.getChunks().get(2).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(3).data(), equalTo(multisigScript.getProgram()));
+        assertEquals(inputScript.getChunks().get(0).opcode, OP_0);
+        assertArrayEquals(inputScript.getChunks().get(1).data(), dummySig.encodeToBitcoin());
+        assertEquals(inputScript.getChunks().get(2).opcode, OP_0);
+        assertArrayEquals(inputScript.getChunks().get(3).data(), multisigScript.getProgram());
 
         inputScript = ScriptBuilder.updateScriptWithSignature(inputScript, dummySig.encodeToBitcoin(), 1, 1, 1);
-        assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
-        assertThat(inputScript.getChunks().get(1).data(), equalTo(dummySig.encodeToBitcoin()));
-        assertThat(inputScript.getChunks().get(2).data(), equalTo(dummySig.encodeToBitcoin()));
-        assertThat(inputScript.getChunks().get(3).data(), equalTo(multisigScript.getProgram()));
+        assertEquals(inputScript.getChunks().get(0).opcode, OP_0);
+        assertArrayEquals(inputScript.getChunks().get(1).data(), dummySig.encodeToBitcoin());
+        assertArrayEquals(inputScript.getChunks().get(2).data(), dummySig.encodeToBitcoin());
+        assertArrayEquals(inputScript.getChunks().get(3).data(), multisigScript.getProgram());
 
         // updating scriptSig with no missing signatures
         try {
@@ -242,13 +250,13 @@ public class ScriptTest {
     @Test
     public void testOp0() {
         // Check that OP_0 doesn't NPE and pushes an empty stack frame.
-        Transaction tx = new Transaction(NET);
-        tx.addInput(new TransactionInput(NET, tx, new byte[] {}));
+        Tx tx = new TxBean(new FullBlockBean());
+        tx.setInputs(Arrays.asList(new TxInputBean(tx)));
         Script script = new ScriptBuilder().smallNum(0).build();
 
         ScriptStack stack = new ScriptStack();
-        Interpreter.executeScript(Translate.toTx(tx), 0, script, stack, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
-        assertEquals("OP_0 push length", 0, stack.get(0).length());
+        Interpreter.executeScript(tx, 0, script, stack, ScriptVerifyFlag.ALL_VERIFY_FLAGS);
+        assertEquals(0, stack.get(0).length(), "OP_0 push length");
     }
 
 
@@ -305,7 +313,7 @@ public class ScriptTest {
     @Test
     public void dataDrivenValidScripts() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "script_valid.json"), Charsets.UTF_8));
+                "/script_valid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             testValid(test);
         }
@@ -316,7 +324,7 @@ public class ScriptTest {
         Script scriptPubKey = parseScriptString(test.get(1).asText());
         Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
         try {
-            ScriptUtils_legacy.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
+            ScriptUtils.correctlySpends(scriptSig, new TxBean(new FullBlockBean()), 0, scriptPubKey, Coin.ZERO, verifyFlags);
         } catch (ScriptExecutionException e) {
             System.err.println(test);
             System.err.flush();
@@ -327,7 +335,7 @@ public class ScriptTest {
     @Test
     public void dataDrivenInvalidScripts() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "script_invalid.json"), Charsets.UTF_8));
+                "/script_invalid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             testInvalid(test);
         }
@@ -338,7 +346,7 @@ public class ScriptTest {
             Script scriptSig = parseScriptString(test.get(0).asText());
             Script scriptPubKey = parseScriptString(test.get(1).asText());
             Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
-            ScriptUtils_legacy.correctlySpends(scriptSig, new Transaction(NET), 0, scriptPubKey, verifyFlags);
+            ScriptUtils.correctlySpends(scriptSig, new TxBean(new FullBlockBean()), 0, scriptPubKey, Coin.ZERO, verifyFlags);
             System.err.println(test);
             System.err.flush();
             fail();
@@ -347,14 +355,21 @@ public class ScriptTest {
         }
     }
 
-    private Map<TransactionOutPoint, Script> parseScriptPubKeys(JsonNode inputs) throws IOException {
-        Map<TransactionOutPoint, Script> scriptPubKeys = new HashMap<TransactionOutPoint, Script>();
+    private Map<TxOutPoint, Script> parseScriptPubKeys(JsonNode inputs) throws IOException {
+        Map<TxOutPoint, Script> scriptPubKeys = new HashMap<>();
         for (JsonNode input : inputs) {
             String hash = input.get(0).asText();
             int index = input.get(1).asInt();
             String script = input.get(2).asText();
             Sha256Hash sha256Hash = Sha256Hash.wrap(HEX.decode(hash));
-            scriptPubKeys.put(new TransactionOutPoint(NET, index, sha256Hash), parseScriptString(script));
+
+            TxInput txInput = new TxInputBean(new TxBean(new FullBlockBean()));
+
+            TxOutPoint txOutPoint = new TxOutPointBean(txInput);
+            txOutPoint.setHash(sha256Hash);
+            txOutPoint.setIndex(index);
+
+            scriptPubKeys.put(txOutPoint, parseScriptString(script));
         }
         return scriptPubKeys;
     }
@@ -362,23 +377,24 @@ public class ScriptTest {
     @Test
     public void dataDrivenValidTransactions() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "tx_valid.json"), Charsets.UTF_8));
+                "/tx_valid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             if (test.isArray() && test.size() == 1 && test.get(0).isTextual())
                 continue; // This is a comment.
-            Transaction transaction = null;
+            Tx transaction = null;
             try {
-                Map<TransactionOutPoint, Script> scriptPubKeys = parseScriptPubKeys(test.get(0));
-                transaction = Serializer.defaultFor(NET).makeTransaction(HEX.decode(test.get(1).asText().toLowerCase()));
-                transaction.verify();
+                Map<TxOutPoint, Script> scriptPubKeys = parseScriptPubKeys(test.get(0));
+                transaction = new TxBean(HEX.decode(test.get(1).asText().toLowerCase()));
+                new TxBeanValidator(PARAMS).validate(transaction);
                 Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
 
                 for (int i = 0; i < transaction.getInputs().size(); i++) {
-                    TransactionInput input = transaction.getInputs().get(i);
-                    if (input.getOutpoint().getIndex() == 0xffffffffL)
-                        input.getOutpoint().setIndex(-1);
+                    TxInput input = transaction.getInputs().get(i);
+                    if (input.getOutpoint().getIndex() == 0xffffffffL) {
+                        input.makeMutable().getOutpoint().setIndex(-1);
+                    }
                     assertTrue(scriptPubKeys.containsKey(input.getOutpoint()));
-                    ScriptUtils_legacy.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
+                    ScriptUtils.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()), Coin.ZERO,
                             verifyFlags);
                 }
             } catch (Exception e) {
@@ -393,35 +409,35 @@ public class ScriptTest {
     @Test
     public void dataDrivenInvalidTransactions() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "tx_invalid.json"), Charsets.UTF_8));
+                "/tx_invalid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             if (test.isArray() && test.size() == 1 && test.get(0).isTextual())
                 continue; // This is a comment.
-            Map<TransactionOutPoint, Script> scriptPubKeys = parseScriptPubKeys(test.get(0));
-            Transaction transaction = Serializer.defaultFor(NET).makeTransaction(HEX.decode(test.get(1).asText().toLowerCase()));
+            Map<TxOutPoint, Script> scriptPubKeys = parseScriptPubKeys(test.get(0));
+            Tx transaction = new TxBean(HEX.decode(test.get(1).asText().toLowerCase()));
             Set<ScriptVerifyFlag> verifyFlags = parseVerifyFlags(test.get(2).asText());
 
             boolean valid = true;
             try {
-                transaction.verify();
+                new TxBeanValidator(PARAMS).validate(transaction);
             } catch (VerificationException e) {
                 valid = false;
             }
 
             // Bitcoin Core checks this case in CheckTransaction, but we leave it to
             // later where we will see an attempt to double-spend, so we explicitly check here
-            HashSet<TransactionOutPoint> set = new HashSet<TransactionOutPoint>();
-            for (TransactionInput input : transaction.getInputs()) {
+            HashSet<TxOutPoint> set = new HashSet<TxOutPoint>();
+            for (TxInput input : transaction.getInputs()) {
                 if (set.contains(input.getOutpoint()))
                     valid = false;
                 set.add(input.getOutpoint());
             }
 
             for (int i = 0; i < transaction.getInputs().size() && valid; i++) {
-                TransactionInput input = transaction.getInputs().get(i);
+                TxInput input = transaction.getInputs().get(i);
                 assertTrue(scriptPubKeys.containsKey(input.getOutpoint()));
                 try {
-                    ScriptUtils_legacy.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()),
+                    ScriptUtils.correctlySpends(input.getScriptSig(), transaction, i, scriptPubKeys.get(input.getOutpoint()), Coin.ZERO,
                             verifyFlags);
                 } catch (VerificationException e) {
                     valid = false;
@@ -436,26 +452,26 @@ public class ScriptTest {
     @Test
     public void testCLTVPaymentChannelOutput() {
         Script script = ScriptBuilder.createCLTVPaymentChannelOutput(BigInteger.valueOf(20), new ECKeyLite(), new ECKeyLite());
-        assertTrue("script is locktime-verify", script.isSentToCLTVPaymentChannel());
+        assertTrue(script.isSentToCLTVPaymentChannel(), "script is locktime-verify");
     }
 
     @Test
-    public void getToAddressLite() throws Exception {
+    public void getToAddress() throws Exception {
         // pay to pubkey
         ECKeyLite toKey = new ECKeyLite();
-        AddressLite toAddressLite = toKey.toAddressLite(PARAMS);
-        assertEquals(toAddressLite.toBase58(), ScriptUtils.getToAddressLite(ScriptBuilder.createOutputScript(toKey), PARAMS, true).toBase58());
+        AddressLite toAddress = toKey.toAddress(PARAMS);
+        assertEquals(toAddress.toBase58(), ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(toKey), PARAMS, true).toBase58());
         // pay to pubkey hash
         assertEquals(toAddress.toBase58(), ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(toAddress), PARAMS, true).toBase58());
         // pay to script hash
         Script p2shScript = ScriptBuilder.createP2SHOutputScript(new byte[20]);
-        Address scriptAddress = Address.fromP2SHScript(PARAMS, p2shScript);
+        AddressLite scriptAddress = AddressLite.fromP2SHScript(PARAMS, p2shScript);
         assertEquals(scriptAddress.toBase58(), ScriptUtils.getToAddress(p2shScript, PARAMS, true).toBase58());
     }
 
-    @Test(expected = ScriptExecutionException.class)
+    @Test
     public void getToAddressNoPubKey() throws Exception {
-        ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(new ECKeyLite()), PARAMS, false);
+        assertThrows(ScriptExecutionException.class, () -> ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(new ECKeyLite()), PARAMS, false));
     }
 
     /** Test encoding of zero, which should result in an opcode */
@@ -466,7 +482,7 @@ public class ScriptTest {
         // 0 should encode directly to 0
         builder.number(0);
         assertArrayEquals(new byte[] {
-            0x00         // Pushed data
+                0x00         // Pushed data
         }, builder.build().getProgram());
     }
 
@@ -476,7 +492,7 @@ public class ScriptTest {
 
         builder.number(5);
         assertArrayEquals(new byte[] {
-            0x55         // Pushed data
+                0x55         // Pushed data
         }, builder.build().getProgram());
     }
 
@@ -488,8 +504,8 @@ public class ScriptTest {
 
         builder.number(0x524a);
         assertArrayEquals(new byte[] {
-            0x02,             // Length of the pushed data
-            0x4a, 0x52        // Pushed data
+                0x02,             // Length of the pushed data
+                0x4a, 0x52        // Pushed data
         }, builder.build().getProgram());
 
         // Test the trimming code ignores zeroes in the middle
@@ -503,8 +519,8 @@ public class ScriptTest {
         builder = new ScriptBuilder();
         builder.number(0x8000);
         assertArrayEquals(new byte[] {
-            0x03,             // Length of the pushed data
-            0x00, (byte) 0x80, 0x00  // Pushed data
+                0x03,             // Length of the pushed data
+                0x00, (byte) 0x80, 0x00  // Pushed data
         }, builder.build().getProgram());
     }
 
@@ -514,8 +530,8 @@ public class ScriptTest {
         final ScriptBuilder builder = new ScriptBuilder();
         builder.number(-5);
         assertArrayEquals(new byte[] {
-            0x01,        // Length of the pushed data
-            ((byte) 133) // Pushed data
+                0x01,        // Length of the pushed data
+                ((byte) 133) // Pushed data
         }, builder.build().getProgram());
     }
 
@@ -545,12 +561,12 @@ public class ScriptTest {
             byte aorb  = (byte)(a[x] | b[x]);
             byte axorb = (byte)(a[x] ^ b[x]);
 
-            Assert.assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "AND"), aandb);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "AND"), aandb);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "OR"), aorb);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "OR"), aorb);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "XOR"), axorb);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "XOR"), axorb);
+            assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "AND"), aandb);
+            assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "AND"), aandb);
+            assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "OR"), aorb);
+            assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "OR"), aorb);
+            assertEquals(generateAndExecuteBitwiseScript(a[x], b[x], "XOR"), axorb);
+            assertEquals(generateAndExecuteBitwiseScript(b[x], a[x], "XOR"), axorb);
         }
     }
 
@@ -561,12 +577,12 @@ public class ScriptTest {
             byte b = (byte) ScriptTestBitwiseData.b[x];
             byte expected_xor = (byte)(a^b);
 
-            Assert.assertEquals(generateAndExecuteBitwiseScript(a, b, "AND"), (byte)ScriptTestBitwiseData.aandb[x]);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(b, a, "AND"), (byte)ScriptTestBitwiseData.aandb[x]);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(a, b, "OR"), (byte)ScriptTestBitwiseData.aorb[x]);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(b, a, "OR"), (byte)ScriptTestBitwiseData.aorb[x]);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(a, b, "XOR"), expected_xor);
-            Assert.assertEquals(generateAndExecuteBitwiseScript(b, a, "XOR"), expected_xor);
+            assertEquals(generateAndExecuteBitwiseScript(a, b, "AND"), (byte)ScriptTestBitwiseData.aandb[x]);
+            assertEquals(generateAndExecuteBitwiseScript(b, a, "AND"), (byte)ScriptTestBitwiseData.aandb[x]);
+            assertEquals(generateAndExecuteBitwiseScript(a, b, "OR"), (byte)ScriptTestBitwiseData.aorb[x]);
+            assertEquals(generateAndExecuteBitwiseScript(b, a, "OR"), (byte)ScriptTestBitwiseData.aorb[x]);
+            assertEquals(generateAndExecuteBitwiseScript(a, b, "XOR"), expected_xor);
+            assertEquals(generateAndExecuteBitwiseScript(b, a, "XOR"), expected_xor);
         }
     }
 
@@ -580,8 +596,8 @@ public class ScriptTest {
         ScriptStack stack = new ScriptStack();
         EnumSet<ScriptVerifyFlag> verifyFlags = EnumSet.noneOf(ScriptVerifyFlag.class);
         verifyFlags.add(ScriptVerifyFlag.MONOLITH_OPCODES);
-        Interpreter.executeScript(Translate.toTx(new Transaction(NET)), 0, script, stack, Coin.ZERO, verifyFlags);
-        Assert.assertEquals("Stack size must be 1", stack.size(), 1);
+        Interpreter.executeScript(new TxBean(new FullBlockBean()), 0, script, stack, Coin.ZERO, verifyFlags);
+        assertEquals(stack.size(), 1, "Stack size must be 1");
         return stack.peekLast().bytes();
     }
 
