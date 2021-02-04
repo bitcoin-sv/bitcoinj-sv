@@ -18,6 +18,7 @@ package io.bitcoinj.core;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * An unsynchronized implementation of ByteArrayOutputStream that will return the backing byte array if its length == size().
@@ -167,6 +168,10 @@ public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
     @Override
     public int size() {
         return count;
+    }
+
+    public String toString() {
+        return Utils.HEX.encode(Arrays.copyOf(buf, count));
     }
 
 }
