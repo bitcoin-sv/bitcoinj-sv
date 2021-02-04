@@ -38,7 +38,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-import io.bitcoinj.protos.Protos;
 import io.bitcoinj.script.interpreter.Interpreter;
 import io.bitcoinj.script.interpreter.ScriptExecutionException;
 import io.bitcoinj.script.interpreter.ScriptStack;
@@ -313,7 +312,7 @@ public class ScriptTest {
     @Test
     public void dataDrivenValidScripts() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "/script_valid.json"), Charsets.UTF_8));
+                "script_valid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             testValid(test);
         }
@@ -335,7 +334,7 @@ public class ScriptTest {
     @Test
     public void dataDrivenInvalidScripts() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "/script_invalid.json"), Charsets.UTF_8));
+                "script_invalid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             testInvalid(test);
         }
@@ -377,7 +376,7 @@ public class ScriptTest {
     @Test
     public void dataDrivenValidTransactions() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "/tx_valid.json"), Charsets.UTF_8));
+                "tx_valid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             if (test.isArray() && test.size() == 1 && test.get(0).isTextual())
                 continue; // This is a comment.
@@ -409,7 +408,7 @@ public class ScriptTest {
     @Test
     public void dataDrivenInvalidTransactions() throws Exception {
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(getClass().getResourceAsStream(
-                "/tx_invalid.json"), Charsets.UTF_8));
+                "tx_invalid.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             if (test.isArray() && test.size() == 1 && test.get(0).isTextual())
                 continue; // This is a comment.
