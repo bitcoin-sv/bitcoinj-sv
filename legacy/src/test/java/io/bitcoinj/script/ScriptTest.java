@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.bitcoinj.core.*;
 import io.bitcoinj.ecc.ECDSASignature;
-import io.bitcoinj.ecc.ECKeyLiteBytes;
+import io.bitcoinj.ecc.ECKeyBytes;
 import io.bitcoinj.exception.VerificationException;
 import io.bitcoinj.msg.Serializer;
 import io.bitcoinj.msg.Translate;
@@ -83,35 +83,35 @@ public class ScriptTest {
     public void testScriptSig() throws Exception {
         byte[] sigProgBytes = HEX.decode(sigProg);
         Script script = new Script(sigProgBytes);
-        // Test we can extract the from AddressLite.
+        // Test we can extract the from address.
         byte[] hash160 = Utils.sha256hash160(script.getPubKey());
-        AddressLite a = new AddressLite(PARAMS, hash160);
+        Address a = new Address(PARAMS, hash160);
         assertEquals("mkFQohBpy2HDXrCwyMrYL5RtfrmeiuuPY2", a.toString());
     }
 
     @Test
     public void testScriptPubKey() throws Exception {
-        // Check we can extract the to AddressLite
+        // Check we can extract the to address
         byte[] pubkeyBytes = HEX.decode(pubkeyProg);
         Script pubkey = new Script(pubkeyBytes);
         assertEquals("DUP HASH160 PUSHDATA(20)[33e81a941e64cda12c6a299ed322ddbdd03f8d0e] EQUALVERIFY CHECKSIG", pubkey.toString());
-        AddressLite toAddr = new AddressLite(PARAMS, pubkey.getPubKeyHash());
+        Address toAddr = new Address(PARAMS, pubkey.getPubKeyHash());
         assertEquals("mkFQohBpy2HDXrCwyMrYL5RtfrmeiuuPY2", toAddr.toString());
     }
 
     @Test
     @SuppressWarnings("TryFailThrowable")       // todo: fix? https://errorprone.info/bugpattern/TryFailThrowable
     public void testMultiSig() throws Exception {
-        List<ECKeyLite> keys = Lists.newArrayList(new ECKeyLite(), new ECKeyLite(), new ECKeyLite());
+        List<ECKey> keys = Lists.newArrayList(new ECKey(), new ECKey(), new ECKey());
         assertTrue(ScriptBuilder.createMultiSigOutputScript(2, keys).isSentToMultiSig());
         Script script = ScriptBuilder.createMultiSigOutputScript(3, keys);
         assertTrue(script.isSentToMultiSig());
-        List<ECKeyLiteBytes> pubkeys = new ArrayList<>(3);
-        for (ECKeyLite key : keys) {
-            pubkeys.add(new BasicECKeyLiteBytes(ECKeyLite.fromPublicOnly(key.getPubKeyPoint()).getPubKey()));
+        List<ECKeyBytes> pubkeys = new ArrayList<>(3);
+        for (ECKey key : keys) {
+            pubkeys.add(new BasicECKeyBytes(ECKey.fromPublicOnly(key.getPubKeyPoint()).getPubKey()));
         }
         assertEquals(ScriptUtils.getPubKeys(script), pubkeys);
-        assertFalse(ScriptBuilder.createOutputScript(new ECKeyLite()).isSentToMultiSig());
+        assertFalse(ScriptBuilder.createOutputScript(new ECKey()).isSentToMultiSig());
         try {
             // Fail if we ask for more signatures than keys.
             ScriptUtils.createMultiSigOutputScript(4, keys);
@@ -130,8 +130,8 @@ public class ScriptTest {
 
     @Test
     public void testP2SHOutputScript() throws Exception {
-        AddressLite p2shAddressLite = AddressLite.fromBase58(MainNetParams.get(), "35b9vsyH1KoFT5a5KtrKusaCcPLkiSo1tU");
-        assertTrue(ScriptBuilder.createOutputScript(p2shAddressLite).isPayToScriptHash());
+        Address p2shAddress = Address.fromBase58(MainNetParams.get(), "35b9vsyH1KoFT5a5KtrKusaCcPLkiSo1tU");
+        assertTrue(ScriptBuilder.createOutputScript(p2shAddress).isPayToScriptHash());
     }
 
     @Test
@@ -144,16 +144,16 @@ public class ScriptTest {
     @Test
     public void testCreateMultiSigInputScript() {
         // Setup transaction and signatures
-        ECKeyLite key1 = DumpedPrivateKey.fromBase58(PARAMS, "cVLwRLTvz3BxDAWkvS3yzT9pUcTCup7kQnfT2smRjvmmm1wAP6QT").getKey();
-        ECKeyLite key2 = DumpedPrivateKey.fromBase58(PARAMS, "cTine92s8GLpVqvebi8rYce3FrUYq78ZGQffBYCS1HmDPJdSTxUo").getKey();
-        ECKeyLite key3 = DumpedPrivateKey.fromBase58(PARAMS, "cVHwXSPRZmL9adctwBwmn4oTZdZMbaCsR5XF6VznqMgcvt1FDDxg").getKey();
+        ECKey key1 = DumpedPrivateKey.fromBase58(PARAMS, "cVLwRLTvz3BxDAWkvS3yzT9pUcTCup7kQnfT2smRjvmmm1wAP6QT").getKey();
+        ECKey key2 = DumpedPrivateKey.fromBase58(PARAMS, "cTine92s8GLpVqvebi8rYce3FrUYq78ZGQffBYCS1HmDPJdSTxUo").getKey();
+        ECKey key3 = DumpedPrivateKey.fromBase58(PARAMS, "cVHwXSPRZmL9adctwBwmn4oTZdZMbaCsR5XF6VznqMgcvt1FDDxg").getKey();
         Script multisigScript = ScriptBuilder.createMultiSigOutputScript(2, Arrays.asList(key1, key2, key3));
         byte[] bytes = HEX.decode("01000000013df681ff83b43b6585fa32dd0e12b0b502e6481e04ee52ff0fdaf55a16a4ef61000000006b483045022100a84acca7906c13c5895a1314c165d33621cdcf8696145080895cbf301119b7cf0220730ff511106aa0e0a8570ff00ee57d7a6f24e30f592a10cae1deffac9e13b990012102b8d567bcd6328fd48a429f9cf4b315b859a58fd28c5088ef3cb1d98125fc4e8dffffffff02364f1c00000000001976a91439a02793b418de8ec748dd75382656453dc99bcb88ac40420f000000000017a9145780b80be32e117f675d6e0ada13ba799bf248e98700000000");
         Transaction transaction = Serializer.defaultFor(NET).makeTransaction(bytes);
         TransactionOutput output = transaction.getOutput(1);
         Transaction spendTx = new Transaction(NET);
-        AddressLite AddressLite = AddressLite.fromBase58(PARAMS, "n3CFiCmBXVt5d3HXKQ15EFZyhPz4yj5F3H");
-        Script outputScript = ScriptBuilder.createOutputScript(AddressLite);
+        Address address = Address.fromBase58(PARAMS, "n3CFiCmBXVt5d3HXKQ15EFZyhPz4yj5F3H");
+        Script outputScript = ScriptBuilder.createOutputScript(address);
         spendTx.addOutput(output.getValue(), outputScript);
         spendTx.addInput(output);
         Sha256Hash sighash = Transaction.hashForLegacySignature(spendTx, 0, multisigScript, SigHash.Flags.ALL, false);
@@ -188,7 +188,7 @@ public class ScriptTest {
     @Test
     public void createAndUpdateEmptyInputScript() throws Exception {
         TransactionSignature dummySig = TransactionSignature.dummy();
-        ECKeyLite key = new ECKeyLite();
+        ECKey key = new ECKey();
 
         // pay-to-pubkey
         Script inputScript = ScriptBuilder.createInputScript(dummySig);
@@ -196,7 +196,7 @@ public class ScriptTest {
         inputScript = ScriptBuilder.createInputScript(null);
         assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
 
-        // pay-to-AddressLite
+        // pay-to-address
         inputScript = ScriptBuilder.createInputScript(dummySig, key);
         assertThat(inputScript.getChunks().get(0).data(), equalTo(dummySig.encodeToBitcoin()));
         inputScript = ScriptBuilder.createInputScript(null, key);
@@ -204,7 +204,7 @@ public class ScriptTest {
         assertThat(inputScript.getChunks().get(1).data(), equalTo(key.getPubKey()));
 
         // pay-to-script-hash
-        ECKeyLite key2 = new ECKeyLite();
+        ECKey key2 = new ECKey();
         Script multisigScript = ScriptBuilder.createMultiSigOutputScript(2, Arrays.asList(key, key2));
         inputScript = ScriptBuilder.createP2SHMultiSigInputScript(Arrays.asList(dummySig, dummySig), multisigScript);
         assertThat(inputScript.getChunks().get(0).opcode, equalTo(OP_0));
@@ -435,16 +435,16 @@ public class ScriptTest {
 
     @Test
     public void testCLTVPaymentChannelOutput() {
-        Script script = ScriptBuilder.createCLTVPaymentChannelOutput(BigInteger.valueOf(20), new ECKeyLite(), new ECKeyLite());
+        Script script = ScriptBuilder.createCLTVPaymentChannelOutput(BigInteger.valueOf(20), new ECKey(), new ECKey());
         assertTrue("script is locktime-verify", script.isSentToCLTVPaymentChannel());
     }
 
     @Test
-    public void getToAddressLite() throws Exception {
+    public void getToAddress() throws Exception {
         // pay to pubkey
-        ECKeyLite toKey = new ECKeyLite();
-        AddressLite toAddressLite = toKey.toAddressLite(PARAMS);
-        assertEquals(toAddressLite.toBase58(), ScriptUtils.getToAddressLite(ScriptBuilder.createOutputScript(toKey), PARAMS, true).toBase58());
+        ECKey toKey = new ECKey();
+        Address toAddress = toKey.toAddress(PARAMS);
+        assertEquals(toAddress.toBase58(), ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(toKey), PARAMS, true).toBase58());
         // pay to pubkey hash
         assertEquals(toAddress.toBase58(), ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(toAddress), PARAMS, true).toBase58());
         // pay to script hash
@@ -455,7 +455,7 @@ public class ScriptTest {
 
     @Test(expected = ScriptExecutionException.class)
     public void getToAddressNoPubKey() throws Exception {
-        ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(new ECKeyLite()), PARAMS, false);
+        ScriptUtils.getToAddress(ScriptBuilder.createOutputScript(new ECKey()), PARAMS, false);
     }
 
     /** Test encoding of zero, which should result in an opcode */
@@ -466,7 +466,7 @@ public class ScriptTest {
         // 0 should encode directly to 0
         builder.number(0);
         assertArrayEquals(new byte[] {
-            0x00         // Pushed data
+                0x00         // Pushed data
         }, builder.build().getProgram());
     }
 
@@ -476,7 +476,7 @@ public class ScriptTest {
 
         builder.number(5);
         assertArrayEquals(new byte[] {
-            0x55         // Pushed data
+                0x55         // Pushed data
         }, builder.build().getProgram());
     }
 
@@ -488,8 +488,8 @@ public class ScriptTest {
 
         builder.number(0x524a);
         assertArrayEquals(new byte[] {
-            0x02,             // Length of the pushed data
-            0x4a, 0x52        // Pushed data
+                0x02,             // Length of the pushed data
+                0x4a, 0x52        // Pushed data
         }, builder.build().getProgram());
 
         // Test the trimming code ignores zeroes in the middle
@@ -503,8 +503,8 @@ public class ScriptTest {
         builder = new ScriptBuilder();
         builder.number(0x8000);
         assertArrayEquals(new byte[] {
-            0x03,             // Length of the pushed data
-            0x00, (byte) 0x80, 0x00  // Pushed data
+                0x03,             // Length of the pushed data
+                0x00, (byte) 0x80, 0x00  // Pushed data
         }, builder.build().getProgram());
     }
 
@@ -514,8 +514,8 @@ public class ScriptTest {
         final ScriptBuilder builder = new ScriptBuilder();
         builder.number(-5);
         assertArrayEquals(new byte[] {
-            0x01,        // Length of the pushed data
-            ((byte) 133) // Pushed data
+                0x01,        // Length of the pushed data
+                ((byte) 133) // Pushed data
         }, builder.build().getProgram());
     }
 
