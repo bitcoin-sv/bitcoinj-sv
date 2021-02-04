@@ -5,6 +5,7 @@
 package io.bitcoinj.bitcoin.bean.base;
 
 import io.bitcoinj.core.Coin;
+import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.core.VarInt;
 import io.bitcoinj.bitcoin.api.base.TxInput;
@@ -116,6 +117,7 @@ public class TxInputBean extends BitcoinObjectImpl<TxInput> implements TxInput {
         return value;
     }
 
+
     @Override
     public void setValue(@Nullable Coin value) {
         checkMutable();
@@ -169,5 +171,14 @@ public class TxInputBean extends BitcoinObjectImpl<TxInput> implements TxInput {
         super.makeSelfMutable();
         if (outpoint != null)
             outpoint.makeSelfMutable();
+    }
+
+    /**
+     * Coinbase transactions have special inputs with hashes of zero. If this is such an input, returns true.
+     */
+    @Override
+    public boolean isCoinBase() {
+        return outpoint.getHash().equals(Sha256Hash.ZERO_HASH) &&
+                (outpoint.getIndex() & 0xFFFFFFFFL) == 0xFFFFFFFFL;  // -1 but all is serialized to the wire as unsigned int.
     }
 }

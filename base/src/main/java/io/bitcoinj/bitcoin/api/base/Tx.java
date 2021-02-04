@@ -28,4 +28,6 @@ public interface Tx extends Hashable<Tx> {
 
     void setLockTime(long lockTime);
 
+    boolean isCoinBase();
+
 }
