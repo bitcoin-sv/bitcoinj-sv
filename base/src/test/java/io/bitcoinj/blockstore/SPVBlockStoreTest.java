@@ -41,7 +41,7 @@ public class SPVBlockStoreTest {
         NetworkParameters params = UnitTestParams.get();
         File file = File.createTempFile("spvblockstore", null);
         file.delete();
-      //  file.deleteOnExit();
+        file.deleteOnExit();
         SPVBlockStore store = new SPVBlockStore(params, file);
 
         // Check the first block in a new store is the genesis block.
