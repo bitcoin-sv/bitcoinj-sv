@@ -294,7 +294,7 @@ public class SPVBlockStore implements BlockStore {
     }
 
     //protected static final int RECORD_SIZE = 32 /* hash */ + StoredBlock.COMPACT_SERIALIZED_SIZE;
-    protected static final int RECORD_SIZE = LiteBlock.FIXED_MESSAGE_SIZE;
+    protected static final int RECORD_SIZE = 32 /* hash */ + LiteBlock.FIXED_MESSAGE_SIZE;
 
     // File format:
     //   4 header bytes = "SPVB"
