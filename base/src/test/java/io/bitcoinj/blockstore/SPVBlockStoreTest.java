@@ -26,13 +26,14 @@ import io.bitcoinj.core.*;
 import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.params.UnitTestParams;
 import io.bitcoinj.script.ScriptBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public class SPVBlockStoreTest {
 
