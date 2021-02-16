@@ -197,6 +197,8 @@ public class SPVBlockStore implements BlockStore {
 
         lock.lock();
         try {
+            if (hash.equals(Sha256Hash.ZERO_HASH))
+                return null;
             LiteBlock cacheHit = blockCache.get(hash);
             if (cacheHit != null)
                 return cacheHit;

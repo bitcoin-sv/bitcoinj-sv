@@ -1,5 +1,6 @@
 package io.bitcoinj.bitcoin.bean.validator;
 
+import io.bitcoinj.bitcoin.TxActor;
 import io.bitcoinj.bitcoin.api.base.*;
 import io.bitcoinj.bitcoin.bean.base.TxBean;
 import io.bitcoinj.core.Coin;
@@ -50,12 +51,12 @@ public class TxBeanValidator implements IBeanValidator<Tx> {
                 throw new VerificationException.ExcessiveValue();
             }
 
-            if (txBean.isCoinBase()) {
+            if (TxActor.isCoinBase(txBean)) {
                 if (txBean.getInputs().get(0).getScriptBytes().length < 2 || txBean.getInputs().get(0).getScriptBytes().length > 100)
                     throw new VerificationException.CoinbaseScriptSizeOutOfRange();
             } else {
                 for (TxInput input : txBean.getInputs())
-                    if (input.isCoinBase())
+                    if (TxActor.isCoinBase(input))
                         throw new VerificationException.UnexpectedCoinbaseInput();
             }
         }
