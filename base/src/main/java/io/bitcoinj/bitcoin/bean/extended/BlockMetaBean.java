@@ -15,8 +15,8 @@ import java.io.OutputStream;
 
 public class BlockMetaBean extends BitcoinObjectImpl<BlockMeta> implements BlockMeta<BlockMeta> {
 
-    private int txCount = -1;
-    private long blockSize = -1;
+    private int txCount;
+    private long blockSize;
 
     public BlockMetaBean(byte[] payload, int offset) {
         super(null, payload, offset);
