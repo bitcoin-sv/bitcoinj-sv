@@ -1,11 +1,11 @@
 package test.utils;
 
 import io.bitcoinj.bitcoin.Genesis;
-import io.bitcoinj.bitcoin.api.base.Header;
 import io.bitcoinj.bitcoin.api.extended.LiteBlock;
 import io.bitcoinj.bitcoin.bean.base.HeaderBean;
 import io.bitcoinj.bitcoin.bean.extended.LiteBlockBean;
 import io.bitcoinj.blockchain.ChainUtils;
+import io.bitcoinj.blockchain.ChainUtilsTest;
 import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.params.Net;
