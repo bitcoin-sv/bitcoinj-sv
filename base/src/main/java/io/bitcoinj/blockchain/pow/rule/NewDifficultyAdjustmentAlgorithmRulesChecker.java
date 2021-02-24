@@ -53,7 +53,7 @@ public class NewDifficultyAdjustmentAlgorithmRulesChecker extends AbstractPowRul
 
             BigInteger nextTarget = Verification.ComputeTarget(
                     first.getChainInfo().getChainWork(), first.getTime(), first.getChainInfo().getHeight(),
-                    last.getChainInfo().getChainWork(), first.getTime(), first.getChainInfo().getHeight());
+                    last.getChainInfo().getChainWork(), last.getTime(), last.getChainInfo().getHeight());
             Verification.verifyDifficulty(networkParameters, nextTarget, nextBlock);
         } catch (BlockStoreException x) {
             // We don't have enough blocks, yet
