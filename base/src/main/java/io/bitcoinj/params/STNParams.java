@@ -39,7 +39,7 @@ public class STNParams extends TestNet3Params {
                 "stn-seed.bitcoinsv.io"
         };
         uahfHeight = 16; //this value is 1 higher than in chainparams.cpp
-
+        daaUpdateHeight = 2200; //Must be greater than 2016 - chainparams.cpp
     }
 
     private static STNParams instance = new STNParams(Net.STN);
