@@ -23,10 +23,10 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
 
     private static final byte[] EMPTY_BYTES = new byte[CHAIN_WORK_BYTES];
 
-    private BigInteger chainWork = null;
-    private int height = -1;
+    private BigInteger chainWork;
+    private int height;
     //total number of txs in chain including this block
-    private long totalChainTxs = -1;
+    private long totalChainTxs;
     //this should ONLY be set for blocks in forked chain as it's constantly
     //updating and would be a burden to update for every block.  If the block
     //is part of the main chain is should be null and indicates the current
@@ -54,7 +54,11 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
     public ChainInfoBean(HeaderReadOnly parent) {
         super(parent);
         this.header = parent;
+        this.height = -1;
+        this.totalChainTxs = -1;
     }
+
+
 
     @Override
     public BigInteger getChainWork() {
