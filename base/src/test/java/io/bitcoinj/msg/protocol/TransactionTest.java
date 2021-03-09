@@ -117,7 +117,7 @@ public class TransactionTest {
     }
 
     @Test
-    public void duplicateOutPoint() throws Exception {
+    public void duplicateOutPoint() {
         assertThrows(VerificationException.DuplicatedOutPoint.class, () -> {
             TxInput txInput = tx.getInputs().get(0).mutableCopy();
             txInput.setScriptBytes(new byte[1]);
