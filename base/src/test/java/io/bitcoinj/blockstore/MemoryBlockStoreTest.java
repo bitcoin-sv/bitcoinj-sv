@@ -11,8 +11,7 @@ import test.utils.ChainConstruct;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author m.fletcher@nchain.com
@@ -32,8 +31,6 @@ public class MemoryBlockStoreTest {
     public void testPutAndGet() throws BlockStoreException {
         LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
 
-        blockStore.put(genesisBlock);
-
         assertTrue(blockStore.get(genesisBlock.getHash()).equals(genesisBlock));
     }
 
@@ -42,7 +39,6 @@ public class MemoryBlockStoreTest {
         LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
         LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
 
-        blockStore.put(genesisBlock);
         blockStore.put(blockOne);
 
         blockStore.setChainHead(blockOne);
@@ -53,14 +49,28 @@ public class MemoryBlockStoreTest {
     @Test
     public void testClose() throws BlockStoreException {
         LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        blockStore.put(genesisBlock);
+        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
 
+        blockStore.put(blockOne);
         blockStore.close();
 
-        assertThrows( BlockStoreException.class , () -> {
-            blockStore.get(genesisBlock.getHash());
-        });
+        assertThrows( BlockStoreException.class , () -> blockStore.get(genesisBlock.getHash()));
 
+        blockStore = new MemoryBlockStore(UnitTestParams.get());
+
+        assertNull(blockStore.get(blockOne.getHash()));
     }
+
+    @Test
+    public void testGetPrev() throws BlockStoreException {
+        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
+        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+
+        blockStore.put(blockOne);
+
+        assertTrue(blockStore.getPrev(blockOne).equals(genesisBlock));
+    }
+
+
 
 }
