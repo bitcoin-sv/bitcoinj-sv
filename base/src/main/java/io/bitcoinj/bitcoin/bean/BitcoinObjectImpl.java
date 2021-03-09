@@ -26,7 +26,7 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
     // Note that it's relative to the start of the array NOT the start of the message payload.
     protected int cursor;
 
-    private int length = BitcoinObject.UNKNOWN_MESSAGE_LENGTH;
+    private int length;
 
     // The raw message payload bytes themselves.
     protected byte[] payload;
@@ -64,6 +64,7 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
      */
     public BitcoinObjectImpl(BitcoinObject parent) {
         this.parent = parent;
+        this.length = BitcoinObject.UNKNOWN_MESSAGE_LENGTH;
         makeMutable();
     }
 

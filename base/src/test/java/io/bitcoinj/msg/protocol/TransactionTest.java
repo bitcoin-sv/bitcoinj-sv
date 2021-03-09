@@ -18,16 +18,12 @@
 package io.bitcoinj.msg.protocol;
 
 import io.bitcoinj.bitcoin.Genesis;
-import io.bitcoinj.bitcoin.api.BitcoinObject;
 import io.bitcoinj.bitcoin.api.base.*;
-import io.bitcoinj.bitcoin.api.extended.LiteBlock;
 import io.bitcoinj.bitcoin.bean.base.TxBean;
 import io.bitcoinj.bitcoin.bean.base.TxInputBean;
 import io.bitcoinj.bitcoin.bean.base.TxOutPointBean;
-import io.bitcoinj.bitcoin.bean.base.TxOutputBean;
 import io.bitcoinj.bitcoin.bean.validator.TxBeanValidator;
 import io.bitcoinj.blockchain.SPVBlockChain;
-import io.bitcoinj.blockstore.SPVBlockStore;
 import io.bitcoinj.core.*;
 import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.exception.VerificationException;
@@ -39,7 +35,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static io.bitcoinj.core.Utils.HEX;
 import static org.easymock.EasyMock.createMock;
@@ -83,11 +82,37 @@ public class TransactionTest {
     }
 
     @Test
-    public void tooHuge() {
-        assertThrows(VerificationException.LargerThanMaxTransactionSize.class, () -> {
+    public void t(){
+        byte[] bytes = new BigInteger("60434553797637094804667845667193334646959818742304445166416869027409503646167051384327544423344685365256542521959461542140779362019783834503431169315418541327979706904888607680988280357701735671814950326322039706589326306401759536981357018042841446447750331416566403008987127051581873120957283664850519588729047841225070438855367273").toByteArray();
+        String hex = IntStream.range(0, bytes.length)
+                .map(i -> bytes[i] & 0xff)
+                .mapToObj(b -> String.format("%02x", b))
+                .collect(Collectors.joining());
+
+        byte[] bytes2 = new BigInteger("744843883781622873690649129936361905246114178054369360775340").toByteArray();
+        String hex2 = IntStream.range(0, bytes2.length)
+                .map(i -> bytes2[i] & 0xff)
+                .mapToObj(b -> String.format("%02x", b))
+                .collect(Collectors.joining());
+
+        byte[] bytes3= new BigInteger("12194330279919401087825177399983979926362021121934921705042875775651641449417382247668545073912082607781846389688037375704637601413970677202944").toByteArray();
+        String hex3 = IntStream.range(0, bytes3.length)
+                .map(i -> bytes3[i] & 0xff)
+                .mapToObj(b -> String.format("%02x", b))
+                .collect(Collectors.joining());
+
+        System.out.println(hex);
+        System.out.println(hex2);
+        System.out.println(hex3);
+
+    }
+
+    @Test
+    public void tooHugeToSerialize() {
+        assertThrows(ProtocolException.class, () -> {
             tx.getInputs().get(0).setScriptBytes(new byte [TxParams.MAX_TRANSACTION_SIZE_PARAM * 2]);
 
-            new TxBeanValidator(PARAMS.getNet().params()).validate(tx);
+            new TxBean(tx.serialize());
         });
     }
 
