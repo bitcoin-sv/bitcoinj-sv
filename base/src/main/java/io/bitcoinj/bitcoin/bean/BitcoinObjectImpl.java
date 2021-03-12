@@ -54,7 +54,7 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
         try {
             _parse(in);
         } catch (IOException e) {
-            throw new ProtocolException("failed to parse bitocin object: " + getClass().getSimpleName(), e);
+            throw new ProtocolException("failed to parse bitcoin object: " + getClass().getSimpleName(), e);
         }
     }
 

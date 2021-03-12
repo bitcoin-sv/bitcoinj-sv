@@ -104,11 +104,11 @@ public class ChainInfoBean<C extends BitcoinObject> extends BitcoinObjectImpl<Ch
     public void serializeTo(OutputStream stream) throws IOException {
         byte[] chainWorkBytes = chainWork == null ? EMPTY_BYTES : chainWork.toByteArray();
         checkState(chainWorkBytes.length <= CHAIN_WORK_BYTES, "Ran out of space to store chain work!");
-        stream.write(chainWorkBytes);
         if (chainWorkBytes.length < CHAIN_WORK_BYTES) {
             // Pad to the right size.
             stream.write(EMPTY_BYTES, 0, CHAIN_WORK_BYTES - chainWorkBytes.length);
         }
+        stream.write(chainWorkBytes);
         Utils.uint32ToByteStreamLE(getHeight(), stream);
         Utils.int64ToByteStreamLE(totalChainTxs, stream);
     }
