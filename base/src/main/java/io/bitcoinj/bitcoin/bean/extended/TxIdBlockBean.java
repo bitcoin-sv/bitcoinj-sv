@@ -102,6 +102,7 @@ public class TxIdBlockBean extends BitcoinObjectImpl<TxIdBlock> implements TxIdB
     @Override
     public void serializeTo(OutputStream stream) throws IOException {
         header.serializeTo(stream);
+        stream.write(new VarInt(txids.size()).encode());
         for (Sha256Hash hash: txids)
             stream.write(hash.getBytes());
     }
