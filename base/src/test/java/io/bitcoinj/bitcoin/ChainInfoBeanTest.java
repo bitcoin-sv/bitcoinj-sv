@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class ChainInfoBeanTest {
 
     @Test
-    public void testSerializeTo() {
+    public void testChainInfoBean() {
         ChainInfo chainInfo = new ChainInfoBean(new HeaderBean(new LiteBlockBean()));
 
         chainInfo.setChainWork(BigInteger.TEN);
