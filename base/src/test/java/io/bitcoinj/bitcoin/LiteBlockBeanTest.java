@@ -4,6 +4,7 @@ import io.bitcoinj.bitcoin.api.extended.LiteBlock;
 import io.bitcoinj.bitcoin.bean.extended.LiteBlockBean;
 import io.bitcoinj.core.UnsafeByteArrayOutputStream;
 import io.bitcoinj.params.Net;
+import io.bitcoinj.params.UnitTestParams;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +21,7 @@ public class LiteBlockBeanTest {
 
     @Test
     public void testLiteBlockBean() {
-        LiteBlock liteBlock = Genesis.getHeaderFor(Net.MAINNET);
+        LiteBlock liteBlock = Genesis.getHeaderFor(UnitTestParams.get().getNet());
 
         try (ByteArrayOutputStream outputStream = new UnsafeByteArrayOutputStream()) {
             liteBlock.serializeTo(outputStream);

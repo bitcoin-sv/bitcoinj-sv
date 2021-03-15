@@ -7,7 +7,6 @@ import io.bitcoinj.blockstore.SPVBlockStore;
 import io.bitcoinj.core.listeners.NewBestBlockListener;
 import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.exception.PrunedException;
-import io.bitcoinj.params.NetworkParameters;
 import io.bitcoinj.params.UnitTestParams;
 import io.bitcoinj.utils.Threading;
 import org.junit.jupiter.api.BeforeEach;

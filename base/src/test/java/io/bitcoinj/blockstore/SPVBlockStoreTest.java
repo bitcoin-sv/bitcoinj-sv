@@ -56,7 +56,7 @@ public class SPVBlockStoreTest {
     }
 
     @Test
-    public void testClose() throws BlockStoreException {
+    public void testClose() throws BlockStoreException, IOException {
         LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
         LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
 

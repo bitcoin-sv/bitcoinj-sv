@@ -576,7 +576,12 @@ public class FullHeadersBlockStore implements BlockStore {
     }
 
     public void close() throws BlockStoreException {
-
+        try {
+            metadataRaf.close();
+            cbDataRaf.close();
+        } catch (IOException ex){
+            throw new BlockStoreException(ex);
+        }
     }
 
     @Override

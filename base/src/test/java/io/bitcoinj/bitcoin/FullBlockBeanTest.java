@@ -4,6 +4,7 @@ import io.bitcoinj.bitcoin.api.base.FullBlock;
 import io.bitcoinj.bitcoin.bean.base.FullBlockBean;
 import io.bitcoinj.core.UnsafeByteArrayOutputStream;
 import io.bitcoinj.params.Net;
+import io.bitcoinj.params.UnitTestParams;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +21,7 @@ public class FullBlockBeanTest {
 
     @Test
     public void testFullBlockBean() {
-        FullBlock fullBlock = Genesis.getFor(Net.MAINNET);
+        FullBlock fullBlock = Genesis.getFor(UnitTestParams.get().getNet());
 
         try (ByteArrayOutputStream outputStream = new UnsafeByteArrayOutputStream()) {
             fullBlock.serializeTo(outputStream);
