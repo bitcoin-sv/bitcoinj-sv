@@ -89,6 +89,43 @@ public class UtilsTest {
     }
 
     @Test
+    public void testReadInt48() {
+        assertEquals(Utils.readInt48(BaseEncoding.base16().decode("000000000000"), 0), 0L);
+        assertEquals(Utils.readInt48(BaseEncoding.base16().decode("FF0000000000"), 0), (long) Math.pow(2, 8) - 1);
+        assertEquals(Utils.readInt48(BaseEncoding.base16().decode("FFFF00000000"), 0), (long) Math.pow(2, 16) - 1);
+        assertEquals(Utils.readInt48(BaseEncoding.base16().decode("FFFFFF000000"), 0), (long) Math.pow(2, 24) - 1);
+        assertEquals(Utils.readInt48(BaseEncoding.base16().decode("FFFFFFFF0000"), 0), (long) Math.pow(2, 32) - 1);
+        assertEquals(Utils.readInt48(BaseEncoding.base16().decode("FFFFFFFFFF00"), 0), (long) Math.pow(2, 40) - 1);
+        assertEquals(Utils.readInt48(BaseEncoding.base16().decode("FFFFFFFFFFFF"), 0), (long) Math.pow(2, 48) - 1);
+    }
+
+    @Test
+    public void testWriteInt48LE() {
+        var byteArray = new byte[6];
+
+        Utils.uint48ToByteArrayLE(0L, byteArray, 0);
+        assertEquals("000000000000", BaseEncoding.base16().encode(byteArray));
+
+        Utils.uint48ToByteArrayLE((long) Math.pow(2, 8) - 1, byteArray, 0);
+        assertEquals("FF0000000000", BaseEncoding.base16().encode(byteArray));
+
+        Utils.uint48ToByteArrayLE((long) Math.pow(2, 16) - 1, byteArray, 0);
+        assertEquals("FFFF00000000", BaseEncoding.base16().encode(byteArray));
+
+        Utils.uint48ToByteArrayLE((long) Math.pow(2, 24) - 1, byteArray, 0);
+        assertEquals("FFFFFF000000", BaseEncoding.base16().encode(byteArray));
+
+        Utils.uint48ToByteArrayLE((long) Math.pow(2, 32) - 1, byteArray, 0);
+        assertEquals("FFFFFFFF0000", BaseEncoding.base16().encode(byteArray));
+
+        Utils.uint48ToByteArrayLE((long) Math.pow(2, 40) - 1, byteArray, 0);
+        assertEquals("FFFFFFFFFF00", BaseEncoding.base16().encode(byteArray));
+
+        Utils.uint48ToByteArrayLE((long) Math.pow(2, 48) - 1, byteArray, 0);
+        assertEquals("FFFFFFFFFFFF", BaseEncoding.base16().encode(byteArray));
+    }
+
+    @Test
     public void testReadInt64() {
         assertEquals(Utils.readInt64(BaseEncoding.base16().decode("0000000000000000"), 0), 0L);
         assertEquals(Utils.readInt64(BaseEncoding.base16().decode("FF00000000000000"), 0), (long) Math.pow(2, 8) - 1);
