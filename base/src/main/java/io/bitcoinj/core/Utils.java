@@ -161,6 +161,15 @@ public class Utils {
         out[offset + 3] = (byte) (0xFF & (val >> 24));
     }
 
+    public static void uint48ToByteArrayLE(long val, byte[] out, int offset) {
+        out[offset] = (byte) ((int) (255L & val));
+        out[offset + 1] = (byte) ((int) (255L & val >> 8));
+        out[offset + 2] = (byte) ((int) (255L & val >> 16));
+        out[offset + 3] = (byte) ((int) (255L & val >> 24));
+        out[offset + 4] = (byte) ((int) (255L & val >> 32));
+        out[offset + 5] = (byte) ((int) (255L & val >> 40));
+    }
+
     public static void uint64ToByteArrayLE(long val, byte[] out, int offset) {
         out[offset] = (byte) (0xFF & val);
         out[offset + 1] = (byte) (0xFF & (val >> 8));
@@ -266,6 +275,21 @@ public class Utils {
     /** Parse 4 bytes from the stream as unsigned 32-bit integer in little endian format. */
     public static long readUint32(InputStream in) throws IOException {
         return readUint32(readBytesStrict(in, 4), 0);
+    }
+
+    /** Parse 6 bytes from the byte array (starting at the offset) as signed 64-bit integer in little endian format. */
+    public static long readInt48(byte[] bytes, int offset) {
+        return (bytes[offset] & 0xffl) |
+            ((bytes[offset + 1] & 0xffl) << 8) |
+            ((bytes[offset + 2] & 0xffl) << 16) |
+            ((bytes[offset + 3] & 0xffl) << 24) |
+            ((bytes[offset + 4] & 0xffl) << 32) |
+            ((bytes[offset + 5] & 0xffl) << 40);
+    }
+
+    /** Parse 6 bytes from the stream as signed 64-bit integer in little endian format. */
+    public static long readInt48(InputStream in) throws IOException {
+        return readInt64(readBytesStrict(in, 6), 0);
     }
 
     /** Parse 8 bytes from the byte array (starting at the offset) as signed 64-bit integer in little endian format. */
