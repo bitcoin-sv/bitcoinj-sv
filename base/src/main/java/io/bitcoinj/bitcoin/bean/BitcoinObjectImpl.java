@@ -119,7 +119,7 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
     }
 
     @Override
-    public  byte[] serialize() {
+    public byte[] serialize() {
         if (!isMutable() && payload != null
                 && offset == 0
                 && payload.length == length) {

@@ -35,8 +35,31 @@ public class TxBean extends HashableImpl<Tx> implements Tx {
 
     private long lockTime;
 
+    /**
+     * Only use this constructor if you're sure this is the correct hash.  It can avoid recalculating
+     * when you already know it.
+     * @param parent
+     * @param payload
+     * @param offset
+     * @param hash
+     */
+    public TxBean(BitcoinObject parent, byte[] payload, int offset, Sha256Hash hash) {
+        super(parent, payload, offset);
+        this.hash = hash;
+    }
+
     public TxBean(BitcoinObject parent, byte[] payload, int offset) {
         super(parent, payload, offset);
+    }
+
+    /**
+     * Only use this constructor if you're sure this is the correct hash.  It can avoid recalculating
+     * when you already know it.
+     * @param payload
+     * @param hash
+     */
+    public TxBean(byte[] payload, Sha256Hash hash) {
+        this(null, payload, 0, hash);
     }
 
     public TxBean(byte[] payload) {
@@ -45,6 +68,21 @@ public class TxBean extends HashableImpl<Tx> implements Tx {
 
     public TxBean(FullBlock parent, byte[] payload) {
         this(parent, payload, 0);
+    }
+
+    /**
+     * Only use this constructor if you're sure this is the correct hash.  It can avoid recalculating
+     * when you already know it.
+     * @param in
+     * @param hash
+     */
+    public TxBean(InputStream in, Sha256Hash hash) {
+        super(null, in);
+        this.hash = hash;
+    }
+
+    public TxBean(InputStream in) {
+        this(in, null);
     }
 
     /**
@@ -152,7 +190,6 @@ public class TxBean extends HashableImpl<Tx> implements Tx {
         }
         lockTime = readUint32();
 
-        hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(payload, offset, cursor - offset));
     }
 
     @Override
