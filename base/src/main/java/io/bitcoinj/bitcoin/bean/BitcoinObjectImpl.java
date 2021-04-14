@@ -8,9 +8,7 @@ import io.bitcoinj.core.*;
 import io.bitcoinj.bitcoin.api.BitcoinObject;
 import io.bitcoinj.bitcoin.api.base.Hashable;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
 
 public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements BitcoinObject<C> {
@@ -264,6 +262,17 @@ public abstract class BitcoinObjectImpl<C extends BitcoinObject> implements Bitc
 
     protected boolean hasMoreBytes() {
         return cursor < payload.length;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.write(serialize());
+    }
+
+    private void readObject(ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        this.payload = in.readAllBytes();
+        this.offset = 0;
+        _parse();
     }
 
 }

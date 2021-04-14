@@ -14,9 +14,7 @@ import io.bitcoinj.core.Utils;
 import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static io.bitcoinj.script.ScriptOpCodes.*;
@@ -35,7 +33,7 @@ import static com.google.common.base.Preconditions.*;
  * clients don't have that data. In full mode, this class is used to run the interpreted language. It also has
  * static methods for building scripts.</p>
  */
-public class Script {
+public class Script implements Serializable {
 
     /**
      * Enumeration to encapsulate the type of this script.
@@ -96,6 +94,16 @@ public class Script {
         program = programBytes;
         parse(programBytes);
         this.creationTimeSeconds = creationTimeSeconds;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeObject(getProgram());
+    }
+
+    private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
+        program = in.readAllBytes();
+        parse(program);
+        creationTimeSeconds = 0;
     }
 
     public long getCreationTimeSeconds() {

@@ -8,8 +8,9 @@ import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 
-public interface BitcoinObject<I extends BitcoinObject> {
+public interface BitcoinObject<I extends BitcoinObject> extends Serializable {
 
     byte[] EMPTY_ARRAY = new byte[0];
     public static final int UNKNOWN_MESSAGE_LENGTH = Integer.MIN_VALUE;
@@ -73,5 +74,7 @@ public interface BitcoinObject<I extends BitcoinObject> {
     default boolean isFixedSize() {
         return fixedSize() != UNKNOWN_MESSAGE_LENGTH;
     }
+
+
 
 }

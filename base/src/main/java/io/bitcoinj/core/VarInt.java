@@ -18,6 +18,12 @@ package io.bitcoinj.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.ByteChannel;
+
+
 
 /**
  * A variable-length encoded unsigned integer using Satoshi's encoding (a.k.a. "CompactSize").
@@ -39,7 +45,7 @@ public class VarInt {
     /**
      * Constructs a new VarInt with the value parsed from the specified offset of the given buffer.
      *
-     * @param buf the buffer containing the value
+     * @param buf    the buffer containing the value
      * @param offset the offset of the value
      */
     public VarInt(byte[] buf, int offset) {
@@ -77,6 +83,56 @@ public class VarInt {
         } else {
             value = Utils.readInt64(in);
             originallyEncodedSize = 9; // 1 marker + 8 data bytes (64 bits)
+        }
+    }
+
+    public VarInt(ByteBuffer buf) throws BufferUnderflowException {
+        int start = buf.position();
+        try {
+            int first = Byte.toUnsignedInt(buf.get());
+
+            first = 0xFF & first;
+            if (first < 253) {
+                value = first;
+                originallyEncodedSize = 1; // 1 data byte (8 bits)
+            } else if (first == 253) {
+                byte[] bytes = new byte[2];
+                buf.get(bytes);
+                value = (0xFF & bytes[0]) | ((0xFF & bytes[1]) << 8);
+                originallyEncodedSize = 3; // 1 marker + 2 data bytes (16 bits)
+            } else if (first == 254) {
+                byte[] bytes = new byte[4];
+                buf.get(bytes);
+                value = Utils.readUint32(bytes, 0);
+                originallyEncodedSize = 5; // 1 marker + 4 data bytes (32 bits)
+            } else {
+                byte[] bytes = new byte[8];
+                buf.get(bytes);
+                value = Utils.readInt64(bytes, 0);
+                originallyEncodedSize = 9; // 1 marker + 8 data bytes (64 bits)
+            }
+        } catch (BufferUnderflowException e) {
+            buf.position(start);
+            throw e;
+        }
+    }
+
+    /**
+     * Utility method for reading from ByteBuffers, after reading the first byte this method will
+     * return the number of additional bytes required to parse a VarInt
+     * @param firstByte
+     * @return
+     */
+    public static int bytesRequired(byte firstByte) {
+        int unsigned = Byte.toUnsignedInt(firstByte);
+        if (unsigned < 253) {
+            return 0;
+        } else if (unsigned == 253) {
+            return 2;
+        } else if (unsigned == 254) {
+            return 4;
+        } else {
+            return 8;
         }
     }
 
@@ -131,6 +187,36 @@ public class VarInt {
                 bytes[0] = (byte) 255;
                 Utils.uint64ToByteArrayLE(value, bytes, 1);
                 return bytes;
+        }
+    }
+
+    /**
+     * Encode a value direct to a buffer without creating an object
+     * @param value the value to be encoded
+     * @param buf a ByteBuffer ready to be written to and must be set to ByteOrder.LITTLE_ENDIAN
+     */
+    public static void encode(long value, ByteBuffer buf) {
+        if (value < 0) {
+            //8 bytes
+            buf.put((byte) 255);
+            buf.putLong(value);
+            return;
+        }
+        if (value < 253) {
+            buf.put((byte) value);
+            return;
+        }
+        if (value <= 0xFFFFL) {
+            //2 bytes
+            buf.put((byte) 253);
+            buf.putShort((short) value);
+            return;
+        }
+        if (value <= 0xFFFFFFFFL) {
+            //4 bytes
+            buf.put((byte) 254);
+            buf.putInt((int) value);
+            return;
         }
     }
 }
