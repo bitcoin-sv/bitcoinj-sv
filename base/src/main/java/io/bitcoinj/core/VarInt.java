@@ -18,17 +18,17 @@ package io.bitcoinj.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ByteChannel;
 
 
-
 /**
  * A variable-length encoded unsigned integer using Satoshi's encoding (a.k.a. "CompactSize").
  */
-public class VarInt {
+public class VarInt implements Serializable {
     public final long value;
     private final int originallyEncodedSize;
 
@@ -120,6 +120,7 @@ public class VarInt {
     /**
      * Utility method for reading from ByteBuffers, after reading the first byte this method will
      * return the number of additional bytes required to parse a VarInt
+     *
      * @param firstByte
      * @return
      */
@@ -192,31 +193,43 @@ public class VarInt {
 
     /**
      * Encode a value direct to a buffer without creating an object
+     *
      * @param value the value to be encoded
-     * @param buf a ByteBuffer ready to be written to and must be set to ByteOrder.LITTLE_ENDIAN
+     * @param buf   a ByteBuffer ready to be written to and must be set to ByteOrder.LITTLE_ENDIAN
      */
     public static void encode(long value, ByteBuffer buf) {
+       ByteOrder order = buf.order();
+       if (order != ByteOrder.LITTLE_ENDIAN) {
+           buf.order(ByteOrder.LITTLE_ENDIAN);
+       }
         if (value < 0) {
             //8 bytes
             buf.put((byte) 255);
             buf.putLong(value);
-            return;
-        }
-        if (value < 253) {
+
+        } else if (value < 253) {
             buf.put((byte) value);
-            return;
-        }
-        if (value <= 0xFFFFL) {
+;
+        } else if (value <= 0xFFFFL) {
             //2 bytes
             buf.put((byte) 253);
             buf.putShort((short) value);
-            return;
-        }
-        if (value <= 0xFFFFFFFFL) {
+
+        } else if (value <= 0xFFFFFFFFL) {
             //4 bytes
             buf.put((byte) 254);
             buf.putInt((int) value);
-            return;
+;
+        } else {
+            //8 bytes
+            buf.put((byte) 255);
+            buf.putLong(value);
+
         }
+        //restore buffer order if necessary
+        if (order != buf.order()) {
+            buf.order(order);
+        }
+
     }
 }

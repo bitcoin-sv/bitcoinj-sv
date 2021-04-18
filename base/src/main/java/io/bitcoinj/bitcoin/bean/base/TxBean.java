@@ -24,7 +24,7 @@ import static io.bitcoinj.core.Utils.uint32ToByteStreamLE;
 
 public class TxBean extends HashableImpl<Tx> implements Tx {
 
-    private Sha256Hash hash;
+    //private Sha256Hash hash;
 
     // These are bitcoin serialized.
     private long version;
