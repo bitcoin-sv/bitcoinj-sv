@@ -264,6 +264,17 @@ public class Utils {
         return rev;
     }
 
+    /** Parse 2 bytes from the byte array (starting at the offset) as unsigned 16-bit integer in little endian format. */
+    public static int readUint16(byte[] bytes, int offset) {
+        return (bytes[offset] & 0xff) |
+                ((bytes[offset + 1] & 0xff) << 8);
+    }
+
+    /** Parse 2 bytes from the stream as unsigned 16-bit integer in little endian format. */
+    public static int readUint16(InputStream in) throws IOException {
+        return readUint16(readBytesStrict(in, 2), 0);
+    }
+
     /** Parse 4 bytes from the byte array (starting at the offset) as unsigned 32-bit integer in little endian format. */
     public static long readUint32(byte[] bytes, int offset) {
         return (bytes[offset] & 0xffl) |
