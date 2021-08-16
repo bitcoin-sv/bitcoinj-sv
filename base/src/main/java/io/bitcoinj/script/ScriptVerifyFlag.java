@@ -1,6 +1,6 @@
-/**
- * Copyright (c) 2020 Steve Shadders.
- * All rights reserved.
+/*
+ * Modifications described in the NOTICE.txt file are licensed under the Open BSV Licence.
+ * Modifications Copyright 2020 Bitcoin Association
  */
 package io.bitcoinj.script;
 
