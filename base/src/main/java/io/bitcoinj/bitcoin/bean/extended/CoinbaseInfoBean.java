@@ -1,9 +1,9 @@
+/*
+ * © 2020 Bitcoin Association
+ * Open BSV Licence, see the accompanying file LICENSE
+ */
 package io.bitcoinj.bitcoin.bean.extended;
 
-/**
- * Copyright (c) 2020 Steve Shadders.
- * All rights reserved.
- */
 import io.bitcoinj.bitcoin.api.BitcoinObject;
 import io.bitcoinj.bitcoin.api.base.Tx;
 import io.bitcoinj.bitcoin.api.extended.CoinbaseInfo;

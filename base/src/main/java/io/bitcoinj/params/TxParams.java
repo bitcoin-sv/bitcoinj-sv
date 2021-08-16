@@ -1,3 +1,7 @@
+/*
+ * © 2020 Bitcoin Association
+ * Open BSV Licence, see the accompanying file LICENSE
+ */
 package io.bitcoinj.params;
 
 /**
