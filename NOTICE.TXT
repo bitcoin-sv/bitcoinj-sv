@@ -4,6 +4,8 @@
         └── bitcoinjsv
             ├── blockchain
             │   ├── AbstractBlockChain.java
+            │   ├── ChainEventListener.java
+            │   ├── ChainUtils.java
             │   ├── SPVBlockChain.java
             │   └── pow
             │       ├── factory
