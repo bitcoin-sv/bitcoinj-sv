@@ -16,19 +16,19 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import io.bitcoinj.blockchain.AbstractBlockChain;
-import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import io.bitcoinj.chain_legacy.StoredBlock_legacy;
-import io.bitcoinj.core.*;
-import io.bitcoinj.exception.VerificationException;
-import io.bitcoinj.msg.Genesis_legacy;
-import io.bitcoinj.msg.protocol.*;
-import io.bitcoinj.script.Script;
-import io.bitcoinj.script.ScriptBuilder;
-import io.bitcoinj.script.ScriptVerifyFlag;
+import io.bitcoinsv.bitcoinjsv.blockchain.AbstractBlockChain;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.StoredBlock_legacy;
+import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.exception.VerificationException;
+import io.bitcoinsv.bitcoinjsv.msg.Genesis_legacy;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.*;
+import io.bitcoinsv.bitcoinjsv.script.Script;
+import io.bitcoinsv.bitcoinjsv.script.ScriptBuilder;
+import io.bitcoinsv.bitcoinjsv.script.ScriptVerifyFlag;
 import org.bitcoinj.moved.testing.TestWithWallet;
-import io.bitcoinj.script.SigHash;
-import io.bitcoinj.temp.SendRequest;
+import io.bitcoinsv.bitcoinjsv.script.SigHash;
+import io.bitcoinsv.bitcoinjsv.temp.SendRequest;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.collect.Lists;
@@ -48,7 +48,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static io.bitcoinj.core.Coin.*;
+import static io.bitcoinsv.bitcoinjsv.core.Coin.*;
 import static org.bitcoinj.moved.testing.FakeTxBuilder.createFakeTx;
 import static org.bitcoinj.moved.testing.FakeTxBuilder.makeSolvedTestBlock;
 import static org.junit.Assert.*;

@@ -16,10 +16,12 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import io.bitcoinj.core.*;
-import io.bitcoinj.exception.VerificationException;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.core.TransactionBroadcaster;
+import io.bitcoinsv.bitcoinjsv.exception.VerificationException;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionOutput;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import javax.annotation.Nullable;

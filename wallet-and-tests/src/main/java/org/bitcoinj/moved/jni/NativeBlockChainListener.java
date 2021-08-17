@@ -16,17 +16,18 @@
 
 package org.bitcoinj.moved.jni;
 
-import io.bitcoinj.blockchain.AbstractBlockChain;
-import io.bitcoinj.chain_legacy.StoredBlock_legacy;
-import io.bitcoinj.core.*;
+import io.bitcoinsv.bitcoinjsv.blockchain.AbstractBlockChain;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.StoredBlock_legacy;
 
 import java.util.List;
-import io.bitcoinj.core.listeners.NewBestBlockListener;
-import io.bitcoinj.core.listeners.ReorganizeListener;
-import io.bitcoinj.core.listeners.TransactionReceivedInBlockListener;
-import io.bitcoinj.exception.VerificationException;
-import io.bitcoinj.bitcoin.api.extended.ChainInfoReadOnly;
-import io.bitcoinj.msg.protocol.Transaction;
+
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.listeners.NewBestBlockListener;
+import io.bitcoinsv.bitcoinjsv.core.listeners.ReorganizeListener;
+import io.bitcoinsv.bitcoinjsv.core.listeners.TransactionReceivedInBlockListener;
+import io.bitcoinsv.bitcoinjsv.exception.VerificationException;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.ChainInfoReadOnly;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
 
 /**
  * An event listener that relays events to a native C++ object. A pointer to that object is stored in

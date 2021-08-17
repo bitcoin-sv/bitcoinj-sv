@@ -16,10 +16,10 @@
 
 package org.bitcoinj.moved.testing;
 
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.crypto.ChildNumber;
-import io.bitcoinj.crypto.DeterministicKey;
-import io.bitcoinj.signers.CustomTransactionSigner;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.crypto.ChildNumber;
+import io.bitcoinsv.bitcoinjsv.crypto.DeterministicKey;
+import io.bitcoinsv.bitcoinjsv.signers.CustomTransactionSigner;
 import org.bitcoinj.moved.wallet.DeterministicKeyChain;
 import com.google.common.collect.ImmutableList;
 

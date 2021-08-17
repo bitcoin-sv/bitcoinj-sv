@@ -20,17 +20,22 @@ package org.bitcoinj.moved.wallet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.google.protobuf.*;
-import io.bitcoinj.core.*;
-import io.bitcoinj.crypto.*;
-import io.bitcoinj.msg.p2p.BloomFilter;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.protos.Protos;
-import io.bitcoinj.script.*;
-import io.bitcoinj.temp.KeyBag;
-import io.bitcoinj.temp.KeyPurpose;
-import io.bitcoinj.temp.RedeemData;
-import io.bitcoinj.utils.*;
-import io.bitcoinj.temp.listener.KeyChainEventListener;
+import io.bitcoinsv.bitcoinjsv.core.Address;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.crypto.*;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.BloomFilter;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.protos.Protos;
+import io.bitcoinsv.bitcoinjsv.script.Script;
+import io.bitcoinsv.bitcoinjsv.script.ScriptBuilder;
+import io.bitcoinsv.bitcoinjsv.script.ScriptUtils;
+import io.bitcoinsv.bitcoinjsv.temp.KeyBag;
+import io.bitcoinsv.bitcoinjsv.temp.KeyPurpose;
+import io.bitcoinsv.bitcoinjsv.temp.RedeemData;
+import io.bitcoinsv.bitcoinjsv.temp.listener.KeyChainEventListener;
+import io.bitcoinsv.bitcoinjsv.utils.ListenerRegistration;
+import io.bitcoinsv.bitcoinjsv.utils.Threading;
 import org.slf4j.*;
 import org.spongycastle.crypto.params.*;
 
@@ -487,9 +492,9 @@ public class KeyChainGroup implements KeyBag {
 
     /**
      * Encrypt the keys in the group using the KeyCrypter and the AES key. A good default KeyCrypter to use is
-     * {@link io.bitcoinj.crypto.KeyCrypterScrypt}.
+     * {@link KeyCrypterScrypt}.
      *
-     * @throws io.bitcoinj.crypto.KeyCrypterException Thrown if the wallet encryption fails for some reason,
+     * @throws KeyCrypterException Thrown if the wallet encryption fails for some reason,
      *         leaving the group unchanged.
      * @throws DeterministicUpgradeRequiredException Thrown if there are random keys but no HD chain.
      */
@@ -514,9 +519,9 @@ public class KeyChainGroup implements KeyBag {
 
     /**
      * Decrypt the keys in the group using the previously given key crypter and the AES key. A good default
-     * KeyCrypter to use is {@link io.bitcoinj.crypto.KeyCrypterScrypt}.
+     * KeyCrypter to use is {@link KeyCrypterScrypt}.
      *
-     * @throws io.bitcoinj.crypto.KeyCrypterException Thrown if the wallet decryption fails for some reason, leaving the group unchanged.
+     * @throws KeyCrypterException Thrown if the wallet decryption fails for some reason, leaving the group unchanged.
      */
     public void decrypt(KeyParameter aesKey) {
         // This code must be exception safe.

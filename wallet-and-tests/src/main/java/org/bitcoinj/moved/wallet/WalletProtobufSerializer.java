@@ -17,22 +17,25 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.core.*;
-import io.bitcoinj.core.TransactionConfidence.ConfidenceType;
-import io.bitcoinj.crypto.KeyCrypter;
-import io.bitcoinj.crypto.KeyCrypterScrypt;
-import io.bitcoinj.msg.p2p.PeerAddress;
-import io.bitcoinj.msg.protocol.*;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.protos.Protos;
-import io.bitcoinj.script.Script;
-import io.bitcoinj.script.interpreter.ScriptExecutionException;
-import io.bitcoinj.signers.LocalTransactionSigner;
-import io.bitcoinj.signers.TransactionSigner;
-import io.bitcoinj.temp.WalletTransaction;
-import io.bitcoinj.utils.ExchangeRate;
-import io.bitcoinj.utils.Fiat;
-import io.bitcoinj.protos.Protos.Wallet.EncryptionType;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence.ConfidenceType;
+import io.bitcoinsv.bitcoinjsv.core.Verification;
+import io.bitcoinsv.bitcoinjsv.crypto.KeyCrypter;
+import io.bitcoinsv.bitcoinjsv.crypto.KeyCrypterScrypt;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.PeerAddress;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.*;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.protos.Protos;
+import io.bitcoinsv.bitcoinjsv.script.Script;
+import io.bitcoinsv.bitcoinjsv.script.interpreter.ScriptExecutionException;
+import io.bitcoinsv.bitcoinjsv.signers.LocalTransactionSigner;
+import io.bitcoinsv.bitcoinjsv.signers.TransactionSigner;
+import io.bitcoinsv.bitcoinjsv.temp.WalletTransaction;
+import io.bitcoinsv.bitcoinjsv.utils.ExchangeRate;
+import io.bitcoinsv.bitcoinjsv.utils.Fiat;
+import io.bitcoinsv.bitcoinjsv.protos.Protos.Wallet.EncryptionType;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;

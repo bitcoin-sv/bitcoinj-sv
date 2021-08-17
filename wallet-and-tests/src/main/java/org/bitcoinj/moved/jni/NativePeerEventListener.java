@@ -16,14 +16,16 @@
 
 package org.bitcoinj.moved.jni;
 
-import io.bitcoinj.core.listeners.*;
-import io.bitcoinj.core.*;
-import io.bitcoinj.msg.*;
-import io.bitcoinj.msg.p2p.FilteredBlock;
-import io.bitcoinj.msg.p2p.GetDataMessage;
-import io.bitcoinj.msg.p2p.PeerAddress;
-import io.bitcoinj.msg.protocol.Block;
-import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.core.Peer;
+import io.bitcoinsv.bitcoinjsv.core.listeners.OnTransactionBroadcastListener;
+import io.bitcoinsv.bitcoinjsv.core.listeners.PeerConnectionEventListener;
+import io.bitcoinsv.bitcoinjsv.core.listeners.PeerDataEventListener;
+import io.bitcoinsv.bitcoinjsv.msg.Message;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.FilteredBlock;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.GetDataMessage;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.PeerAddress;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Block;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
 
 import javax.annotation.*;
 import java.util.List;

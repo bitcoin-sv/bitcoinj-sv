@@ -18,13 +18,13 @@
 package org.bitcoinj.moved.wallet;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.bitcoinj.core.Utils;
-import io.bitcoinj.crypto.*;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
-import io.bitcoinj.protos.Protos;
+import io.bitcoinsv.bitcoinjsv.crypto.*;
+import io.bitcoinsv.bitcoinjsv.protos.Protos;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;
@@ -32,7 +32,7 @@ import java.security.SecureRandom;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static io.bitcoinj.core.Utils.HEX;
+import static io.bitcoinsv.bitcoinjsv.core.Utils.HEX;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -72,7 +72,7 @@ public class DeterministicSeed implements EncryptableItem {
     }
 
     /**
-     * Constructs a seed from a BIP 39 mnemonic code. See {@link io.bitcoinj.crypto.MnemonicCode} for more
+     * Constructs a seed from a BIP 39 mnemonic code. See {@link MnemonicCode} for more
      * details on this scheme.
      * @param mnemonicCode A list of words.
      * @param seed The derived seed, or pass null to derive it from mnemonicCode (slow)
@@ -84,7 +84,7 @@ public class DeterministicSeed implements EncryptableItem {
     }
 
     /**
-     * Constructs a seed from a BIP 39 mnemonic code. See {@link io.bitcoinj.crypto.MnemonicCode} for more
+     * Constructs a seed from a BIP 39 mnemonic code. See {@link MnemonicCode} for more
      * details on this scheme.
      * @param random Entropy source
      * @param bits number of bits, must be divisible by 32
@@ -96,7 +96,7 @@ public class DeterministicSeed implements EncryptableItem {
     }
 
     /**
-     * Constructs a seed from a BIP 39 mnemonic code. See {@link io.bitcoinj.crypto.MnemonicCode} for more
+     * Constructs a seed from a BIP 39 mnemonic code. See {@link MnemonicCode} for more
      * details on this scheme.
      * @param entropy entropy bits, length must be divisible by 32
      * @param passphrase A user supplied passphrase, or an empty string if there is no passphrase
@@ -220,7 +220,7 @@ public class DeterministicSeed implements EncryptableItem {
      * Check if our mnemonic is a valid mnemonic phrase for our word list.
      * Does nothing if we are encrypted.
      *
-     * @throws io.bitcoinj.crypto.MnemonicException if check fails
+     * @throws MnemonicException if check fails
      */
     public void check() throws MnemonicException {
         if (mnemonicCode != null)

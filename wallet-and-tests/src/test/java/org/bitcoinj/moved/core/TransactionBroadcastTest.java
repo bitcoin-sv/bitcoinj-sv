@@ -18,18 +18,18 @@
 package org.bitcoinj.moved.core;
 
 import com.google.common.util.concurrent.*;
-import io.bitcoinj.core.*;
-import io.bitcoinj.core.listeners.TransactionConfidenceEventListener;
-import io.bitcoinj.msg.*;
-import io.bitcoinj.msg.p2p.InventoryMessage;
-import io.bitcoinj.msg.p2p.RejectMessage;
-import io.bitcoinj.msg.p2p.VersionMessage;
-import io.bitcoinj.msg.protocol.Block;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.core.listeners.TransactionConfidenceEventListener;
+import io.bitcoinsv.bitcoinjsv.msg.Message;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.InventoryMessage;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.RejectMessage;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.VersionMessage;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Block;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.utils.Threading;
 import org.bitcoinj.moved.testing.*;
-import io.bitcoinj.utils.*;
-import io.bitcoinj.temp.SendRequest;
+import io.bitcoinsv.bitcoinjsv.temp.SendRequest;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.junit.*;
 import org.junit.runner.*;
@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.*;
-import static io.bitcoinj.core.Coin.*;
+import static io.bitcoinsv.bitcoinjsv.core.Coin.*;
 import static org.junit.Assert.*;
 
 @RunWith(value = Parameterized.class)

@@ -16,22 +16,27 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.blockchain.AbstractBlockChain;
-import io.bitcoinj.core.*;
-import io.bitcoinj.msg.p2p.PeerAddress;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.msg.protocol.TransactionOutput;
-import io.bitcoinj.msg.protocol.TxHelper;
-import io.bitcoinj.params.*;
+import io.bitcoinsv.bitcoinjsv.blockchain.AbstractBlockChain;
+import io.bitcoinsv.bitcoinjsv.core.BitcoinJ;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.PeerAddress;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionOutput;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.params.Net;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.params.UnitTestParams;
 import org.bitcoinj.moved.testing.*;
-import io.bitcoinj.temp.CoinSelection;
+import io.bitcoinsv.bitcoinjsv.temp.CoinSelection;
 import org.junit.*;
 
 import java.net.*;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.*;
-import static io.bitcoinj.core.Coin.*;
+import static io.bitcoinsv.bitcoinjsv.core.Coin.*;
 import static org.junit.Assert.*;
 
 public class DefaultCoinSelectorTest extends TestWithWallet {

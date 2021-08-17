@@ -18,20 +18,20 @@
 package org.bitcoinj.moved.core;
 
 import com.google.common.collect.*;
-import io.bitcoinj.chain_legacy.StoredBlock_legacy;
-import io.bitcoinj.core.*;
-import io.bitcoinj.core.TransactionConfidence.*;
-import io.bitcoinj.exception.VerificationException;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.StoredBlock_legacy;
+import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence.*;
+import io.bitcoinsv.bitcoinjsv.exception.VerificationException;
 import org.bitcoinj.moved.wallet.KeyChainGroup;
 import org.bitcoinj.moved.wallet.Wallet;
-import io.bitcoinj.msg.Genesis_legacy;
-import io.bitcoinj.msg.Serializer;
-import io.bitcoinj.msg.p2p.*;
-import io.bitcoinj.msg.protocol.Block;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.msg.Genesis_legacy;
+import io.bitcoinsv.bitcoinjsv.msg.Serializer;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.*;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Block;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
 import org.bitcoinj.moved.testing.*;
-import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinsv.bitcoinjsv.store_legacy.MemoryBlockStore_legacy;
 import org.junit.*;
 import org.junit.runner.*;
 import org.junit.runners.*;
@@ -39,7 +39,7 @@ import org.junit.runners.*;
 import java.math.*;
 import java.util.*;
 
-import static io.bitcoinj.core.Utils.*;
+import static io.bitcoinsv.bitcoinjsv.core.Utils.*;
 import static org.junit.Assert.*;
 
 @RunWith(value = Parameterized.class)

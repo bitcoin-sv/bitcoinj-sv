@@ -18,25 +18,29 @@
 package org.bitcoinj.moved.wallet;
 
 import com.google.common.collect.*;
-import io.bitcoinj.core.*;
-import io.bitcoinj.ecc.ECDSA;
-import io.bitcoinj.ecc.ECDSASignature;
-import io.bitcoinj.ecc.TransactionSignature;
-import io.bitcoinj.msg.Genesis_legacy;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.msg.protocol.TransactionInput;
-import io.bitcoinj.msg.protocol.TransactionOutput;
-import io.bitcoinj.msg.protocol.TxHelper;
-import io.bitcoinj.params.*;
-import io.bitcoinj.script.*;
+import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.ecc.ECDSA;
+import io.bitcoinsv.bitcoinjsv.ecc.ECDSASignature;
+import io.bitcoinsv.bitcoinjsv.ecc.TransactionSignature;
+import io.bitcoinsv.bitcoinjsv.msg.Genesis_legacy;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionInput;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionOutput;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.params.MainNetParams;
+import io.bitcoinsv.bitcoinjsv.params.Net;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.script.Script;
+import io.bitcoinsv.bitcoinjsv.script.ScriptBuilder;
+import io.bitcoinsv.bitcoinjsv.script.ScriptChunk;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
 import org.bitcoinj.moved.wallet.DefaultRiskAnalysis.*;
 import org.junit.*;
 
 import java.util.*;
 
-import static io.bitcoinj.core.Coin.*;
-import static io.bitcoinj.script.ScriptOpCodes.*;
+import static io.bitcoinsv.bitcoinjsv.core.Coin.*;
+import static io.bitcoinsv.bitcoinjsv.script.ScriptOpCodes.*;
 import static org.junit.Assert.*;
 
 public class DefaultRiskAnalysisTest {

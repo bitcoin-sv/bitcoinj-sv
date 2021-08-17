@@ -16,10 +16,10 @@
 
 package org.bitcoinj.moved.wallet.listeners;
 
-import io.bitcoinj.core.listeners.TransactionConfidenceEventListener;
-import io.bitcoinj.temp.listener.KeyChainEventListener;
-import io.bitcoinj.temp.listener.ScriptsChangeEventListener;
-import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
+import io.bitcoinsv.bitcoinjsv.core.listeners.TransactionConfidenceEventListener;
+import io.bitcoinsv.bitcoinjsv.temp.listener.KeyChainEventListener;
+import io.bitcoinsv.bitcoinjsv.temp.listener.ScriptsChangeEventListener;
+import io.bitcoinsv.bitcoinjsv.temp.listener.WalletCoinsReceivedEventListener;
 
 /**
  * <p>Common interface for wallet changes and transactions.</p>

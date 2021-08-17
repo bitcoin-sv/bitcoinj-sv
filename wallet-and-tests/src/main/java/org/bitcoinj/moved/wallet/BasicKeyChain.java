@@ -16,15 +16,15 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.msg.p2p.BloomFilter;
-import io.bitcoinj.core.ECKey;
-import io.bitcoinj.crypto.*;
-import io.bitcoinj.protos.Protos;
-import io.bitcoinj.temp.KeyChain;
-import io.bitcoinj.temp.KeyPurpose;
-import io.bitcoinj.utils.ListenerRegistration;
-import io.bitcoinj.utils.Threading;
-import io.bitcoinj.temp.listener.KeyChainEventListener;
+import io.bitcoinsv.bitcoinjsv.crypto.*;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.BloomFilter;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.protos.Protos;
+import io.bitcoinsv.bitcoinjsv.temp.KeyChain;
+import io.bitcoinsv.bitcoinjsv.temp.KeyPurpose;
+import io.bitcoinsv.bitcoinjsv.utils.ListenerRegistration;
+import io.bitcoinsv.bitcoinjsv.utils.Threading;
+import io.bitcoinsv.bitcoinjsv.temp.listener.KeyChainEventListener;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -437,7 +437,7 @@ public class BasicKeyChain implements EncryptableKeyChain {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Convenience wrapper around {@link #toEncrypted(io.bitcoinj.crypto.KeyCrypter,
+     * Convenience wrapper around {@link #toEncrypted(KeyCrypter,
      * org.spongycastle.crypto.params.KeyParameter)} which uses the default Scrypt key derivation algorithm and
      * parameters, derives a key from the given password and returns the created key.
      */
@@ -452,7 +452,7 @@ public class BasicKeyChain implements EncryptableKeyChain {
 
     /**
      * Encrypt the wallet using the KeyCrypter and the AES key. A good default KeyCrypter to use is
-     * {@link io.bitcoinj.crypto.KeyCrypterScrypt}.
+     * {@link KeyCrypterScrypt}.
      *
      * @param keyCrypter The KeyCrypter that specifies how to encrypt/ decrypt a key
      * @param aesKey AES key to use (normally created using KeyCrypter#deriveKey and cached as it is time consuming

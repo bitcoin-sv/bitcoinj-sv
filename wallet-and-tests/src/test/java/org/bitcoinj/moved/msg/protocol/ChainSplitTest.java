@@ -17,28 +17,28 @@
 
 package org.bitcoinj.moved.msg.protocol;
 
-import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import io.bitcoinj.core.*;
-import io.bitcoinj.core.listeners.TransactionConfidenceEventListener;
-import io.bitcoinj.core.TransactionConfidence.ConfidenceType;
-import io.bitcoinj.msg.Genesis_legacy;
-import io.bitcoinj.msg.Serializer;
-import io.bitcoinj.msg.p2p.PeerAddress;
-import io.bitcoinj.msg.protocol.Block;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.msg.protocol.TxHelper;
-import io.bitcoinj.params.Net;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.params.UnitTestParams;
-import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
-import io.bitcoinj.temp.TransactionBag;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.core.listeners.TransactionConfidenceEventListener;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence.ConfidenceType;
+import io.bitcoinsv.bitcoinjsv.msg.Genesis_legacy;
+import io.bitcoinsv.bitcoinjsv.msg.Serializer;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.PeerAddress;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Block;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.params.Net;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.params.UnitTestParams;
+import io.bitcoinsv.bitcoinjsv.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinsv.bitcoinjsv.temp.TransactionBag;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
-import io.bitcoinj.utils.BriefLogFormatter;
-import io.bitcoinj.utils.Threading;
+import io.bitcoinsv.bitcoinjsv.utils.BriefLogFormatter;
+import io.bitcoinsv.bitcoinjsv.utils.Threading;
 import org.bitcoinj.moved.wallet.Wallet;
-import io.bitcoinj.temp.WalletTransaction;
+import io.bitcoinsv.bitcoinjsv.temp.WalletTransaction;
 import org.bitcoinj.moved.wallet.listeners.WalletChangeEventListener;
-import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
+import io.bitcoinsv.bitcoinjsv.temp.listener.WalletCoinsReceivedEventListener;
 import org.bitcoinj.moved.wallet.listeners.WalletReorganizeEventListener;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.bitcoinj.core.Coin.*;
+import static io.bitcoinsv.bitcoinjsv.core.Coin.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 

@@ -16,15 +16,15 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.msg.p2p.BloomFilter;
-import io.bitcoinj.core.ECKey;
-import io.bitcoinj.core.Utils;
-import io.bitcoinj.crypto.KeyCrypter;
-import io.bitcoinj.crypto.KeyCrypterException;
-import io.bitcoinj.crypto.KeyCrypterScrypt;
-import io.bitcoinj.protos.Protos;
-import io.bitcoinj.temp.KeyPurpose;
-import io.bitcoinj.utils.Threading;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.BloomFilter;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.crypto.KeyCrypter;
+import io.bitcoinsv.bitcoinjsv.crypto.KeyCrypterException;
+import io.bitcoinsv.bitcoinjsv.crypto.KeyCrypterScrypt;
+import io.bitcoinsv.bitcoinjsv.protos.Protos;
+import io.bitcoinsv.bitcoinjsv.temp.KeyPurpose;
+import io.bitcoinsv.bitcoinjsv.utils.Threading;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
