@@ -17,21 +17,21 @@
 
 package org.bitcoinj.moved.msg.protocol;
 
-import io.bitcoinj.blockchain.AbstractBlockChain;
-import io.bitcoinj.chain_legacy.AbstractBlockChain_legacy;
-import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import io.bitcoinj.chain_legacy.StoredBlock_legacy;
-import io.bitcoinj.core.*;
-import io.bitcoinj.exception.VerificationException;
-import io.bitcoinj.msg.Genesis_legacy;
-import io.bitcoinj.msg.protocol.Block;
-import io.bitcoinj.msg.protocol.DefaultMsgAccessors;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.params.*;
-import io.bitcoinj.store_legacy.BlockStore_legacy;
-import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinsv.bitcoinjsv.blockchain.AbstractBlockChain;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.AbstractBlockChain_legacy;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.StoredBlock_legacy;
+import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.exception.VerificationException;
+import io.bitcoinsv.bitcoinjsv.msg.Genesis_legacy;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Block;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.DefaultMsgAccessors;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.params.*;
+import io.bitcoinsv.bitcoinjsv.store_legacy.BlockStore_legacy;
+import io.bitcoinsv.bitcoinjsv.store_legacy.MemoryBlockStore_legacy;
 import org.bitcoinj.moved.testing.FakeTxBuilder;
-import io.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinsv.bitcoinjsv.utils.BriefLogFormatter;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.Wallet.BalanceType;
 
@@ -47,7 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import static io.bitcoinj.core.Coin.*;
+import static io.bitcoinsv.bitcoinjsv.core.Coin.*;
 import static org.bitcoinj.moved.testing.FakeTxBuilder.createFakeBlock;
 import static org.bitcoinj.moved.testing.FakeTxBuilder.createFakeTx;
 import static org.junit.Assert.*;

@@ -16,8 +16,10 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.crypto.*;
-import io.bitcoinj.protos.Protos;
+import io.bitcoinsv.bitcoinjsv.crypto.DeterministicKey;
+import io.bitcoinsv.bitcoinjsv.crypto.HDUtils;
+import io.bitcoinsv.bitcoinjsv.crypto.KeyCrypter;
+import io.bitcoinsv.bitcoinjsv.protos.Protos;
 
 /**
  * Default factory for creating keychains while de-serializing.

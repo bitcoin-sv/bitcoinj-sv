@@ -16,17 +16,17 @@
 
 package org.bitcoinj.moved.testing;
 
-import io.bitcoinj.blockchain.AbstractBlockChain;
-import io.bitcoinj.chain_legacy.SPVBlockChain_legacy;
-import io.bitcoinj.core.*;
-import io.bitcoinj.exception.VerificationException;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.params.Net;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.params.UnitTestParams;
-import io.bitcoinj.store_legacy.BlockStore_legacy;
-import io.bitcoinj.store_legacy.MemoryBlockStore_legacy;
-import io.bitcoinj.utils.BriefLogFormatter;
+import io.bitcoinsv.bitcoinjsv.blockchain.AbstractBlockChain;
+import io.bitcoinsv.bitcoinjsv.chain_legacy.SPVBlockChain_legacy;
+import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.exception.VerificationException;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.params.Net;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.params.UnitTestParams;
+import io.bitcoinsv.bitcoinjsv.store_legacy.BlockStore_legacy;
+import io.bitcoinsv.bitcoinjsv.store_legacy.MemoryBlockStore_legacy;
+import io.bitcoinsv.bitcoinjsv.utils.BriefLogFormatter;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import javax.annotation.Nullable;

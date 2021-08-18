@@ -16,11 +16,11 @@
 
 package org.bitcoinj.moved.wallet.listeners;
 
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.core.ECKey;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.script.Script;
-import io.bitcoinj.temp.TransactionBag;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.script.Script;
+import io.bitcoinsv.bitcoinjsv.temp.TransactionBag;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import java.util.List;

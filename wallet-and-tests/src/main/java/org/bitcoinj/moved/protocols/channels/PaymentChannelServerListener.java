@@ -17,12 +17,12 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.TransactionBroadcaster;
-import io.bitcoinj.net.NioServer;
-import io.bitcoinj.net.ProtobufConnection;
-import io.bitcoinj.net.StreamConnectionFactory;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.TransactionBroadcaster;
+import io.bitcoinsv.bitcoinjsv.net.NioServer;
+import io.bitcoinsv.bitcoinjsv.net.ProtobufConnection;
+import io.bitcoinsv.bitcoinjsv.net.StreamConnectionFactory;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.util.concurrent.ListenableFuture;

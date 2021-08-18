@@ -14,7 +14,9 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import io.bitcoinj.core.*;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import org.bitcoinj.moved.wallet.Wallet;
 import org.bitcoinj.moved.wallet.WalletExtension;
 import org.bitcoin.paymentchannel.Protos;

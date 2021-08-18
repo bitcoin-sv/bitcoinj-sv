@@ -17,8 +17,8 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.core.*;
-import io.bitcoinj.utils.*;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.utils.ContextPropagatingThreadFactory;
 import org.slf4j.*;
 
 import com.google.common.base.Stopwatch;

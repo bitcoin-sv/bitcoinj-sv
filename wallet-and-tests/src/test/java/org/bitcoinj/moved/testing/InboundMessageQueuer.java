@@ -15,12 +15,12 @@
 package org.bitcoinj.moved.testing;
 
 import com.google.common.util.concurrent.SettableFuture;
-import io.bitcoinj.core.Peer;
-import io.bitcoinj.core.PeerSocketHandler;
-import io.bitcoinj.msg.Message;
-import io.bitcoinj.msg.p2p.BloomFilter;
-import io.bitcoinj.msg.p2p.Ping;
-import io.bitcoinj.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.core.Peer;
+import io.bitcoinsv.bitcoinjsv.core.PeerSocketHandler;
+import io.bitcoinsv.bitcoinjsv.msg.Message;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.BloomFilter;
+import io.bitcoinsv.bitcoinjsv.msg.p2p.Ping;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;

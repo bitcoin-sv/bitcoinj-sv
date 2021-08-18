@@ -14,15 +14,15 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.msg.protocol.TxHelper;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.core.TransactionConfidence;
-import io.bitcoinj.msg.protocol.TransactionOutput;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionOutput;
 import com.google.common.annotations.VisibleForTesting;
-import io.bitcoinj.temp.CoinSelection;
-import io.bitcoinj.temp.CoinSelector;
+import io.bitcoinsv.bitcoinjsv.temp.CoinSelection;
+import io.bitcoinsv.bitcoinjsv.temp.CoinSelector;
 
 import java.math.BigInteger;
 import java.util.*;

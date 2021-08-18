@@ -17,12 +17,14 @@
 
 package org.bitcoinj.moved.protocols.payments;
 
-import io.bitcoinj.core.*;
-import io.bitcoinj.crypto.X509Utils;
-import io.bitcoinj.msg.Serializer;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.script.ScriptBuilder;
+import io.bitcoinsv.bitcoinjsv.core.Address;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.crypto.X509Utils;
+import io.bitcoinsv.bitcoinjsv.msg.Serializer;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.script.ScriptBuilder;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;

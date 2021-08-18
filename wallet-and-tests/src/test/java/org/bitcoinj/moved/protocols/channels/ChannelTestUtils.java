@@ -14,9 +14,9 @@
 
 package org.bitcoinj.moved.protocols.channels;
 
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.TransactionBroadcaster;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.TransactionBroadcaster;
 import org.bitcoinj.moved.wallet.Wallet;
 
 import com.google.common.base.Objects;

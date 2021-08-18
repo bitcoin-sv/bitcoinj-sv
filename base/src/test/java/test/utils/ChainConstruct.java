@@ -1,18 +1,15 @@
 package test.utils;
 
-import io.bitcoinj.bitcoin.Genesis;
-import io.bitcoinj.bitcoin.api.base.*;
-import io.bitcoinj.bitcoin.api.extended.LiteBlock;
-import io.bitcoinj.bitcoin.bean.base.*;
-import io.bitcoinj.bitcoin.bean.extended.LiteBlockBean;
-import io.bitcoinj.blockchain.ChainUtils;
-import io.bitcoinj.blockchain.ChainUtilsTest;
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.core.Sha256Hash;
-import io.bitcoinj.core.Utils;
-import io.bitcoinj.params.Net;
-import io.bitcoinj.protos.Protos;
-import io.bitcoinj.script.ScriptBuilder;
+import io.bitcoinsv.bitcoinjsv.bitcoin.Genesis;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.*;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.LiteBlock;
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.*;
+import io.bitcoinsv.bitcoinjsv.bitcoin.bean.extended.LiteBlockBean;
+import io.bitcoinsv.bitcoinjsv.blockchain.ChainUtils;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
+import io.bitcoinsv.bitcoinjsv.core.Utils;
+import io.bitcoinsv.bitcoinjsv.params.Net;
 
 import java.util.Arrays;
 import java.util.Random;

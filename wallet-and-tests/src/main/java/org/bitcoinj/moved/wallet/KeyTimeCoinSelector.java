@@ -16,15 +16,17 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.core.*;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.msg.protocol.TransactionOutput;
-import io.bitcoinj.msg.protocol.TxHelper;
-import io.bitcoinj.script.Script;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionOutput;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.script.Script;
 import com.google.common.collect.Lists;
-import io.bitcoinj.script.interpreter.ScriptExecutionException;
-import io.bitcoinj.temp.CoinSelection;
-import io.bitcoinj.temp.CoinSelector;
+import io.bitcoinsv.bitcoinjsv.script.interpreter.ScriptExecutionException;
+import io.bitcoinsv.bitcoinjsv.temp.CoinSelection;
+import io.bitcoinsv.bitcoinjsv.temp.CoinSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

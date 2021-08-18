@@ -15,10 +15,10 @@
 package org.bitcoinj.moved.core;
 
 import org.bitcoinj.moved.msg.protocol.AbstractFullPrunedBlockChainIT;
-import io.bitcoinj.exception.BlockStoreException;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.store_legacy.FullPrunedBlockStore;
-import io.bitcoinj.store_legacy.MemoryFullPrunedBlockStore;
+import io.bitcoinsv.bitcoinjsv.exception.BlockStoreException;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.store_legacy.FullPrunedBlockStore;
+import io.bitcoinsv.bitcoinjsv.store_legacy.MemoryFullPrunedBlockStore;
 import org.junit.Ignore;
 
 /**

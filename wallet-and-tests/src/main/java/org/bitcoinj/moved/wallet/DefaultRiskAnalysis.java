@@ -17,16 +17,16 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.ecc.ECDSASignature;
-import io.bitcoinj.msg.protocol.TxHelper;
-import io.bitcoinj.params.NetworkParameters;
-import io.bitcoinj.msg.protocol.Transaction;
-import io.bitcoinj.core.TransactionConfidence;
-import io.bitcoinj.msg.protocol.TransactionInput;
-import io.bitcoinj.msg.protocol.TransactionOutput;
-import io.bitcoinj.ecc.TransactionSignature;
-import io.bitcoinj.script.ScriptChunk;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.ecc.ECDSASignature;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TxHelper;
+import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.core.TransactionConfidence;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionInput;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.TransactionOutput;
+import io.bitcoinsv.bitcoinjsv.ecc.TransactionSignature;
+import io.bitcoinsv.bitcoinjsv.script.ScriptChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

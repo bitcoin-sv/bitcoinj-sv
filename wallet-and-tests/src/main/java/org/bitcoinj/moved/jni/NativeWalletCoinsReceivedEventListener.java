@@ -16,10 +16,10 @@
 
 package org.bitcoinj.moved.jni;
 
-import io.bitcoinj.temp.TransactionBag;
-import io.bitcoinj.temp.listener.WalletCoinsReceivedEventListener;
-import io.bitcoinj.core.Coin;
-import io.bitcoinj.msg.protocol.Transaction;
+import io.bitcoinsv.bitcoinjsv.temp.TransactionBag;
+import io.bitcoinsv.bitcoinjsv.temp.listener.WalletCoinsReceivedEventListener;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.msg.protocol.Transaction;
 
 /**
  * An event listener that relays events to a native C++ object. A pointer to that object is stored in

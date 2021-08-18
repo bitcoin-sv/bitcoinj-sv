@@ -14,9 +14,10 @@
 
 package org.bitcoinj.moved.jni;
 
-import io.bitcoinj.core.*;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
+import io.bitcoinsv.bitcoinjsv.core.Coin;
+import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import org.bitcoinj.moved.protocols.channels.PaymentChannelCloseException;
 import org.bitcoinj.moved.protocols.channels.ServerConnectionEventHandler;
 

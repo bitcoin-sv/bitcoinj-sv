@@ -16,9 +16,9 @@
 
 package org.bitcoinj.moved.wallet;
 
-import io.bitcoinj.core.ECKey;
-import io.bitcoinj.temp.KeyBag;
-import io.bitcoinj.temp.RedeemData;
+import io.bitcoinsv.bitcoinjsv.core.ECKey;
+import io.bitcoinsv.bitcoinjsv.temp.KeyBag;
+import io.bitcoinsv.bitcoinjsv.temp.RedeemData;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;
@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A DecryptingKeyBag filters a pre-existing key bag, decrypting keys as they are requested using the provided
- * AES key. If the keys are encrypted and no AES key provided, {@link io.bitcoinj.core.ECKey.KeyIsEncryptedException}
+ * AES key. If the keys are encrypted and no AES key provided, {@link ECKey.KeyIsEncryptedException}
  * will be thrown.
  */
 public class DecryptingKeyBag implements KeyBag {
