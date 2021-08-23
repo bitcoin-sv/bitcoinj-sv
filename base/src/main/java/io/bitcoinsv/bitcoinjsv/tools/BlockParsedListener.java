@@ -1,6 +1,5 @@
 /*
- * Author: Steve Shadders
- * © 2020 Bitcoin Association
+ * Copyright (c) 2014 Steve Shadders
  * Open BSV Licence, see the accompanying file LICENSE
  */
 package io.bitcoinsv.bitcoinjsv.tools;
