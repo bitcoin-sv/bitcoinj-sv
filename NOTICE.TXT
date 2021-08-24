@@ -19,6 +19,8 @@
             │   ├── Coin.java
             │   ├── ECKeyLite.java
             │   └── VarInt.java
+            ├── crypto
+            │   └── MnemonicCode.java
             ├── exception
             │   └── WrongNetworkException.java
             ├── params
