@@ -48,7 +48,7 @@ public class MnemonicCode {
 
     private ArrayList<String> wordList;
 
-    private static final String BIP39_ENGLISH_RESOURCE_NAME = "mnemonic/wordlist/english.txt";
+    private static final String BIP39_ENGLISH_RESOURCE_NAME = "/mnemonic/wordlist/english.txt";
     private static final String BIP39_ENGLISH_SHA256 = "ad90bf3beb7b0eb7e5acd74727dc0da96e0a280a258354e7293fb7e211ac03db";
 
     /** UNIX time for when the BIP39 standard was finalised. This can be used as a default seed birthday. */
