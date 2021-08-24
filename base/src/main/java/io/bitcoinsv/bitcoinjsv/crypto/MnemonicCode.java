@@ -1,4 +1,7 @@
 /*
+ * Modifications described in the NOTICE.txt file are licensed under the Open BSV Licence.
+ * Modifications Copyright 2020 Bitcoin Association
+ *
  * Copyright 2013 Ken Sedgwick
  * Copyright 2014 Andreas Schildbach
  *
