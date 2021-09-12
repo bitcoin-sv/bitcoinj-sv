@@ -199,6 +199,7 @@ public class Utils {
         stream.write((int) (0xFF & (val >> 56)));
     }
 
+
     public static void uint64ToByteStreamLE(BigInteger val, OutputStream stream) throws IOException {
         byte[] bytes = val.toByteArray();
         if (bytes.length > 8) {
@@ -210,6 +211,16 @@ public class Utils {
             for (int i = 0; i < 8 - bytes.length; i++)
                 stream.write(0);
         }
+    }
+
+    public static void uint16ToByteArrayLE(int val, byte[] out, int offset) {
+        out[offset] = (byte) (255L & val);
+        out[offset + 1] = (byte) (255L & val >> 8);
+    }
+
+    public static void uint16ToByteStreamLE(int val, OutputStream stream) throws IOException {
+        stream.write((0xFF & val));
+        stream.write((0xFF & (val >> 8)));
     }
 
     /**
