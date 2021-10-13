@@ -225,11 +225,28 @@ public final class Coin implements Monetary, Comparable<Coin>, Serializable {
     }
 
     /**
+     * Returns true if the monetary value represented by this instance is greater or equal than that
+     * of the given other Coin, otherwise false.
+     */
+    public boolean isGreaterOrEqualThan(Coin other) {
+        return compareTo(other) >= 0;
+    }
+
+    /**
      * Returns true if the monetary value represented by this instance is less than that
      * of the given other Coin, otherwise false.
      */
     public boolean isLessThan(Coin other) {
         return compareTo(other) < 0;
+    }
+
+
+    /**
+     * Returns true if the monetary value represented by this instance is less or equal than that
+     * of the given other Coin, otherwise false.
+     */
+    public boolean isLessOrEqualThan(Coin other) {
+        return compareTo(other) <= 0;
     }
 
     public Coin shiftLeft(final int n) {
