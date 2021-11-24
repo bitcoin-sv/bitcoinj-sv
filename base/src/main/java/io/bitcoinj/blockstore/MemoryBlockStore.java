@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Keeps {@link LiteBlock}s in memory. Used primarily for unit testing.
  */
-public class MemoryBlockStore implements BlockStore {
+public class MemoryBlockStore implements BlockStore<LiteBlock>  {
     private LinkedHashMap<Sha256Hash, LiteBlock> blockMap = new LinkedHashMap<Sha256Hash, LiteBlock>() {
         @Override
         protected boolean removeEldestEntry(Map.Entry<Sha256Hash, LiteBlock> eldest) {
@@ -54,16 +54,23 @@ public class MemoryBlockStore implements BlockStore {
     }
 
     @Override
-    public synchronized final void put(LiteBlock block) throws BlockStoreException {
+    public synchronized final Boolean put(LiteBlock block) throws BlockStoreException {
         if (blockMap == null) throw new BlockStoreException("MemoryBlockStore is closed");
         Sha256Hash hash = block.getHeader().getHash();
         blockMap.put(hash, block);
+
+        return true;
     }
 
     @Override
     public synchronized LiteBlock get(Sha256Hash hash) throws BlockStoreException {
         if (blockMap == null) throw new BlockStoreException("MemoryBlockStore is closed");
         return blockMap.get(hash);
+    }
+
+    @Override
+    public LiteBlock getPrev(LiteBlock block) throws BlockStoreException {
+        return get(block.getPrevBlockHash());
     }
 
     @Override
@@ -83,7 +90,6 @@ public class MemoryBlockStore implements BlockStore {
         blockMap = null;
     }
 
-    @Override
     public NetworkParameters getParams() {
         return params;
     }

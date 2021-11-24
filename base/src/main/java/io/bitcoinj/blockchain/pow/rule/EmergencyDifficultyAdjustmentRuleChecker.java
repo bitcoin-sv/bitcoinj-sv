@@ -1,8 +1,8 @@
 package io.bitcoinj.blockchain.pow.rule;
 
 import io.bitcoinj.blockchain.pow.AbstractPowRulesChecker;
-import io.bitcoinj.blockstore.BlockStore;
 import io.bitcoinj.blockchain.ChainUtils;
+import io.bitcoinj.blockstore.BlockStore;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.exception.VerificationException;
@@ -21,7 +21,7 @@ public class EmergencyDifficultyAdjustmentRuleChecker extends AbstractPowRulesCh
     }
 
     @Override
-    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) throws VerificationException, BlockStoreException {
+    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock>  blockStore) throws VerificationException, BlockStoreException {
 
         try {
             long lastBlocksMPTinSeconds = getMedianProducingTimeInSeconds(REFERENCE_OF_BLOCKS_PRODUCED_SIZE,
@@ -34,7 +34,7 @@ public class EmergencyDifficultyAdjustmentRuleChecker extends AbstractPowRulesCh
         }
     }
 
-    private long getMedianProducingTimeInSeconds(int sizeOfBlocks, LiteBlock storedPrev, BlockStore blockStore) throws BlockStoreException {
+    private long getMedianProducingTimeInSeconds(int sizeOfBlocks, LiteBlock storedPrev, BlockStore<LiteBlock> blockStore) throws BlockStoreException {
         LiteBlock cursor = blockStore.get(storedPrev.getHeader().getHash());
         for (int i = 0; i < sizeOfBlocks; i++) {
             if (cursor == null) {

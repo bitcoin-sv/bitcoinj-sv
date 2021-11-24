@@ -39,7 +39,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class SPVBlockChain extends AbstractBlockChain {
     /** Keeps a map of block hashes to StoredBlocks. */
-    protected final BlockStore blockStore;
+    protected final BlockStore<LiteBlock>  blockStore;
 
     /**
      * <p>Constructs a BlockChain connected to the given wallet and store.
@@ -48,19 +48,19 @@ public class SPVBlockChain extends AbstractBlockChain {
      * {@link MemoryBlockStore} if you want to hold all headers in RAM and don't care about
      * disk serialization (this is rare).</p>
      */
-    public SPVBlockChain(NetworkParameters params, ChainEventListener chainEventListener, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, ChainEventListener chainEventListener, BlockStore<LiteBlock>  blockStore) throws BlockStoreException {
         this(params, Collections.singletonList(chainEventListener), blockStore);
     }
 
     /** See {@link #SPVBlockChain(NetworkParameters, BlockStore)} */
-    public SPVBlockChain(NetworkParameters params, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, BlockStore<LiteBlock> blockStore) throws BlockStoreException {
         this(params, new ArrayList<ChainEventListener>(), blockStore);
     }
 
     /**
      * Constructs a BlockChain connected to the given list of listeners and a store.
      */
-    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener> chainEventListeners, BlockStore blockStore) throws BlockStoreException {
+    public SPVBlockChain(NetworkParameters params, List<? extends ChainEventListener> chainEventListeners, BlockStore<LiteBlock>  blockStore) throws BlockStoreException {
         super(params, chainEventListeners, blockStore);
         this.blockStore = blockStore;
     }

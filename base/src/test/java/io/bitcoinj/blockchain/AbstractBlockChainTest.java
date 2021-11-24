@@ -11,7 +11,7 @@ import io.bitcoinj.params.UnitTestParams;
 import io.bitcoinj.utils.Threading;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.utils.ChainConstruct;
+import test.utils.TestBlockGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,20 +30,20 @@ public class AbstractBlockChainTest {
 
     File blockchainDataFile;
     AbstractBlockChain blockChain;
-
+    UnitTestParams unitTestParams = UnitTestParams.get();
 
     @BeforeEach
     public void init() throws IOException, BlockStoreException {
         blockchainDataFile = File.createTempFile("testblockstore", null);
         blockchainDataFile.delete();
         blockchainDataFile.deleteOnExit();
-        blockChain = new SPVBlockChain(UnitTestParams.get(), new SPVBlockStore(UnitTestParams.get(), blockchainDataFile));
+        blockChain = new SPVBlockChain(unitTestParams, new SPVBlockStore(unitTestParams, blockchainDataFile));
     }
 
     @Test
     public void testAddBlock() throws PrunedException, BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         blockChain.add(blockOne);
 
@@ -54,8 +54,8 @@ public class AbstractBlockChainTest {
 
     @Test
     public void testDrainOrphanBlocks() throws PrunedException {
-        LiteBlock orhanBlock = ChainConstruct.orphanBlock(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock nextOrphanBlock = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), orhanBlock);
+        LiteBlock orhanBlock = TestBlockGenerator.orphanBlock(unitTestParams.getNet());
+        LiteBlock nextOrphanBlock = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), orhanBlock);
 
         blockChain.add(orhanBlock);
         blockChain.add(nextOrphanBlock);
@@ -70,10 +70,10 @@ public class AbstractBlockChainTest {
 
     @Test
     public void testBestChainHeight() throws PrunedException, BlockStoreException{
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOneChainOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
-        LiteBlock blockTwoChainOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), blockOneChainOne);
-        LiteBlock blockOneChainTwo = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOneChainOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
+        LiteBlock blockTwoChainOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), blockOneChainOne);
+        LiteBlock blockOneChainTwo = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
 
         blockChain.add(blockOneChainOne);
@@ -87,10 +87,10 @@ public class AbstractBlockChainTest {
 
     @Test
     public void testBestchainHead() throws PrunedException, BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOneChainOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
-        LiteBlock blockTwoChainOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), blockOneChainOne);
-        LiteBlock blockOneChainTwo = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOneChainOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
+        LiteBlock blockTwoChainOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), blockOneChainOne);
+        LiteBlock blockOneChainTwo = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
 
         blockChain.add(blockOneChainOne);
@@ -107,8 +107,8 @@ public class AbstractBlockChainTest {
 
     @Test
     public void testFutureHeightCallback() throws PrunedException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         AtomicBoolean heightFutureTriggered = new AtomicBoolean();
 
@@ -122,9 +122,9 @@ public class AbstractBlockChainTest {
 
     @Test
     public void testNewBestBlockListener() throws PrunedException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
-        LiteBlock blockTwo = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), blockOne);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
+        LiteBlock blockTwo = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), blockOne);
 
         AtomicBoolean newBestBlockTriggered = new AtomicBoolean();
 
