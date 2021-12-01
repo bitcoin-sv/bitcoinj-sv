@@ -1,6 +1,7 @@
 package io.bitcoinj.blockchain;
 
 import io.bitcoinj.blockstore.BlockStore;
+import io.bitcoinj.core.Sha256Hash;
 import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.exception.VerificationException;
 import io.bitcoinj.bitcoin.api.extended.LiteBlock;
@@ -34,8 +35,7 @@ public class ChainUtils {
     /**
      * Gets the median timestamp of the last 11 blocks
      */
-    public static long getMedianTimestampOfRecentBlocks(LiteBlock storedBlock,
-                                                         BlockStore store) throws BlockStoreException {
+    public static long getMedianTimestampOfRecentBlocks(LiteBlock storedBlock, BlockStore<LiteBlock>  store) throws BlockStoreException {
         long[] timestamps = new long[11];
         int unused = 9;
         timestamps[10] = storedBlock.getHeader().getTime();

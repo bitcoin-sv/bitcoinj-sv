@@ -22,7 +22,7 @@ public class MinimalDifficultyRuleChecker extends AbstractPowRulesChecker {
     }
 
     @Override
-    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) throws VerificationException, BlockStoreException {
+    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock> blockStore) throws VerificationException, BlockStoreException {
         LiteBlock prevBlock = storedPrev;
         if (isPeriodExceed(prevBlock, nextBlock)) {
             checkMinimalDifficultyIsSet(nextBlock);

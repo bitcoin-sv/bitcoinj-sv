@@ -1,7 +1,7 @@
 package io.bitcoinj.blockchain.pow.rule;
 
-import io.bitcoinj.blockstore.BlockStore;
 import io.bitcoinj.blockchain.pow.AbstractPowRulesChecker;
+import io.bitcoinj.blockstore.BlockStore;
 import io.bitcoinj.core.Utils;
 import io.bitcoinj.core.Verification;
 import io.bitcoinj.exception.BlockStoreException;
@@ -18,7 +18,7 @@ public class DifficultyTransitionPointRuleChecker extends AbstractPowRulesChecke
     }
 
     @Override
-    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) throws VerificationException, BlockStoreException {
+    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock> blockStore) throws VerificationException, BlockStoreException {
 
         LiteBlock prevBlock = storedPrev;
 
@@ -29,7 +29,7 @@ public class DifficultyTransitionPointRuleChecker extends AbstractPowRulesChecke
         Verification.verifyDifficulty(networkParameters, newTarget, nextBlock);
     }
 
-    private LiteBlock findLastBlockInterval(LiteBlock prevBlock, BlockStore blockStore) throws BlockStoreException {
+    private LiteBlock findLastBlockInterval(LiteBlock prevBlock, BlockStore<LiteBlock> blockStore) throws BlockStoreException {
         LiteBlock cursor = blockStore.get(prevBlock.getHash());
         for (int i = 0; i < networkParameters.getInterval() - 1; i++) {
             if (cursor == null) {

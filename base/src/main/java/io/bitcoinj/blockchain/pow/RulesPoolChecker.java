@@ -19,7 +19,7 @@ public class RulesPoolChecker extends AbstractPowRulesChecker {
     }
 
     @Override
-    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) throws VerificationException, BlockStoreException {
+    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock> blockStore) throws VerificationException, BlockStoreException {
         for (AbstractPowRulesChecker rule : rules) {
             rule.checkRules(storedPrev, nextBlock, blockStore);
         }

@@ -7,7 +7,7 @@ import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.params.UnitTestParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.utils.ChainConstruct;
+import test.utils.TestBlockGenerator;
 
 import java.io.IOException;
 
@@ -21,23 +21,24 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MemoryBlockStoreTest {
 
     BlockStore blockStore;
+    UnitTestParams unitTestParams = UnitTestParams.get();
 
     @BeforeEach
     public void init() throws IOException, BlockStoreException {
-        blockStore = new MemoryBlockStore(UnitTestParams.get());
+        blockStore = new MemoryBlockStore(unitTestParams);
     }
 
     @Test
     public void testPutAndGet() throws BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
 
         assertTrue(blockStore.get(genesisBlock.getHash()).equals(genesisBlock));
     }
 
     @Test
     public void testGetChainHeader() throws BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         blockStore.put(blockOne);
 
@@ -48,8 +49,8 @@ public class MemoryBlockStoreTest {
 
     @Test
     public void testClose() throws BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         blockStore.put(blockOne);
         blockStore.close();
@@ -63,8 +64,8 @@ public class MemoryBlockStoreTest {
 
     @Test
     public void testGetPrev() throws BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         blockStore.put(blockOne);
 

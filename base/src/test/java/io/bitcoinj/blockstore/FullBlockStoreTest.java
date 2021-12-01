@@ -2,13 +2,11 @@ package io.bitcoinj.blockstore;
 
 import io.bitcoinj.bitcoin.Genesis;
 import io.bitcoinj.bitcoin.api.base.FullBlock;
-import io.bitcoinj.bitcoin.api.extended.LiteBlock;
 import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.params.UnitTestParams;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.utils.ChainConstruct;
+import test.utils.TestBlockGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +38,7 @@ public class FullBlockStoreTest {
     @Test
     public void testPutAndGet() {
         FullBlock genesisBlock = Genesis.getFor(UnitTestParams.get().getNet());
-        FullBlock blockOne = ChainConstruct.nextFullBlock(UnitTestParams.get().getNet(), genesisBlock, true);
+        FullBlock blockOne = TestBlockGenerator.nextFullBlock(UnitTestParams.get().getNet(), genesisBlock, true);
 
         blockStore.putBlock(genesisBlock);
         blockStore.putBlock(blockOne);
@@ -51,7 +49,7 @@ public class FullBlockStoreTest {
     @Test
     public void testDelete() {
         FullBlock genesisBlock = Genesis.getFor(UnitTestParams.get().getNet());
-        FullBlock blockOne = ChainConstruct.nextFullBlock(UnitTestParams.get().getNet(), genesisBlock, true);
+        FullBlock blockOne = TestBlockGenerator.nextFullBlock(UnitTestParams.get().getNet(), genesisBlock, true);
 
         blockStore.putBlock(genesisBlock);
         blockStore.putBlock(blockOne);
@@ -64,7 +62,7 @@ public class FullBlockStoreTest {
     @Test
     public void testHasBlock() {
         FullBlock genesisBlock = Genesis.getFor(UnitTestParams.get().getNet());
-        FullBlock blockOne = ChainConstruct.nextFullBlock(UnitTestParams.get().getNet(), genesisBlock, true);
+        FullBlock blockOne = TestBlockGenerator.nextFullBlock(UnitTestParams.get().getNet(), genesisBlock, true);
 
         blockStore.putBlock(genesisBlock);
         blockStore.putBlock(blockOne);

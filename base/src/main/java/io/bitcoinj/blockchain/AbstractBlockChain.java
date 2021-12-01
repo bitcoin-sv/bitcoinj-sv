@@ -93,7 +93,7 @@ public abstract class AbstractBlockChain {
     protected final ReentrantLock lock = Threading.lock("blockchain");
 
     /** Keeps a map of block hashes to StoredBlocks. */
-    private final BlockStore blockStore;
+    private final BlockStore<LiteBlock>  blockStore;
 
     /**
      * Tracks the top of the best known chain.<p>
@@ -143,7 +143,7 @@ public abstract class AbstractBlockChain {
      * Constructs a BlockChain connected to the given list of listeners (eg, wallets) and a store.
      */
     public AbstractBlockChain(NetworkParameters params, List<? extends ChainEventListener> wallets,
-                              BlockStore blockStore) throws BlockStoreException {
+                              BlockStore<LiteBlock> blockStore) throws BlockStoreException {
         this.blockStore = blockStore;
         chainHead = blockStore.getChainHead();
         log.info("chain head is at height {}:\n{}", chainHead.getChainInfo().getHeight(), chainHead.getHeader());
@@ -539,7 +539,7 @@ public abstract class AbstractBlockChain {
     /**
      * Returns the set of contiguous blocks between 'higher' and 'lower'. Higher is included, lower is not.
      */
-    private static LinkedList<LiteBlock> getPartialChain(LiteBlock higher, LiteBlock lower, BlockStore store) throws BlockStoreException {
+    private static LinkedList<LiteBlock> getPartialChain(LiteBlock higher, LiteBlock lower, BlockStore<LiteBlock>  store) throws BlockStoreException {
         checkArgument(higher.getChainInfo().getHeight() > lower.getChainInfo().getHeight(), "higher and lower are reversed");
         LinkedList<LiteBlock> results = new LinkedList<>();
         LiteBlock cursor = higher;
@@ -558,7 +558,7 @@ public abstract class AbstractBlockChain {
      * but are part of the same chain.
      */
     private static LiteBlock findSplit(LiteBlock newChainHead, LiteBlock oldChainHead,
-                                         BlockStore store) throws BlockStoreException {
+                                       BlockStore<LiteBlock>  store) throws BlockStoreException {
         LiteBlock currentChainCursor = oldChainHead;
         LiteBlock newChainCursor = newChainHead;
         // Loop until we find the block both chains have in common. Example:

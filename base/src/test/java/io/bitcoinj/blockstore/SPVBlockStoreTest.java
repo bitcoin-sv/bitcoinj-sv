@@ -3,12 +3,11 @@ package io.bitcoinj.blockstore;
 
 import io.bitcoinj.bitcoin.Genesis;
 import io.bitcoinj.bitcoin.api.extended.LiteBlock;
-import io.bitcoinj.blockchain.SPVBlockChain;
 import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.params.UnitTestParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.utils.ChainConstruct;
+import test.utils.TestBlockGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,18 +23,19 @@ public class SPVBlockStoreTest {
 
     File blockchainDataFile;
     BlockStore blockStore;
+    UnitTestParams unitTestParams = UnitTestParams.get();
 
     @BeforeEach
     public void init() throws IOException, BlockStoreException {
         blockchainDataFile = File.createTempFile("testblockstore", null);
         blockchainDataFile.delete();
         blockchainDataFile.deleteOnExit();
-        blockStore = new SPVBlockStore(UnitTestParams.get(), blockchainDataFile);
+        blockStore = new SPVBlockStore(unitTestParams, blockchainDataFile);
     }
 
     @Test
     public void testPutAndGet() throws BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
 
         blockStore.put(genesisBlock);
 
@@ -44,8 +44,8 @@ public class SPVBlockStoreTest {
 
     @Test
     public void testGetChainHeader() throws BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         blockStore.put(genesisBlock);
         blockStore.put(blockOne);
@@ -57,8 +57,8 @@ public class SPVBlockStoreTest {
 
     @Test
     public void testClose() throws BlockStoreException, IOException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         blockStore.put(blockOne);
         blockStore.close();

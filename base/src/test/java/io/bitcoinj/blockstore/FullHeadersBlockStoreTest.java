@@ -6,7 +6,7 @@ import io.bitcoinj.exception.BlockStoreException;
 import io.bitcoinj.params.UnitTestParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.utils.ChainConstruct;
+import test.utils.TestBlockGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class FullHeadersBlockStoreTest {
     @Test
     public void testPutAndGet() throws BlockStoreException, IOException {
         LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
 
         blockStore.put(genesisBlock);
         blockStore.put(blockOne);
@@ -60,7 +60,7 @@ public class FullHeadersBlockStoreTest {
     @Test
     public void testGetChainHeader() throws BlockStoreException, IOException {
         LiteBlock genesisBlock = Genesis.getHeaderFor(blockStore.getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(blockStore.getParams().getNet(), genesisBlock);
 
         blockStore.put(genesisBlock);
         blockStore.put(blockOne);
