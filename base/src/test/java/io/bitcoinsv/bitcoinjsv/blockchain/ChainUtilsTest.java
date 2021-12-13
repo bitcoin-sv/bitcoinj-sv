@@ -9,7 +9,7 @@ import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 import io.bitcoinsv.bitcoinjsv.params.UnitTestParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.utils.ChainConstruct;
+import test.utils.TestBlockGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,11 +26,10 @@ public class ChainUtilsTest {
 
     File blockchainDataFile;
     AbstractBlockChain blockChain;
-
+    NetworkParameters params = UnitTestParams.get();
 
     @BeforeEach
     public void init() throws IOException, BlockStoreException {
-        NetworkParameters params = UnitTestParams.get();
         blockchainDataFile = File.createTempFile("testblockstore", null);
         blockchainDataFile.delete();
         blockchainDataFile.deleteOnExit();
@@ -40,9 +39,9 @@ public class ChainUtilsTest {
 
     @Test
     public void testIsMoreWorkThan() throws PrunedException, BlockStoreException, IOException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOneChainOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
-        LiteBlock blockOneChainTwo = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(params.getNet());
+        LiteBlock blockOneChainOne = TestBlockGenerator.nextLiteBlock(params.getNet(), genesisBlock);
+        LiteBlock blockOneChainTwo = TestBlockGenerator.nextLiteBlock(params.getNet(), genesisBlock);
 
         blockOneChainOne.getChainInfo().setChainWork(BigInteger.ONE);
         blockOneChainTwo.getChainInfo().setChainWork(BigInteger.TWO);

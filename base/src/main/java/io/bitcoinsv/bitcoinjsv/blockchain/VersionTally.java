@@ -97,7 +97,7 @@ public class VersionTally {
      * @param blockStore block store to load blocks from.
      * @param chainHead current chain tip.
      */
-    public void initialize(final BlockStore blockStore, final LiteBlock chainHead)
+    public void initialize(final BlockStore<LiteBlock> blockStore, final LiteBlock chainHead)
         throws BlockStoreException {
         LiteBlock versionBlock = chainHead;
         final Stack<Long> versions = new Stack<Long>();

@@ -50,7 +50,7 @@ import static com.google.common.base.Preconditions.*;
  * may not be able to process very deep re-orgs and could be disconnected from the chain (requiring a replay),
  * but as they are virtually unheard of this is not a significant risk.
  */
-public class SPVBlockStore implements BlockStore {
+public class SPVBlockStore implements BlockStore<LiteBlock>  {
     private static final Logger log = LoggerFactory.getLogger(SPVBlockStore.class);
 
     /** The default number of headers that will be stored in the ring buffer. */
@@ -168,7 +168,7 @@ public class SPVBlockStore implements BlockStore {
     }
 
     @Override
-    public void put(LiteBlock block) throws BlockStoreException {
+    public Boolean put(LiteBlock block) throws BlockStoreException {
         final MappedByteBuffer buffer = this.buffer;
         if (buffer == null) throw new BlockStoreException("Store closed");
 
@@ -187,6 +187,8 @@ public class SPVBlockStore implements BlockStore {
             setRingCursor(buffer, buffer.position());
             blockCache.put(hash, block);
         } finally { lock.unlock(); }
+
+        return true;
     }
 
     @Override
@@ -236,6 +238,11 @@ public class SPVBlockStore implements BlockStore {
         } catch (ProtocolException e) {
             throw new RuntimeException(e);  // Cannot happen.
         } finally { lock.unlock(); }
+    }
+
+    @Override
+    public LiteBlock getPrev(LiteBlock block) throws BlockStoreException {
+        return get(block.getPrevBlockHash());
     }
 
     protected LiteBlock lastChainHead = null;
@@ -290,7 +297,6 @@ public class SPVBlockStore implements BlockStore {
         }
     }
 
-    @Override
     public NetworkParameters getParams() {
         return params;
     }

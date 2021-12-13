@@ -34,7 +34,7 @@ public class NewDifficultyAdjustmentAlgorithmRulesChecker extends AbstractPowRul
     }
 
     @Override
-    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) throws VerificationException, BlockStoreException {
+    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock> blockStore) throws VerificationException {
         checkNextCashWorkRequired(storedPrev, nextBlock, blockStore);
     }
 
@@ -47,7 +47,7 @@ public class NewDifficultyAdjustmentAlgorithmRulesChecker extends AbstractPowRul
      * block. Because timestamps are the least trustworthy information we have as
      * input, this ensures the algorithm is more resistant to malicious inputs.
      */
-    private void checkNextCashWorkRequired(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) {
+    private void checkNextCashWorkRequired(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock>  blockStore) {
         int prevHeight = storedPrev.getChainInfo().getHeight();
         Preconditions.checkState(prevHeight >= networkParameters.getInterval());
 
@@ -68,7 +68,7 @@ public class NewDifficultyAdjustmentAlgorithmRulesChecker extends AbstractPowRul
      * To reduce the impact of timestamp manipulation, we select the block we are
      * basing our computation on via a median of 3.
      */
-    private LiteBlock GetMostSuitableBlock(LiteBlock pindex, BlockStore blockStore) throws BlockStoreException {
+    private LiteBlock GetMostSuitableBlock(LiteBlock pindex, BlockStore<LiteBlock>  blockStore) throws BlockStoreException {
         /**
          * In order to avoid a block is a very skewed timestamp to have too much
          * influence, we select the median of the 3 top most blocks as a starting
@@ -109,7 +109,7 @@ public class NewDifficultyAdjustmentAlgorithmRulesChecker extends AbstractPowRul
         return blocks[1];
     }
 
-    private LiteBlock getFirst(LiteBlock storedPrev, BlockStore blockStore) throws BlockStoreException {
+    private LiteBlock getFirst(LiteBlock storedPrev, BlockStore<LiteBlock>  blockStore) throws BlockStoreException {
         LiteBlock first = storedPrev;
         for (int i = AVERAGE_BLOCKS_PER_DAY; i > 0; --i) {
             first = blockStore.getPrev(first);

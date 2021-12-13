@@ -48,8 +48,8 @@ public class ExampleHeaderChain {
 
         FullBlockStore.initMemoryOnly(params);
 
-        BlockStore storeCb = null;
-        BlockStore storeHeadersOnly = null;
+        BlockStore<LiteBlock>  storeCb = null;
+        BlockStore<LiteBlock>  storeHeadersOnly = null;
         try {
             storeHeadersOnly = new FullHeadersBlockStore(params.getNet(), new File(dataDir, "spv-file-block-store-ho"), storeCoinbases, deleteDirs, storeTxids);
             ((FullHeadersBlockStore) storeHeadersOnly).start();

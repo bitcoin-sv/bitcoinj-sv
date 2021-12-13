@@ -21,8 +21,6 @@ package io.bitcoinsv.bitcoinjsv.blockstore;
 
 import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
 import io.bitcoinsv.bitcoinjsv.exception.BlockStoreException;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.extended.LiteBlock;
-import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
 
 /**
  * An implementor of BlockStore saves StoredBlock objects to disk. Different implementations store them in
@@ -34,43 +32,35 @@ import io.bitcoinsv.bitcoinjsv.params.NetworkParameters;
  *
  * BlockStores are thread safe.
  */
-public interface BlockStore {
+public interface BlockStore<V> {
     /**
      * Saves the given block header+extra data. The key isn't specified explicitly as it can be calculated from the
      * StoredBlock directly. Can throw if there is a problem with the underlying storage layer such as running out of
      * disk space.
      */
-    void put(LiteBlock block) throws BlockStoreException;
+    Boolean put(V value) throws BlockStoreException;
 
     /**
      * Returns the StoredBlock given a hash. The returned values block.getHash() method will be equal to the
      * parameter. If no such block is found, returns null.
      */
-    LiteBlock get(Sha256Hash hash) throws BlockStoreException;
+    V get(Sha256Hash key) throws BlockStoreException;
 
-    default LiteBlock getPrev(LiteBlock block) throws BlockStoreException {
-        return get(block.getHeader().getPrevBlockHash());
-    }
+    V getPrev(V value) throws BlockStoreException;
 
     /**
-     * Returns the {@link LiteBlock} that represents the top of the chain of greatest total work. Note that this
+     * Returns the {@link V} that represents the top of the chain of greatest total work. Note that this
      * can be arbitrarily expensive, you probably should use {@link SPVBlockChain#getChainHead()}
      * or perhaps { SPVBlockChain#getBestChainHeight()} which will run in constant time and
      * not take any heavyweight locks.
      */
-    LiteBlock getChainHead() throws BlockStoreException;
+    V getChainHead() throws BlockStoreException;
 
     /**
-     * Sets the {@link LiteBlock} that represents the top of the chain of greatest total work.
+     * Sets the {@link V} that represents the top of the chain of greatest total work.
      */
-    void setChainHead(LiteBlock chainHead) throws BlockStoreException;
+    void setChainHead(V chainHead) throws BlockStoreException;
     
     /** Closes the store. */
     void close() throws BlockStoreException;
-
-    /**
-     * Get the {@link NetworkParameters} of this store.
-     * @return The network params.
-     */
-    NetworkParameters getParams();
 }
