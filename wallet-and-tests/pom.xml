@@ -22,11 +22,11 @@
     <parent>
         <groupId>io.bitcoinsv.bitcoinjsv</groupId>
         <artifactId>bitcoinj-parent</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </parent>
 
     <artifactId>bitcoinj-wallet-and-tests</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <name>bitcoinj wallet and tests</name>
     <description>A collection of useful tools that use the bitcoinj.io library to perform wallet operations
     </description>
