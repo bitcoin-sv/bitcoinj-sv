@@ -22,11 +22,11 @@
     <parent>
         <groupId>io.bitcoinsv.bitcoinjsv</groupId>
         <artifactId>bitcoinj-parent</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>bitcoinj-legacy</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.2-SNAPSHOT</version>
     <name>bitcoinj legacy project</name>
     <description>A Java Bitcoin library</description>
 
