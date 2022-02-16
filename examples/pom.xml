@@ -22,11 +22,11 @@
     <parent>
         <groupId>io.bitcoinsv.bitcoinjsv</groupId>
         <artifactId>bitcoinj-parent</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>bitcoinj-examples</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <name>bitcoinj examples</name>
     <description>A collection of examples using the bitcoinj library</description>
 

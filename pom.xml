@@ -4,7 +4,7 @@
 
     <groupId>io.bitcoinsv.bitcoinjsv</groupId>
     <artifactId>bitcoinj-parent</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <licenses>
         <license>
@@ -229,11 +229,20 @@
         </profile>
     </profiles>
     <!-- Distribution: Publish JAR FIle to NEXUS: -->
+    <!--
     <distributionManagement>
         <repository>
             <id>releases.nexus.nchain</id>
             <name>nChan Nexus Server: releases</name>
             <url>http://aire.sleepingsalmon.com:2095/repository/maven-releases</url>
+        </repository>
+    </distributionManagement>
+    -->
+    <distributionManagement>
+        <repository>
+            <id>snapshots.nexus.nchain</id>
+            <name>nChan Nexus Server: snapshots</name>
+            <url>http://aire.sleepingsalmon.com:2095/repository/maven-snapshots</url>
         </repository>
     </distributionManagement>
 </project>
