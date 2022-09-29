@@ -543,7 +543,7 @@ public class ScriptOpCodes {
      * @param value
      * @return
      */
-    static int encodeToOpN(int value) {
+    public static int encodeToOpN(int value) {
         checkArgument(value >= -1 && value <= 16, "encodeToOpN called for " + value + " which we cannot encode in an opcode.");
         if (value == 0)
             return OP_0;

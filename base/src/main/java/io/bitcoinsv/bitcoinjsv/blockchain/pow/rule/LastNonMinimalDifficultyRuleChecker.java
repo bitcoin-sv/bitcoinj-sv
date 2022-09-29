@@ -21,7 +21,7 @@ public class LastNonMinimalDifficultyRuleChecker extends AbstractPowRulesChecker
     }
 
     @Override
-    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) throws VerificationException, BlockStoreException {
+    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock>  blockStore) throws VerificationException {
         LiteBlock prevBlock = storedPrev;
         if (isUnderPeriod(prevBlock, nextBlock)) {
             checkLastNonMinimalDifficultyIsSet(storedPrev, blockStore, nextBlock);
@@ -33,7 +33,7 @@ public class LastNonMinimalDifficultyRuleChecker extends AbstractPowRulesChecker
         return timeDelta >= 0 && timeDelta <= NetworkParameters.TARGET_SPACING * 2;
     }
 
-    private void checkLastNonMinimalDifficultyIsSet(LiteBlock storedPrev, BlockStore blockStore, LiteBlock nextBlock) throws BlockStoreException {
+    private void checkLastNonMinimalDifficultyIsSet(LiteBlock storedPrev, BlockStore<LiteBlock>  blockStore, LiteBlock nextBlock) {
         try {
             LiteBlock lastNotEasiestPowBlock = findLastNotEasiestPowBlock(storedPrev, blockStore);
             if (!hasEqualDifficulty(lastNotEasiestPowBlock, nextBlock))
@@ -46,7 +46,7 @@ public class LastNonMinimalDifficultyRuleChecker extends AbstractPowRulesChecker
 
     }
 
-    private LiteBlock findLastNotEasiestPowBlock(LiteBlock storedPrev, BlockStore blockStore) throws BlockStoreException {
+    private LiteBlock findLastNotEasiestPowBlock(LiteBlock storedPrev, BlockStore<LiteBlock>  blockStore) throws BlockStoreException {
         LiteBlock cursor = storedPrev;
         BigInteger easiestDifficulty = networkParameters.getMaxTarget();
         while (!cursor.getHeader().equals(Genesis.getFor(networkParameters.getNet())) &&

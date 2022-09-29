@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Steve Shadders
  */
-public class FullHeadersBlockStore implements BlockStore {
+public class FullHeadersBlockStore implements BlockStore<LiteBlock>  {
 
     private static final Logger log = LoggerFactory.getLogger(FullHeadersBlockStore.class);
 
@@ -391,13 +391,13 @@ public class FullHeadersBlockStore implements BlockStore {
         writeMeta();
     }
 
-    public void put(LiteBlock block) throws BlockStoreException {
+    public Boolean put(LiteBlock block) throws BlockStoreException {
         fileLock.lock();
         try {
 
             LiteBlock cached = cache.put(block.getHeader().getHash(), block);
             if (cached != null) {
-                return;
+                return false;
             }
 
             //write it to disk
@@ -410,6 +410,8 @@ public class FullHeadersBlockStore implements BlockStore {
         } finally {
             fileLock.unlock();
         }
+
+        return true;
     }
 
 //    private List<Sha256Hash> readTxIdFile(int fileNum, long offset, Sha256Hash expectedHash) throws BlockStoreException {
@@ -557,6 +559,11 @@ public class FullHeadersBlockStore implements BlockStore {
         return cache.get(hash);
     }
 
+    @Override
+    public LiteBlock getPrev(LiteBlock block) throws BlockStoreException {
+        return get(block.getPrevBlockHash());
+    }
+
     public LiteBlock getChainHead() throws BlockStoreException {
         return chainHead;
     }
@@ -584,7 +591,6 @@ public class FullHeadersBlockStore implements BlockStore {
         }
     }
 
-    @Override
     public NetworkParameters getParams() {
         return net.params();
     }

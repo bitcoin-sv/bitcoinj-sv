@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * Copyright (c) 2018-2021 nChain Ltd
  * @date 19/02/2021
  */
-public class ChainConstruct {
+public class TestBlockGenerator {
 
     public static LiteBlock nextLiteBlock(Net networkParams, LiteBlock prevBlock){
         LiteBlock nextBlock = new LiteBlockBean();

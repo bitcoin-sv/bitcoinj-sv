@@ -9,7 +9,7 @@ import io.bitcoinsv.bitcoinjsv.exception.PrunedException;
 import io.bitcoinsv.bitcoinjsv.params.UnitTestParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.utils.ChainConstruct;
+import test.utils.TestBlockGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,20 +27,21 @@ public class SPVBlockChainTest {
 
     File blockchainDataFile;
     SPVBlockChain blockChain;
+    UnitTestParams unitTestParams = UnitTestParams.get();
 
     @BeforeEach
     public void init() throws IOException, BlockStoreException {
         blockchainDataFile = File.createTempFile("testblockstore", null);
         blockchainDataFile.delete();
         blockchainDataFile.deleteOnExit();
-        blockChain = new SPVBlockChain(UnitTestParams.get(), new SPVBlockStore(UnitTestParams.get(), blockchainDataFile));
+        blockChain = new SPVBlockChain(unitTestParams, new SPVBlockStore(unitTestParams, blockchainDataFile));
     }
 
     @Test
     public void testRollbackBlockStore() throws PrunedException, BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
-        LiteBlock blockTwo = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), blockOne);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
+        LiteBlock blockTwo = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), blockOne);
 
         blockChain.add(blockOne);
         blockChain.add(blockTwo);
@@ -57,8 +58,8 @@ public class SPVBlockChainTest {
 
     @Test
     public void testGetStoredBlockInCurrentScope() throws PrunedException, BlockStoreException {
-        LiteBlock genesisBlock = Genesis.getHeaderFor(blockChain.getBlockStore().getParams().getNet());
-        LiteBlock blockOne = ChainConstruct.nextLiteBlock(blockChain.getBlockStore().getParams().getNet(), genesisBlock);
+        LiteBlock genesisBlock = Genesis.getHeaderFor(unitTestParams.getNet());
+        LiteBlock blockOne = TestBlockGenerator.nextLiteBlock(unitTestParams.getNet(), genesisBlock);
 
         blockChain.add(blockOne);
 

@@ -17,4 +17,9 @@ public abstract class AbstractRuleCheckerFactory {
         return NetworkParameters.ID_TESTNET.equals(networkParameters.getId());
     }
 
+    protected boolean isRegTest() {
+        return NetworkParameters.ID_REGTEST.equals(networkParameters.getId());
+    }
+
+
 }

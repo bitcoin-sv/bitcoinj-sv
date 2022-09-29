@@ -16,7 +16,7 @@ public class MinimalDifficultyNoChangedRuleChecker extends AbstractPowRulesCheck
     }
 
     @Override
-    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore blockStore) throws VerificationException, BlockStoreException {
+    public void checkRules(LiteBlock storedPrev, LiteBlock nextBlock, BlockStore<LiteBlock>  blockStore) throws VerificationException, BlockStoreException {
         LiteBlock prevBlock = storedPrev;
         BigInteger minDifficulty = networkParameters.getMaxTarget();
 
