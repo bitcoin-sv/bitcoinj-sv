@@ -5,18 +5,14 @@
  */
 package io.bitcoinsv.bitcoinjsv.script;
 
-import io.bitcoinsv.bitcoinjsv.core.Coin;
-import io.bitcoinsv.bitcoinjsv.core.Sha256Hash;
-import io.bitcoinsv.bitcoinjsv.core.UnsafeByteArrayOutputStream;
-import io.bitcoinsv.bitcoinjsv.core.VarInt;
-import io.bitcoinsv.bitcoinjsv.ecc.TransactionSignature;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.BitcoinObject;
+import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxInput;
 import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.TxOutput;
-import io.bitcoinsv.bitcoinjsv.bitcoin.api.base.Tx;
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.BitcoinObjectImpl;
 import io.bitcoinsv.bitcoinjsv.bitcoin.bean.base.TxOutputBean;
 import io.bitcoinsv.bitcoinjsv.core.*;
+import io.bitcoinsv.bitcoinjsv.ecc.TransactionSignature;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -81,7 +77,6 @@ public class SigHash {
             byte[] hashOutputs = new byte[32];
             anyoneCanPay = (sigHashType & Flags.ANYONECANPAY.value) == Flags.ANYONECANPAY.value;
 
-            TxOutput indexedOutput = transaction.getOutputs().get(inputIndex);
             TxInput indexedInput = transaction.getInputs().get(inputIndex);
 
             if (!anyoneCanPay) {
@@ -115,6 +110,7 @@ public class SigHash {
                 }
                 hashOutputs = Sha256Hash.hashTwice(bosHashOutputs.toByteArray());
             } else if (type == Flags.SINGLE && inputIndex < transaction.getOutputs().size()) {
+                TxOutput indexedOutput = transaction.getOutputs().get(inputIndex);
                 ByteArrayOutputStream bosHashOutputs = new UnsafeByteArrayOutputStream(256);
                 Utils.uint64ToByteStreamLE(
                         BigInteger.valueOf(indexedOutput.getValue().getValue()),

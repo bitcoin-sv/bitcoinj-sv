@@ -6,11 +6,11 @@
     <parent>
         <artifactId>bitcoinj-parent</artifactId>
         <groupId>io.bitcoinsv.bitcoinjsv</groupId>
-        <version>1.0.4</version>
+        <version>1.0.4-RELEASE</version>
     </parent>
 
     <artifactId>bitcoinj-extensions</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.4-RELEASE</version>
     <packaging>jar</packaging>
 
     <build>
