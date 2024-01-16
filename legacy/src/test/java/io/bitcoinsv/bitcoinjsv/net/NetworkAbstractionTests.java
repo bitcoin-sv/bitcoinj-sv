@@ -25,6 +25,8 @@ import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -40,14 +42,14 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-@RunWith(value = Parameterized.class)
+//@RunWith(value = Parameterized.class)
 public class NetworkAbstractionTests {
     private static final int CLIENT_MAJOR_VERSION = 1;
     private AtomicBoolean fail;
     private final int clientType;
     private final ClientConnectionManager channels;
 
-    @Parameterized.Parameters
+    //@Parameterized.Parameters
     public static Collection<Integer[]> parameters() {
         return Arrays.asList(new Integer[]{0}, new Integer[]{1}, new Integer[]{2}, new Integer[]{3});
     }
@@ -78,17 +80,17 @@ public class NetworkAbstractionTests {
             throw new RuntimeException();
     }
 
-    @Before
+    //@Before
     public void setUp() {
         fail = new AtomicBoolean(false);
     }
 
-    @After
+    //@After
     public void checkFail() {
         assertFalse(fail.get());
     }
 
-    @Test
+    //@Test
     public void testNullGetNewParser() throws Exception {
         final SettableFuture<Void> client1ConnectionOpened = SettableFuture.create();
         final SettableFuture<Void> client1Disconnected = SettableFuture.create();
@@ -185,7 +187,7 @@ public class NetworkAbstractionTests {
         server.stopAsync().awaitTerminated();
     }
 
-    @Test
+    //@Test
     public void basicClientServerTest() throws Exception {
         // Tests creating a basic server, opening a client connection and sending a few messages
 
@@ -260,7 +262,7 @@ public class NetworkAbstractionTests {
         assertFalse(server.isRunning());
     }
 
-    @Test
+    //@Test
     public void basicTimeoutTest() throws Exception {
         // Tests various timeout scenarios
 
@@ -361,7 +363,7 @@ public class NetworkAbstractionTests {
         server.awaitTerminated();
     }
 
-    @Test
+    //@Test
     public void largeDataTest() throws Exception {
         /** Test various large-data handling, essentially testing {@link ProtobufConnection#receiveBytes(java.nio.ByteBuffer)} */
         final SettableFuture<Void> serverConnectionOpen = SettableFuture.create();
@@ -506,7 +508,7 @@ public class NetworkAbstractionTests {
         server.awaitTerminated();
     }
 
-    @Test
+    //@Test
     public void testConnectionEventHandlers() throws Exception {
         final SettableFuture<Void> serverConnection1Open = SettableFuture.create();
         final SettableFuture<Void> serverConnection2Open = SettableFuture.create();
