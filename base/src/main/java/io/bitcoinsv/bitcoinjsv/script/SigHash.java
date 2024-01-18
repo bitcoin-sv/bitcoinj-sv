@@ -81,7 +81,6 @@ public class SigHash {
             byte[] hashOutputs = new byte[32];
             anyoneCanPay = (sigHashType & Flags.ANYONECANPAY.value) == Flags.ANYONECANPAY.value;
 
-            TxOutput indexedOutput = transaction.getOutputs().get(inputIndex);
             TxInput indexedInput = transaction.getInputs().get(inputIndex);
 
             if (!anyoneCanPay) {
@@ -115,6 +114,7 @@ public class SigHash {
                 }
                 hashOutputs = Sha256Hash.hashTwice(bosHashOutputs.toByteArray());
             } else if (type == Flags.SINGLE && inputIndex < transaction.getOutputs().size()) {
+                TxOutput indexedOutput = transaction.getOutputs().get(inputIndex);
                 ByteArrayOutputStream bosHashOutputs = new UnsafeByteArrayOutputStream(256);
                 Utils.uint64ToByteStreamLE(
                         BigInteger.valueOf(indexedOutput.getValue().getValue()),
