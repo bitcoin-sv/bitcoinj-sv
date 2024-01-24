@@ -228,5 +228,12 @@
             </build>
         </profile>
     </profiles>
+    <distributionManagement>
+        <repository>
+            <id>github-nchain-deploy</id>
+            <name>GitHub NCH Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/nchain-research/nChain-Identity-bsvdid-bitcoinj-fork</url>
+        </repository>
+    </distributionManagement>
 </project>
 
